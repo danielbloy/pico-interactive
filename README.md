@@ -2,6 +2,12 @@
 
 TODO:
 
+## Blinka
+TODO
+
+See the directory `blinka` for how to setup your PC for easy testing. 
+Blinka is also used for running server control code that requires more memory or processing power than a Pico can give.
+
 ## License
 
 All materials provided on this site is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. To view a copy of this license, visit
