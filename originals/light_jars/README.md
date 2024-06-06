@@ -60,12 +60,3 @@ Python libraries to install
 * adafruit-circuitpython-led-animation
 * adafruit-circuitpython-neopixel
 * adafruit-requests
-
-
-
-# TODO
-* Working hours. The device needs to connect to the Internet, determine it's time 
-  and only run during the hours of 4pm to 9pm (or configurable.)  
-* Allow selecting the animation (or animations) to execute over Wi-Fi.
-* Allow programming a new sequence (or sequences) over the Wi-Fi connection.
-

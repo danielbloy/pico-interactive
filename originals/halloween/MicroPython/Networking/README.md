@@ -1,23 +1,3 @@
-# TODOs
-
-* Test skull messages from coordinator
-* Test sounds messages from coordinator
-* Test cauldron messages from coordinator
-
-* Face
-* Cauldron, fade it in when it starts up and fade it out.
-
-# FUTURE
-
-* Neopixels + LEDs, make the actions run as tasks s can run multiple concurrently.
-* Maybe use the techniques in sample.py that creates and gathers tasks.
-
-* SetCoordinator message - unregisters then registers - if registered
-* Setname message - unregisters then registers -> if registered
-* setrole message - unregisters then registers -> if registered
-* Add in a blink all lights message which blinks all of the nodes in the directory.
-* Add in the ability to receive the body content.
-
 # Overview
 
 This project contains all the source code for running the Pico Ws that
@@ -112,8 +92,7 @@ Copy the following files to the Pico:
 * `messages.py` <- Common Python compatible code that handles dealing with messages.
 * `coordinator.py` <- Example Python compatible code, specific to coordinator nodes.
 
-Create a new `main.py` file that contains:
-TODO
+Create a new `main.py` file that contains the same code as in `template.py`
 
 # Universal endpoint vocabulary
 
