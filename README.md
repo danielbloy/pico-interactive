@@ -8,17 +8,44 @@ The framework is designed to be used for single board projects used in Coding Cl
 up to larger interactive display installations that consist of many boards each
 performing in isolation or coordinated over network connections.
 
+The basic structure of this project is:
+* `circuitpython` contains the exact builds of CircuitPython that have been tested
+with this project along with the libraries that are used extracted out into the
+`circuitpython/lib` directory.
+* `coordinator` contains the additional code that a coordinator node requires if used.
+The `coordinator` is based on the `framework` but adds additional specialisation and
+can be viewed as an example of how to build a custom node type based on the `framework`.
+Custom code can also be added to a coordinator node.
+* `docs` contains the documentation for the `framework` and `coordinator` directories.
+* `framework` contains the base framework code which provides the basic functionality 
+that operates on a supported board. This code is configurable and extensible, allowing
+the individual nodes in an interactive display to use whichever functionality they
+need, whilst also providing their own customisation code. All nodes will make use
+of the `framework`.
+* `halloween` contains the complete Halloween interactive displays that make use of
+this project. Each node will be represented.
+* `originals` contains the code for the original MicroPython and CircuitPython projects
+that form the inspiration for this project. See the section [Origins](#origins) below
+for some background on those projects.
+* `tests` contains the tests for the code contained in the `framework` and `coordinator`
+directories.
+
 All work in this project (including the supplied original code from the previous
 three projects that serve as inspiration) are provided under a permissive license
 to allow this code to be used in a range of educational and personal settings. See
 the end of this readme for more information about the license.
+
+## Halloween 2024
+
+The first interactive display to make use of this project will be Halloween 2024.
+For more information on that project, see [here](halloween/2024/README.md).
 
 ## Origins
 
 So how did this project come about? Maybe some background will help to explain.
 The originals/images directory contains a small number of images and videos that
 show some of the finished electronics. For the Halloween project, I uploaded a
-[video to YouTube](https://youtu.be/a0I0U5x334Y) so you can get a feel for what 
+[video to YouTube](https://youtu.be/a0I0U5x334Y), so you can get a feel for what 
 it was like. The video doesn't quite do it justice but its good enough to get an
 idea.
 
@@ -145,11 +172,17 @@ time. This required implementing some networking code to get the current date an
 time but was a useful experience in getting networking code working on CircuitPython
 and with Blinka. The main difference between the light jars and the Halloween project
 is that the Halloween project was outside for a single day but the light jars were
-outside for a whole month. The waterproofing was not up to the job.
+outside for a whole month. The waterproofing was not up to the job, neither was the
+exception handling.
 
 The key learning point was:
 
-* Have good waterproofing by designing for good waterproofing from the start.
+* If you are going to leave your device outside in Britain, have good waterproofing by
+designing for good waterproofing from the start.
+* If you need your display to work for days and days, make sure you have excellent
+error handling and recovery so your display does not randomly stop working and you have
+to go outside and power cycle it (turn it off and then back on again). Alternatively,
+fudge it a bit by putting an automated reboot of the device every few hours or so! 
 
 ## Blinka
 
