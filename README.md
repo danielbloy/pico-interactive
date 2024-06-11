@@ -24,6 +24,8 @@ need, whilst also providing their own customisation code. All nodes will make us
 of the `framework`.
 * `halloween` contains the complete Halloween interactive displays that make use of
 this project. Each node will be represented.
+* `hardware` contains information on the boards that have been designed for use with
+this framework and interactive displays.
 * `originals` contains the code for the original MicroPython and CircuitPython projects
 that form the inspiration for this project. See the section [Origins](#origins) below
 for some background on those projects.
