@@ -1,0 +1,7 @@
+# Ignore the PyCharm IDE directory
+.idea
+
+# To avoid accidentally commiting a local configuration file.
+config.toml
+
+**/__pycache__/

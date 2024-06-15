@@ -1,5 +1,17 @@
 # Hardware
 
+The reference hardware design contains the following items (all are optional):
+* 1 x Supported microcontroller (Raspberry Pi Pico)
+* 1 x Button
+* 1 x Buzzer
+* 1 x OLED display (128 x 64)
+* 1 x Ultrasonic Sensor
+* 1 x Network
+* 1 x UART
+* 1 x NeoPixel connector (input shared with audio board in reference base board)
+* 1 x Audio daughter Board with 2 x ADC inputs (1 shared with NeoPixel connector)
+* 1 x Custom daughter board connector
+
 ## Christmas Board
 
 This is a very simple board that attaches to the front pins of a
@@ -18,7 +30,7 @@ the inspiration for [Prototype Two](#prototype-two).
 This was the first board I built. It has two buzzers but no button.
 It has two UART connectors rather than one. Also, it has 6 x NeoPixel
 connectors soldered directly to the board and it breaks out 16 other
-pins with the intention of them available for the sound board or
+pins with the intention of them available for the audio board or
 general purpose use such as for LEDs. There is an socket for the
 ultrasonic sensor too. The main issue with this board was its
 complexity due to trying to solve all problems with a single board.

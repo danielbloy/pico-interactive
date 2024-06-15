@@ -7,6 +7,13 @@ completely redo for 2024 to make them more resilient and just plain
 better. I will also be looking to make some changes to the existing 2023
 nodes to improve them further. The basic plan as it stands is as follows:
 
+## Power distribution
+
+In 2023, all nodes (apart from the coordinator) were battery powered. This
+offered great flexibility as to positioning but required a lot of batteries
+and meant the whole system could not easily be turned off (or on) with a 
+single switch. For 2024, I am looking for more mains powered distribution.
+
 ## New nodes
 
 * Spiders - This is something that was prototyped for 2023 but we ran out
