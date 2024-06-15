@@ -113,7 +113,7 @@ class Runner:
                         warn(f'Exception: {task.exception()} raised by task {task}')
 
                         if self.restart_on_exception:
-                            info(f'Rerunning...')
+                            warn(f'Rerunning...')
                             function = tasks[task]
                             new_task = asyncio.create_task(function())
                             tasks[new_task] = function

@@ -48,6 +48,7 @@ the end of this readme for more information about the license.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
 - [ ] Add button support for single, double and long-presses.
 - [ ] Add buzzer support for playing tones.
+- [ ] Add support for logging in both Desktop and Pico environments.
 - [ ] Add OLED Display support, including cycling through screen pages
 - [ ] Add Ultrasonic sensor support, including display page.
 - [ ] Add SoundBoard support, including display page.
