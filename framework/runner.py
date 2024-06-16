@@ -2,12 +2,11 @@ import asyncio
 import time
 
 from framework.debug import info, warn, error
-from framework.environment import isRunningOnMicroController
 
 # collections.abc is not available in CircuitPython.
 try:
     from collections.abc import Callable, Awaitable
-except:
+except ImportError:
     pass
 
 
@@ -112,13 +111,9 @@ class Runner:
                 if self.cancel:
                     continue
 
-                if isRunningOnMicroController:
-                    pass
-                    # TODO: Get something working on the microcontroller.
-
-                else:
-                    # asyncio.wait is not available on CircuitPython.
-                    done, pending = await asyncio.wait(tasks, timeout=0)
+                # from framework import async_utils
+                # done, pending = await async_utils.wait(tasks, timeout=0)
+                done, pending = await asyncio.wait(tasks, timeout=0)
 
                 for task in done:
                     if task.exception():

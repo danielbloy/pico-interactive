@@ -42,19 +42,37 @@ three projects that serve as inspiration) are provided under a permissive licens
 to allow this code to be used in a range of educational and personal settings. See
 the end of this readme for more information about the license.
 
-## TODO list
+## List of outstanding tasks for the basic framework.
 
-- [x] Setup project
+- [x] Setup project outline.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka
 - [ ] Add button support for single, double and long-presses.
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka
 - [ ] Add buzzer support for playing tones.
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka
 - [ ] Add support for logging in both Desktop and Pico environments.
-- [ ] Add OLED Display support, including cycling through screen pages
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka
+- [ ] Add OLED Display support, including cycling through screen pages.
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
 - [ ] Add Ultrasonic sensor support, including display page.
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
 - [ ] Add SoundBoard support, including display page.
 - [ ] Add WiFi support, including display page.
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka
 - [ ] Add current time of day support via WiFi.
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka
 - [ ] Add NeoPixel connector support.
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
 
 ## Setting up the development environment
 

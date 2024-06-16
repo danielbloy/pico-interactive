@@ -14,17 +14,28 @@ if __name__ == '__main__':
         runner.cancel = i == 10
 
 
+    # Runs forever.
     async def task1():
-        print("task1")
-        await asyncio.sleep(0.001)
+        while True:
+            print("task1")
+            await asyncio.sleep(2.0)
 
 
+    # Ends
     async def task2():
-        print(task2)
+        print("task2")
         await asyncio.sleep(0.005)
+
+
+    # Throws an exception
+    async def task3():
+        print("task3")
+        await asyncio.sleep(0.005)
+        raise Exception("Raised by task 3")
 
 
     runner = Runner()
     runner.add_task(task1)
     runner.add_task(task2)
+    runner.add_task(task3)
     runner.run(callback)
