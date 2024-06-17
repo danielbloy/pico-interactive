@@ -86,11 +86,14 @@ class Runner:
         finally:
             self.__running = False
 
-    async def __new_background_handler(self, func: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
-        async def the_task() -> None:
+    def __new_background_handler(self, func: Callable[[], Awaitable[None]]) -> (
+            Callable)[[], Awaitable[None]]:
+        async def the_task():
             while not self.cancel:
                 try:
-                    print(f'Background handler {self.cancel}')
+                    # TODO: Remove
+                    await asyncio.sleep(0.5)
+                    break
                     await func()
 
                 except asyncio.CancelledError:
@@ -113,8 +116,12 @@ class Runner:
         interval: int = int(self.callback_interval * 1000000000)
         next_callback = time.monotonic_ns()
 
+        # TODO: Used to force termination in testing
+        debug_cutoff: int = 0
+
         async def callback_task() -> None:
             # TODO: Wrap in the background_task_handle.
+            nonlocal debug_cutoff
             nonlocal interval, next_callback
             while not self.cancel:
                 # The callback always gets called first.
@@ -126,14 +133,17 @@ class Runner:
 
                 print(f'Callback task {self.cancel}')
 
+                # TODO: remove Debug cutoff
+                debug_cutoff += 1
+                if debug_cutoff >= 5:
+                    self.cancel = True
+
         async def background_task() -> None:
             nonlocal tasks
             while not self.cancel:
                 await asyncio.sleep(self.callback_interval)  # TODO: Different interval
 
-                print(f'Background task {self.cancel}')
-
-                done, pending = set(), set()
+                done, cancelled, pending = set(), set(), set()
                 for task in tasks:
                     # if task.done()
                     # if task.exception()
@@ -141,15 +151,20 @@ class Runner:
                     # if task.cancelling()
                     if task.done():
                         done.add(task)
+                    elif task.cancelled():
+                        cancelled.add(task)
                     else:
                         pending.add(task)
+
+                print(f'Background task {self.cancel}, {len(done)}, {len(cancelled)}, {len(pending)}')
 
                 if len(done) == len(tasks):
                     self.cancel = True
 
+        # TODO: Start from beginnings of tests to build up working functionality.
+
         tasks: list[asyncio.Task] = [
-            asyncio.create_task(self.__new_background_handler(task)) for task in
-            self.__tasks_to_run]
+            asyncio.create_task(self.__new_background_handler(task)()) for task in self.__tasks_to_run]
 
         # TODO: wrap in try-except block
         await asyncio.gather(*tasks, asyncio.create_task(background_task()), asyncio.create_task(callback_task()))
