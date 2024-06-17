@@ -11,7 +11,7 @@ if __name__ == '__main__':
         global i
         i += 1
         print(f'i={i}')
-        runner.cancel = i == 10
+        runner.cancel = i == 30
 
 
     # Runs forever.
@@ -35,7 +35,12 @@ if __name__ == '__main__':
 
 
     runner = Runner()
+    runner.restart_on_completion = True
+    runner.restart_on_exception = True
+    runner.cancel_on_exception = False
     runner.add_task(task1)
     runner.add_task(task2)
     runner.add_task(task3)
     runner.run(callback)
+
+# TODO: Test when restart_on_exception is False and cancel_on_exception is false.

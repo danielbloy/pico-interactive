@@ -100,20 +100,18 @@ class Runner:
             while not self.cancel:
                 await asyncio.sleep(self.__INTERNAL_BACKGROUND_LOOP_SLEEP_INTERVAL)
 
-                done, cancelled, pending = set(), set(), set()
+                done, pending = set(), set()
                 for task in tasks:
                     if task.done():
                         done.add(task)
-                    elif task.cancelled():
-                        cancelled.add(task)
+                        tasks.remove(task)
                     else:
                         pending.add(task)
 
                 debug(
-                    f'Background tasks: Done: {len(done)}, Cancelled: {len(cancelled)}, Pending: {len(pending)}, '
-                    f'Cancel: {self.cancel}')
+                    f'Background tasks: Done: {len(done)}, Pending: {len(pending)}, Cancel: {self.cancel}')
 
-                if len(done) >= len(tasks):
+                if len(pending) <= 0:
                     self.cancel = True
 
             # Now cancel all background tasks.
@@ -168,7 +166,7 @@ class Runner:
                     if self.restart_on_completion:
                         info(f'Rerunning task {task}')
                     else:
-                        break
+                        return
 
                 except asyncio.CancelledError:
                     error(f'Caught CancelledError exception for task {task}')
@@ -182,6 +180,9 @@ class Runner:
 
                     elif self.cancel_on_exception:
                         self.cancel = True
+
+                    else:
+                        return
 
         return handler
 
