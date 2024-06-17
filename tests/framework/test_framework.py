@@ -202,7 +202,6 @@ class TestRunner:
         assert callback_time is not None
         assert task_time is None or task_time >= callback_time
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_run_with_exception_in_task_default_behavior(self) -> None:
         """
         Run 4 background tasks with one that raises an exception.
@@ -227,7 +226,6 @@ class TestRunner:
         assert runner.cancel
         assert called_count == 1
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_run_with_exception_in_task_cancel_on_exception_on(self) -> None:
         """
         Run 4 background tasks with one that raises an exception.
@@ -253,7 +251,6 @@ class TestRunner:
         assert runner.cancel
         assert called_count == 1
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_run_with_exception_in_task_cancel_on_exception_off(self) -> None:
         """
         Run 4 background tasks with one that raises an exception.

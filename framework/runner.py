@@ -142,14 +142,16 @@ class Runner:
                     else:
                         pending.add(task)
 
-                # TODO:
-                print(
-                    f'Background task {self.cancel}, D:{len(done)}, C:{len(cancelled)}, P:{len(pending)}')
+                debug(
+                    f'Background tasks: Done: {len(done)}, Cancelled: {len(cancelled)}, Pending: {len(pending)}, '
+                    f'Cancel: {self.cancel}')
 
                 if len(done) >= len(tasks):
                     self.cancel = True
 
             # Now cancel all background tasks.
+            # TODO: Remove the duplication of cancelling code.
+            info(f'Cancelling {len(tasks)} tasks:')
             if self.cancel:
                 for task in tasks:
                     info(f'  {task}')
