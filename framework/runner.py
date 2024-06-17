@@ -92,6 +92,7 @@ class Runner:
     def __new_background_handler(self, func: Callable[[], Awaitable[None]]) -> (
             Callable)[[], Awaitable[None]]:
         async def the_task():
+            # TODO: This will be a loop when I add restart on completion back in.
             try:
                 await func()
 
@@ -134,10 +135,6 @@ class Runner:
 
                 done, cancelled, pending = set(), set(), set()
                 for task in tasks:
-                    # if task.done()
-                    # if task.exception()
-                    # if task.cancelled()
-                    # if task.cancelling()
                     if task.done():
                         done.add(task)
                     elif task.cancelled():
@@ -145,18 +142,24 @@ class Runner:
                     else:
                         pending.add(task)
 
-                print(f'Background task {self.cancel}, {len(done)}, {len(cancelled)}, {len(pending)}')
+                # TODO:
+                print(
+                    f'Background task {self.cancel}, D:{len(done)}, C:{len(cancelled)}, P:{len(pending)}')
 
                 if len(done) >= len(tasks):
                     self.cancel = True
 
-        # TODO: Start from beginnings of tests to build up working functionality.
+            # Now cancel all background tasks.
+            if self.cancel:
+                for task in tasks:
+                    info(f'  {task}')
+                    task.cancel()
 
         tasks: list[asyncio.Task] = [
             asyncio.create_task(self.__new_background_handler(task)()) for task in self.__tasks_to_run]
 
         # TODO: wrap in try-except block
-        await asyncio.gather(*tasks, asyncio.create_task(background_task()), asyncio.create_task(callback_task()))
+        await asyncio.gather(asyncio.create_task(callback_task()), asyncio.create_task(background_task()), *tasks)
 
         # Now cancel any remaining tasks
         try:

@@ -144,7 +144,6 @@ class TestRunner:
         assert runner.cancel
         assert called_count == 5
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_run_invokes_callback_with_sensible_frequency(self) -> None:
         """
         This test allows the callback to be called the same number of times
@@ -178,12 +177,11 @@ class TestRunner:
         assert (end - start) < (seconds_to_run * 1.03)
         assert (end - start) > (seconds_to_run * 0.97)
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_callback_always_gets_called_first(self):
         """
-        Checks that the callback gets called first. In this test, the callback
-        immediately cancels the runner so the background task should not get
-        invoked at all.
+        Checks that the callback gets called first. There is no guarantee that the
+        task does not get called at least once due to the scheduling being outside
+        the control of the Runner.
         """
         callback_time = None
         task_time = None
@@ -202,7 +200,7 @@ class TestRunner:
         runner.run(callback)
 
         assert callback_time is not None
-        assert task_time is None
+        assert task_time is None or task_time >= callback_time
 
     @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_run_with_exception_in_task_default_behavior(self) -> None:
