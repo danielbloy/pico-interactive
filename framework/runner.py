@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from framework.debug import info, warn, error
+from framework.debug import debug, info, warn, error
 
 # collections.abc is not available in CircuitPython.
 try:
@@ -43,6 +43,9 @@ class Runner:
     """
     DEFAULT_CALLBACK_FREQUENCY = 20  # How many times we expect the callback to be called per second.
     DEFAULT_CALLBACK_INTERVAL = 1 / DEFAULT_CALLBACK_FREQUENCY
+
+    # This is used to control the sleep interval used in the internal coordination loops.
+    __INTERNAL_LOOP_SLEEP_INTERVAL = 0.001
 
     def __init__(self):
         self.__running = False
@@ -89,20 +92,16 @@ class Runner:
     def __new_background_handler(self, func: Callable[[], Awaitable[None]]) -> (
             Callable)[[], Awaitable[None]]:
         async def the_task():
-            while not self.cancel:
-                try:
-                    # TODO: Remove
-                    await asyncio.sleep(0.5)
-                    break
-                    await func()
+            try:
+                await func()
 
-                except asyncio.CancelledError:
-                    error(f'Caught CancelledError exception in the execute loop!')
-                    # TODO: Handler cancel
+            except asyncio.CancelledError:
+                error(f'Caught CancelledError exception in the execute loop!')
+                # TODO: Handler cancel
 
-                except Exception as e:
-                    error(f'Caught the following exception in the execute loop: {e}!')
-                    # TODO: handle exception
+            except Exception as e:
+                error(f'Caught the following exception in the execute loop: {e}!')
+                # TODO: handle exception
 
         return the_task
 
@@ -116,32 +115,22 @@ class Runner:
         interval: int = int(self.callback_interval * 1000000000)
         next_callback = time.monotonic_ns()
 
-        # TODO: Used to force termination in testing
-        debug_cutoff: int = 0
-
         async def callback_task() -> None:
-            # TODO: Wrap in the background_task_handle.
-            nonlocal debug_cutoff
+            # TODO: Wrap in the background_task_handle. Also extract out to member function.
             nonlocal interval, next_callback
             while not self.cancel:
                 # The callback always gets called first.
                 if time.monotonic_ns() >= next_callback:
                     next_callback += interval
+                    debug(f'calling callback function')
                     await callback()
 
-                await asyncio.sleep(self.callback_interval)  # TODO: Different interval
-
-                print(f'Callback task {self.cancel}')
-
-                # TODO: remove Debug cutoff
-                debug_cutoff += 1
-                if debug_cutoff >= 5:
-                    self.cancel = True
+                await asyncio.sleep(self.__INTERNAL_LOOP_SLEEP_INTERVAL)
 
         async def background_task() -> None:
             nonlocal tasks
             while not self.cancel:
-                await asyncio.sleep(self.callback_interval)  # TODO: Different interval
+                await asyncio.sleep(self.__INTERNAL_LOOP_SLEEP_INTERVAL)
 
                 done, cancelled, pending = set(), set(), set()
                 for task in tasks:
@@ -158,7 +147,7 @@ class Runner:
 
                 print(f'Background task {self.cancel}, {len(done)}, {len(cancelled)}, {len(pending)}')
 
-                if len(done) == len(tasks):
+                if len(done) >= len(tasks):
                     self.cancel = True
 
         # TODO: Start from beginnings of tests to build up working functionality.
