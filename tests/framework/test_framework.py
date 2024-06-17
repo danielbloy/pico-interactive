@@ -491,3 +491,5 @@ class TestRunner:
         assert task2_count > 10
         assert task3_count > 10
         assert task4_count > 10
+
+# TODO: Test when restart_on_exception is False and cancel_on_exception is false.

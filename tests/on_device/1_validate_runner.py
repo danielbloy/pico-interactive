@@ -42,5 +42,3 @@ if __name__ == '__main__':
     runner.add_task(task2)
     runner.add_task(task3)
     runner.run(callback)
-
-# TODO: Test when restart_on_exception is False and cancel_on_exception is false.
