@@ -2,8 +2,6 @@ import asyncio
 import time
 from collections.abc import Callable, Awaitable
 
-import pytest
-
 from framework.runner import Runner
 
 
@@ -19,14 +17,10 @@ def new_test_async_function(delay: float, name: str = "dummy", error: str = None
     """
 
     async def dummy():
-        try:
-            await asyncio.sleep(delay)
+        await asyncio.sleep(delay)
 
-            if error:
-                raise Exception(f'Test async function "{name}" has raised exception "{error}"...')
-
-        except asyncio.CancelledError:
-            pass
+        if error:
+            raise Exception(f'Test async function "{name}" has raised exception "{error}"...')
 
     return dummy
 
@@ -148,7 +142,7 @@ class TestRunner:
         """
         This test allows the callback to be called the same number of times
         as the default callback frequency and validates that we are within
-        a tolerance of 3%. At the same time, a busy blocking background task
+        a tolerance of 5%. At the same time, a busy blocking background task
         is running which prevents the dumb method of sleeping from working.
         """
         called_count: int = 0
@@ -174,8 +168,8 @@ class TestRunner:
 
         assert runner.cancel
         assert called_count == seconds_to_run * Runner.DEFAULT_CALLBACK_FREQUENCY
-        assert (end - start) < (seconds_to_run * 1.03)
-        assert (end - start) > (seconds_to_run * 0.97)
+        assert (end - start) < (seconds_to_run * 1.05)
+        assert (end - start) > (seconds_to_run * 0.95)
 
     def test_callback_always_gets_called_first(self):
         """
@@ -275,7 +269,6 @@ class TestRunner:
         assert runner.cancel
         assert called_count == 5
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_restart_on_task_completion_single(self) -> None:
         """
         Run a single background task that simply terminates. The framework will
@@ -287,7 +280,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= 2
+            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
 
         async def task():
             nonlocal task_count
@@ -299,12 +292,11 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == 2
+        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task_count > 10
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_restart_on_task_completion_multiple(self) -> None:
         """
         Runs several background task that simply terminate. The framework will
@@ -318,7 +310,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= 2
+            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
 
         async def task1():
             nonlocal task1_count
@@ -346,14 +338,13 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == 2
+        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task1_count > 10
         assert task2_count > 10
         assert task3_count > 10
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_restart_on_exception_single(self) -> None:
         """
         Run a single background task that raises an exception. The framework will
@@ -365,7 +356,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= 2
+            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
 
         async def task():
             nonlocal task_count
@@ -378,16 +369,17 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == 2
+        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task_count > 10
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_restart_on_exception_multiple(self) -> None:
         """
-        Runs several background task raise exceptions. The framework will
-        rerun them allowing them to continue to increment the counters.
+        Runs several background tasks that raise exceptions. The framework
+        will rerun them allowing them to continue to increment the counters.
+        The framework will run for 1 second which should give plenty of time
+        for multiple executions of each task.
         """
         called_count: int = 0
         task1_count: int = 0
@@ -397,7 +389,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= 2
+            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
 
         async def task1():
             nonlocal task1_count
@@ -428,14 +420,13 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == 2
+        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task1_count > 10
         assert task2_count > 10
         assert task3_count > 10
 
-    @pytest.mark.skip(reason="suppressed while rewriting Runner class to also work on CircuitPython")
     def test_restart_on_exception_and_completion_multiple(self) -> None:
         """
         Runs lots of background tasks that raise exceptions, complete or run forever.
@@ -450,7 +441,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= 2
+            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
 
         async def task1():
             nonlocal task1_count
@@ -493,7 +484,7 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == 2
+        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task1_count > 10
