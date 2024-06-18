@@ -95,21 +95,19 @@ class Runner:
         tasks: list[asyncio.Task] = [
             asyncio.create_task(self.__new_task_handler(task)()) for task in self.__tasks_to_run]
 
-        # TODO: wrap in try-except block
-        await asyncio.gather(
-            asyncio.create_task(self.__new_scheduled_task_handler(callback)()),
-            asyncio.create_task(self.__cancellation_handler(tasks)()),
-            *tasks)
-
-        # Now cancel any remaining tasks
         try:
-            self.__cancel_tasks(tasks)
+            await asyncio.gather(
+                asyncio.create_task(self.__new_scheduled_task_handler(callback)()),
+                asyncio.create_task(self.__cancellation_handler(tasks)()),
+                *tasks)
 
         except asyncio.CancelledError:
             error(f'Caught CancelledError exception cancelling tasks!')
 
         except Exception as e:
             error(f'Caught the following exception cancelling tasks: {e}!')
+
+        self.__cancel_tasks(tasks)
 
     def __new_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
         """
