@@ -107,8 +107,6 @@ class Runner:
         except Exception as e:
             error(f'Caught the following exception cancelling tasks: {e}!')
 
-        self.__cancel_tasks(tasks)
-
     def __new_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
         """
         This wraps any task and provides the exception and completion handling
@@ -200,36 +198,53 @@ class Runner:
 
         :param tasks: The tasks to cancel.
         """
+        self.cancel = True
         info(f'Cancelling {len(tasks)} tasks:')
-        if self.cancel:
-            for task in tasks:
-                info(f'  {task}')
-                task.cancel()
+        for task in tasks:
+            info(f'  {task}')
+            task.cancel()
 
     def __cancellation_handler(self, tasks: list[asyncio.Task]) -> Callable[[], Awaitable[None]]:
+        """
+        This handler runs in the background and monitors which of the tasks in the passed in
+        list have completed. Once all have completed, the Runner will be cancelled.
+
+        :param tasks: The list of background tasks to monitor.
+        """
+
+        async def wait_for_finished_tasks() -> None:
+            nonlocal tasks
+
+            completed: int = 0
+            pending: int = 0
+            for task in tasks:
+                if task.done():
+                    completed += 1
+                    tasks.remove(task)
+                else:
+                    pending += 1
+
+            debug(f'Background tasks: Done: {completed}, Pending: {pending}')
+
+            # If all the tasks have completed then cancel the runner.
+            if pending <= 0:
+                self.cancel = True
 
         async def cancel_handler() -> None:
             nonlocal tasks
 
-            completed: int = 0
+            # Monitor in the background for all tasks to complete.
+            await self.__new_scheduled_task_handler(wait_for_finished_tasks)()
 
-            while not self.cancel:
+            debug(f'Pausing to allow the remaining {len(tasks)} tasks to complete...')
+            # Loop, allowing all other tasks to complete after seeing self.cancel is set
+            for i in range(len(tasks) * 2):
                 await self.__internal_loop_wait()
 
-                pending: int = 0
-                for task in tasks:
-                    if task.done():
-                        completed += 1
-                        tasks.remove(task)
-                    else:
-                        pending += 1
+            # Remove any tasks that have completed from the list.
+            await wait_for_finished_tasks()
 
-                debug(f'Background tasks: Done: {completed}, Pending: {pending}')
-
-                # If all the tasks have completed then exit.
-                if pending <= 0:
-                    self.cancel = True
-
+            # Cancel the remaining tasks.
             self.__cancel_tasks(tasks)
 
         return cancel_handler
