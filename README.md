@@ -46,7 +46,7 @@ the end of this readme for more information about the license.
 
 - [x] Setup project outline.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
-    - [ ] Also works on CircuitPython
+    - [x] Also works on CircuitPython
     - [ ] Also works with Blinka
 - [ ] Add button support for single, double and long-presses.
     - [ ] Also works on CircuitPython

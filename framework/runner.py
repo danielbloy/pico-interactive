@@ -52,6 +52,7 @@ class Runner:
         self.restart_on_completion = False
         self.callback_interval = self.DEFAULT_CALLBACK_INTERVAL
         self.__tasks_to_run: list[Callable[[], Awaitable[None]]] = []
+        self.__internal_loop_sleep_interval = 0.0
 
     def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
         """
@@ -78,6 +79,7 @@ class Runner:
 
         self.cancel = False
         try:
+            self.__internal_loop_sleep_interval = self.callback_interval / 8
             asyncio.run(self.__execute(callback))
         except Exception as e:
             error(f'run(): Exception caught running framework: {e}')
@@ -190,7 +192,7 @@ class Runner:
         This is used to provide a delay to the internal async loops used to
         control the runner. It's a fraction of the timed interval.
         """
-        await asyncio.sleep(self.callback_interval / 4)
+        await asyncio.sleep(self.__internal_loop_sleep_interval)
 
     def __cancel_tasks(self, tasks: list[asyncio.Task]) -> None:
         """
@@ -206,7 +208,7 @@ class Runner:
 
     def __cancellation_handler(self, tasks: list[asyncio.Task]) -> Callable[[], Awaitable[None]]:
         """
-        This handler runs in the background and monitors which of the tasks in the passed in
+        This handler runs in the background and monitors which tasks from the passed in
         list have completed. Once all have completed, the Runner will be cancelled.
 
         :param tasks: The list of background tasks to monitor.
@@ -248,15 +250,3 @@ class Runner:
             self.__cancel_tasks(tasks)
 
         return cancel_handler
-
-
-def run(callback: Callable[[], Awaitable[None]] = None) -> None:
-    """
-    Runs the framework using default settings and configuration from config.toml file.
-
-    :param callback: This is called once every cycle based on the callback frequency.
-    """
-    runner = Runner()
-    # TODO: Load settings from config.toml file if present.
-    # TODO: Setup runner with configuration from config.toml.
-    runner.run(callback)
