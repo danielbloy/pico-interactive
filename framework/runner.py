@@ -44,9 +44,6 @@ class Runner:
     DEFAULT_CALLBACK_FREQUENCY = 20  # How many times we expect the callback to be called per second.
     DEFAULT_CALLBACK_INTERVAL = 1 / DEFAULT_CALLBACK_FREQUENCY
 
-    # This is used to control the sleep interval used in the internal coordination loops.
-    __INTERNAL_BACKGROUND_LOOP_SLEEP_INTERVAL = 0.0001
-
     def __init__(self):
         self.__running = False
         self.cancel = False
@@ -98,7 +95,7 @@ class Runner:
         async def background_task() -> None:
             nonlocal tasks
             while not self.cancel:
-                await asyncio.sleep(self.__INTERNAL_BACKGROUND_LOOP_SLEEP_INTERVAL)
+                await self.__internal_loop_wait()
 
                 done, pending = set(), set()
                 for task in tasks:
@@ -159,7 +156,7 @@ class Runner:
                     # task if it gets into a greedy loop where it does not await itself. This
                     # can happen if the task keeps ending with restarts on or if it keeps
                     # raising exceptions.
-                    await asyncio.sleep(self.__INTERNAL_BACKGROUND_LOOP_SLEEP_INTERVAL)
+                    await self.__internal_loop_wait()
                     await task()
                     info(f'Task completed {task}')
 
@@ -170,7 +167,7 @@ class Runner:
 
                 except asyncio.CancelledError:
                     error(f'Caught CancelledError exception for task {task}')
-                    break
+                    return
 
                 except Exception as e:
                     warn(f'Exception: {e} raised by task {task}')
@@ -215,9 +212,16 @@ class Runner:
                         error(f'Exception: {e} raised by callback, cancelling runner')
                         self.cancel = True
 
-                await asyncio.sleep(self.callback_interval / 64)
+                await self.__internal_loop_wait()
 
         return handler
+
+    async def __internal_loop_wait(self) -> None:
+        """
+        This is used to provide a delay to the internal async loops used to
+        control the runner. It's a fraction of the timed interval.
+        """
+        await asyncio.sleep(self.callback_interval / 4)
 
 
 def run(callback: Callable[[], Awaitable[None]] = None) -> None:
