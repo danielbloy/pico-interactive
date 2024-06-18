@@ -92,48 +92,18 @@ class Runner:
         :param callback: This is called once every cycle based on the callback frequency.
         """
 
-        async def background_task() -> None:
-            nonlocal tasks
-            while not self.cancel:
-                await self.__internal_loop_wait()
-
-                done, pending = set(), set()
-                for task in tasks:
-                    if task.done():
-                        done.add(task)
-                        tasks.remove(task)
-                    else:
-                        pending.add(task)
-
-                debug(
-                    f'Background tasks: Done: {len(done)}, Pending: {len(pending)}, Cancel: {self.cancel}')
-
-                if len(pending) <= 0:
-                    self.cancel = True
-
-            # Now cancel all background tasks.
-            # TODO: Remove the duplication of cancelling code.
-            info(f'Cancelling {len(tasks)} tasks:')
-            if self.cancel:
-                for task in tasks:
-                    info(f'  {task}')
-                    task.cancel()
-
         tasks: list[asyncio.Task] = [
             asyncio.create_task(self.__new_task_handler(task)()) for task in self.__tasks_to_run]
 
         # TODO: wrap in try-except block
         await asyncio.gather(
             asyncio.create_task(self.__new_scheduled_task_handler(callback)()),
-            asyncio.create_task(background_task()),
+            asyncio.create_task(self.__cancellation_handler(tasks)()),
             *tasks)
 
         # Now cancel any remaining tasks
         try:
-            info(f'Cancelling {len(tasks)} tasks:')
-            for task in tasks:
-                info(f'  {task}')
-                task.cancel()
+            self.__cancel_tasks(tasks)
 
         except asyncio.CancelledError:
             error(f'Caught CancelledError exception cancelling tasks!')
@@ -189,6 +159,9 @@ class Runner:
         If the callback raises an exception then the Runner will be set to cancel; irrespective of
         the rest of the runner configuration. This is intended for task internal to the Runner only.
 
+        Note: This function will complete once it detects that self.cancel is set so cannot be used
+              for cleanup during cancellation.
+
         :param task: This is called once every cycle based on the callback frequency.
         """
         interval: int = int(self.callback_interval * 1000000000)
@@ -222,6 +195,46 @@ class Runner:
         control the runner. It's a fraction of the timed interval.
         """
         await asyncio.sleep(self.callback_interval / 4)
+
+    def __cancel_tasks(self, tasks: list[asyncio.Task]) -> None:
+        """
+        Cancels all the specified tasks.
+
+        :param tasks: The tasks to cancel.
+        """
+        info(f'Cancelling {len(tasks)} tasks:')
+        if self.cancel:
+            for task in tasks:
+                info(f'  {task}')
+                task.cancel()
+
+    def __cancellation_handler(self, tasks: list[asyncio.Task]) -> Callable[[], Awaitable[None]]:
+
+        async def cancel_handler() -> None:
+            nonlocal tasks
+
+            completed: int = 0
+
+            while not self.cancel:
+                await self.__internal_loop_wait()
+
+                pending: int = 0
+                for task in tasks:
+                    if task.done():
+                        completed += 1
+                        tasks.remove(task)
+                    else:
+                        pending += 1
+
+                debug(f'Background tasks: Done: {completed}, Pending: {pending}')
+
+                # If all the tasks have completed then exit.
+                if pending <= 0:
+                    self.cancel = True
+
+            self.__cancel_tasks(tasks)
+
+        return cancel_handler
 
 
 def run(callback: Callable[[], Awaitable[None]] = None) -> None:
