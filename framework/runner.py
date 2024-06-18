@@ -1,8 +1,13 @@
 import asyncio
 import time
-from collections.abc import Callable, Awaitable
 
-from framework.debug import info, warn, error
+from framework.debug import debug, info, warn, error
+
+# collections.abc is not available in CircuitPython.
+try:
+    from collections.abc import Callable, Awaitable
+except ImportError:
+    pass
 
 
 async def empty_callback() -> None:
@@ -47,6 +52,7 @@ class Runner:
         self.restart_on_completion = False
         self.callback_interval = self.DEFAULT_CALLBACK_INTERVAL
         self.__tasks_to_run: list[Callable[[], Awaitable[None]]] = []
+        self.__internal_loop_sleep_interval = 0.0
 
     def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
         """
@@ -73,6 +79,7 @@ class Runner:
 
         self.cancel = False
         try:
+            self.__internal_loop_sleep_interval = self.callback_interval / 8
             asyncio.run(self.__execute(callback))
         except Exception as e:
             error(f'run(): Exception caught running framework: {e}')
@@ -86,68 +93,15 @@ class Runner:
 
         :param callback: This is called once every cycle based on the callback frequency.
         """
-        tasks: dict[asyncio.Task, callback: Callable[[], Awaitable[None]]] = \
-            dict((asyncio.create_task(task()), task) for task in self.__tasks_to_run)
+
+        tasks: list[asyncio.Task] = [
+            asyncio.create_task(self.__new_task_handler(task)()) for task in self.__tasks_to_run]
 
         try:
-            interval: int = int(self.callback_interval * 1000000000)
-            next_callback = time.monotonic_ns()
-
-            while not self.cancel:
-                # The callback always gets called first.
-                if time.monotonic_ns() >= next_callback:
-                    next_callback += interval
-                    await callback()
-
-                if not tasks:
-                    self.cancel = True
-
-                # If the callback set the cancel property then we stop processing.
-                if self.cancel:
-                    continue
-
-                done, pending = await asyncio.wait(tasks, timeout=0)
-
-                for task in done:
-                    if task.exception():
-                        warn(f'Exception: {task.exception()} raised by task {task}')
-
-                        if self.restart_on_exception:
-                            warn(f'Rerunning...')
-                            function = tasks[task]
-                            new_task = asyncio.create_task(function())
-                            tasks[new_task] = function
-                            pending.add(new_task)
-
-                        elif self.cancel_on_exception:
-                            self.cancel = True
-
-                    else:
-                        info(f'Result: {task.result()} returned by task {task}')
-                        if self.restart_on_completion:
-                            info(f'Rerunning...')
-                            function = tasks[task]
-                            new_task = asyncio.create_task(function())
-                            tasks[new_task] = function
-                            pending.add(new_task)
-
-                    del tasks[task]
-
-                if not pending:
-                    self.cancel = True
-
-        except asyncio.CancelledError:
-            error(f'Caught CancelledError exception in the execute loop!')
-
-        except Exception as e:
-            error(f'Caught the following exception in the execute loop: {e}!')
-
-        # Now cancel any remaining tasks
-        try:
-            info(f'Cancelling {len(tasks)} tasks:')
-            for task in tasks:
-                info(f'  {task}')
-                task.cancel()
+            await asyncio.gather(
+                asyncio.create_task(self.__new_scheduled_task_handler(callback)()),
+                asyncio.create_task(self.__cancellation_handler(tasks)()),
+                *tasks)
 
         except asyncio.CancelledError:
             error(f'Caught CancelledError exception cancelling tasks!')
@@ -155,14 +109,144 @@ class Runner:
         except Exception as e:
             error(f'Caught the following exception cancelling tasks: {e}!')
 
+    def __new_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
+        """
+        This wraps any task and provides the exception and completion handling
+        such as restart as defined by the Runners properties.
 
-def run(callback: Callable[[], Awaitable[None]] = None) -> None:
-    """
-    Runs the framework using default settings and configuration from config.toml file.
+        :param task: The task that is to be wrapped.
+        """
 
-    :param callback: This is called once every cycle based on the callback frequency.
-    """
-    runner = Runner()
-    # TODO: Load settings from config.toml file if present.
-    # TODO: Setup runner with configuration from config.toml.
-    runner.run(callback)
+        async def handler():
+            while not self.cancel:
+                try:
+                    # This sleep both delays the start of the handler but also throttles the
+                    # task if it gets into a greedy loop where it does not await itself. This
+                    # can happen if the task keeps ending with restarts on or if it keeps
+                    # raising exceptions.
+                    await self.__internal_loop_wait()
+                    await task()
+                    info(f'Task completed {task}')
+
+                    if self.restart_on_completion:
+                        info(f'Rerunning task {task}')
+                    else:
+                        return
+
+                except asyncio.CancelledError:
+                    error(f'Caught CancelledError exception for task {task}')
+                    return
+
+                except Exception as e:
+                    warn(f'Exception: {e} raised by task {task}')
+
+                    if self.restart_on_exception:
+                        warn(f'Rerunning task {task}')
+
+                    elif self.cancel_on_exception:
+                        self.cancel = True
+
+                    else:
+                        return
+
+        return handler
+
+    def __new_scheduled_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
+        """
+        Performs the scheduling invocation of the provided callback based on self.callback_interval.
+        If the callback raises an exception then the Runner will be set to cancel; irrespective of
+        the rest of the runner configuration. This is intended for task internal to the Runner only.
+
+        Note: This function will complete once it detects that self.cancel is set so cannot be used
+              for cleanup during cancellation.
+
+        :param task: This is called once every cycle based on the callback frequency.
+        """
+        interval: int = int(self.callback_interval * 1000000000)
+        next_callback = time.monotonic_ns()
+
+        async def handler() -> None:
+            nonlocal interval, next_callback
+            while not self.cancel:
+                if time.monotonic_ns() >= next_callback:
+                    next_callback += interval
+                    debug(f'Calling scheduled task {task}')
+
+                    try:
+                        await task()
+
+                    except asyncio.CancelledError:
+                        error(f'Caught CancelledError exception for scheduled task {task}, cancelling runner')
+                        self.cancel = True
+
+                    except Exception as e:
+                        error(f'Exception: {e} raised by scheduled task {task}, cancelling runner')
+                        self.cancel = True
+
+                await self.__internal_loop_wait()
+
+        return handler
+
+    async def __internal_loop_wait(self) -> None:
+        """
+        This is used to provide a delay to the internal async loops used to
+        control the runner. It's a fraction of the timed interval.
+        """
+        await asyncio.sleep(self.__internal_loop_sleep_interval)
+
+    def __cancel_tasks(self, tasks: list[asyncio.Task]) -> None:
+        """
+        Cancels all the specified tasks.
+
+        :param tasks: The tasks to cancel.
+        """
+        self.cancel = True
+        info(f'Cancelling {len(tasks)} tasks:')
+        for task in tasks:
+            info(f'  {task}')
+            task.cancel()
+
+    def __cancellation_handler(self, tasks: list[asyncio.Task]) -> Callable[[], Awaitable[None]]:
+        """
+        This handler runs in the background and monitors which tasks from the passed in
+        list have completed. Once all have completed, the Runner will be cancelled.
+
+        :param tasks: The list of background tasks to monitor.
+        """
+
+        async def wait_for_finished_tasks() -> None:
+            nonlocal tasks
+
+            completed: int = 0
+            pending: int = 0
+            for task in tasks:
+                if task.done():
+                    completed += 1
+                    tasks.remove(task)
+                else:
+                    pending += 1
+
+            debug(f'Background tasks: Done: {completed}, Pending: {pending}')
+
+            # If all the tasks have completed then cancel the runner.
+            if pending <= 0:
+                self.cancel = True
+
+        async def cancel_handler() -> None:
+            nonlocal tasks
+
+            # Monitor in the background for all tasks to complete.
+            await self.__new_scheduled_task_handler(wait_for_finished_tasks)()
+
+            debug(f'Pausing to allow the remaining {len(tasks)} tasks to complete...')
+            # Loop, allowing all other tasks to complete after seeing self.cancel is set
+            for i in range(len(tasks) * 2):
+                await self.__internal_loop_wait()
+
+            # Remove any tasks that have completed from the list.
+            await wait_for_finished_tasks()
+
+            # Cancel the remaining tasks.
+            self.__cancel_tasks(tasks)
+
+        return cancel_handler

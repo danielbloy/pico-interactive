@@ -3,6 +3,8 @@
 # to selectively run based on what is available to it.
 import os
 
+# TODO: Rework this file so that it is more pythonic (and integrates with the logging framework).
+
 isBlinkaAvailable: bool = False
 try:
     import board
