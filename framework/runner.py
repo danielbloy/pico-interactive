@@ -124,7 +124,7 @@ class Runner:
 
         # TODO: wrap in try-except block
         await asyncio.gather(
-            asyncio.create_task(self.__new_callback_handler(callback)()),
+            asyncio.create_task(self.__new_scheduled_task_handler(callback)()),
             asyncio.create_task(background_task()),
             *tasks)
 
@@ -183,13 +183,13 @@ class Runner:
 
         return handler
 
-    def __new_callback_handler(self, callback: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
+    def __new_scheduled_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
         """
-        Performs the scheduling and invocation of the (potentially) user provided callback.
-        If the callback raises an exception then the Runner will be set to cancel; irrespective
-        of the rest of the runner configuration.
+        Performs the scheduling invocation of the provided callback based on self.callback_interval.
+        If the callback raises an exception then the Runner will be set to cancel; irrespective of
+        the rest of the runner configuration. This is intended for task internal to the Runner only.
 
-        :param callback: This is called once every cycle based on the callback frequency.
+        :param task: This is called once every cycle based on the callback frequency.
         """
         interval: int = int(self.callback_interval * 1000000000)
         next_callback = time.monotonic_ns()
@@ -199,17 +199,17 @@ class Runner:
             while not self.cancel:
                 if time.monotonic_ns() >= next_callback:
                     next_callback += interval
-                    debug(f'calling callback function')
+                    debug(f'Calling scheduled task {task}')
 
                     try:
-                        await callback()
+                        await task()
 
                     except asyncio.CancelledError:
-                        error(f'Caught CancelledError exception for callback, cancelling runner')
+                        error(f'Caught CancelledError exception for scheduled task {task}, cancelling runner')
                         self.cancel = True
 
                     except Exception as e:
-                        error(f'Exception: {e} raised by callback, cancelling runner')
+                        error(f'Exception: {e} raised by scheduled task {task}, cancelling runner')
                         self.cancel = True
 
                 await self.__internal_loop_wait()
