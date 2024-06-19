@@ -2,12 +2,11 @@ import asyncio
 import time
 
 from framework.debug import debug, info, warn, error
+from framework.environment import is_running_on_desktop
 
 # collections.abc is not available in CircuitPython.
-try:
+if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
-except ImportError:
-    pass
 
 
 async def empty_callback() -> None:
