@@ -8,8 +8,6 @@ from framework.environment import is_running_on_desktop
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
 
-from collections.abc import Callable, Awaitable
-
 
 async def empty_callback() -> None:
     """

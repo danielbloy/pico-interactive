@@ -7,7 +7,7 @@
 import os
 
 __is_blinka_available: bool = False
-__is_running_on_microcontroller: bool = True
+__is_running_on_microcontroller: bool = False
 
 try:
     # If this works, we assume this means that we have access to pins either
@@ -30,6 +30,14 @@ try:
 
 except:
     pass
+
+# Override for when running in GitHub actions
+__is_running_in_github_actions: bool = "CI" not in os.environ or not os.environ[
+    "CI"] or "GITHUB_RUN_ID" not in os.environ
+
+if __is_running_in_github_actions:
+    __is_running_on_microcontroller = False
+    __is_blinka_available = False
 
 
 def is_running_on_microcontroller() -> bool:
