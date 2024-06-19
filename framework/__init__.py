@@ -1,3 +1,3 @@
-import environment
+from framework.environment import report
 
-environment.report()
+report()

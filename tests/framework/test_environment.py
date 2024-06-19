@@ -13,4 +13,4 @@ class TestEnvironment():
         Just a simple test to make sure we are not returning a microcontroller
         and desktop environment
         """
-        assert environment.is_running_on_desktop() != environment.__is_running_on_microcontroller
+        assert environment.is_running_on_desktop() != environment.is_running_on_microcontroller()
