@@ -57,7 +57,7 @@ def is_blinka_available() -> bool:
 def are_pins_available() -> bool:
     """
     Returns whether pins are available or not. This will be true when the code is
-    running in one of the follwoing environment:
+    running in one of the following environment:
     * On an actual microcontroller.
     * On a desktop with Blinka available.
     """
