@@ -1,7 +1,7 @@
 from framework import environment
 
 
-class TestEnvironment():
+class TestEnvironment:
     def test_report(self):
         """
         Simply tests there is no error calling the report method.
