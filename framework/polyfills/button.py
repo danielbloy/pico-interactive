@@ -12,22 +12,35 @@ SLEEP_INTERVAL = 0.1
 if are_pins_available():
 
     import digitalio
-    from adafruit_debouncer import Debouncer
+    from adafruit_debouncer import Button as Adafruit_Button
 
 
     class Button:
+
         def __init__(self, pin):
             pin = digitalio.DigitalInOut(pin)
             pin.direction = digitalio.Direction.INPUT
             pin.pull = digitalio.Pull.UP
-            self.__button = Debouncer(pin)
+            self.__button = Adafruit_Button(pin, short_duration_ms=50, long_duration_ms=200)
 
         def update(self) -> None:
             self.__button.update()
 
         @property
-        def rose(self) -> bool:
-            return self.__button.rose
+        def pressed(self) -> bool:
+            return self.__button.pressed
+
+        @property
+        def released(self) -> bool:
+            return self.__button.released
+
+        @property
+        def short_count(self) -> int:
+            return self.__button.short_count
+
+        @property
+        def long_press(self) -> bool:
+            return self.__button.long_press
 
 
 else:
@@ -39,10 +52,20 @@ else:
             pass
 
         @property
-        def rose(self) -> bool:
-            return False
+        def pressed(self) -> bool:
+            return False  # TODO
 
-    # TODO: If in CI... for a CI controlled polyfill.
+        @property
+        def released(self) -> bool:
+            return False  # TODO
+
+        @property
+        def short_count(self) -> int:
+            return 0  # TODO
+
+        @property
+        def long_press(self) -> bool:
+            return False  # TODO
 
 
 def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
@@ -61,7 +84,10 @@ def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awai
         while True:
             await asyncio.sleep(SLEEP_INTERVAL / 1000)
             button.update()
-            if button.rose:
+
+            print(button.short_count, button.long_press)
+
+            if button.pressed:
                 await handler()
 
     return loop

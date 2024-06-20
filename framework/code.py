@@ -17,7 +17,7 @@ if __name__ == '__main__':
     async def callback() -> None:
         global i
         i += 1
-        runner.cancel = i == 10
+        runner.cancel = i == 30
 
 
     runner = runner.Runner()
