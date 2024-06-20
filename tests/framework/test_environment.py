@@ -14,3 +14,12 @@ class TestEnvironment:
         and desktop environment
         """
         assert environment.is_running_on_desktop() != environment.is_running_on_microcontroller()
+
+    def test_is_running_in_ci(self):
+        """
+        Simple test for when running in CI.
+        """
+        if environment.is_running_in_ci():
+            assert not environment.is_running_on_microcontroller()
+            assert environment.is_running_on_desktop()
+            assert not environment.are_pins_available()

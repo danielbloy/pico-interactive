@@ -31,10 +31,17 @@ try:
 except:
     pass
 
-# Override for when running in GitHub actions
-__is_running_in_github_actions: bool = False
-if "CI" not in os.environ or not os.environ["CI"] or "GITHUB_RUN_ID" not in os.environ:
-    __is_running_in_github_actions = True
+# Override for when running under a CI system.
+__is_running_in_ci: bool = (
+        "CI" in os.environ or
+        "TRAVIS" in os.environ or
+        "CIRCLECI" in os.environ or
+        "GITLAB_CI" in os.environ or
+        "GITHUB_ACTIONS" in os.environ or
+        "GITHUB_RUN_ID" in os.environ)
+
+if __is_running_in_ci:
+    __is_running_in_in_ci = True
     __is_running_on_microcontroller = False
     __is_blinka_available = False
 
@@ -44,7 +51,7 @@ def is_running_in_ci() -> bool:
     Returns whether the code is running in the CI system (GitHub actions).
     When running in CI, the environment is forced to Desktop without pins.
     """
-    return __is_running_in_github_actions
+    return __is_running_in_ci
 
 
 def is_running_on_microcontroller() -> bool:
@@ -83,6 +90,8 @@ def report():
     """
     Produces a simple report of the environment the code is running in.
     """
+    if is_running_in_ci():
+        print("Running on CI")
 
     running_on = "microcontroller" if is_running_on_microcontroller() else "desktop"
     pins_available = "are" if are_pins_available() else "are not"
