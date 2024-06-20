@@ -32,12 +32,19 @@ except:
     pass
 
 # Override for when running in GitHub actions
-__is_running_in_github_actions: bool = "CI" not in os.environ or not os.environ[
-    "CI"] or "GITHUB_RUN_ID" not in os.environ
-
-if __is_running_in_github_actions:
+__is_running_in_github_actions: bool = False
+if "CI" not in os.environ or not os.environ["CI"] or "GITHUB_RUN_ID" not in os.environ:
+    __is_running_in_github_actions = True
     __is_running_on_microcontroller = False
     __is_blinka_available = False
+
+
+def is_running_in_ci() -> bool:
+    """
+    Returns whether the code is running in the CI system (GitHub actions).
+    When running in CI, the environment is forced to Desktop without pins.
+    """
+    return __is_running_in_github_actions
 
 
 def is_running_on_microcontroller() -> bool:
