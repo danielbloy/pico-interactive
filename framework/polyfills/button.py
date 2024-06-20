@@ -1,6 +1,6 @@
 import asyncio
 
-from environment import is_running_on_desktop, are_pins_available
+from framework.environment import is_running_on_desktop, are_pins_available
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
@@ -31,14 +31,21 @@ if are_pins_available():
 
 
 else:
-    async def __button_loop():
-        pass
-        # Do something with a key
+    class Button:
+        def __init__(self, pin):
+            pass
+
+        def update(self) -> None:
+            pass
+
+        @property
+        def rose(self) -> bool:
+            return False
 
     # TODO: If in CI... for a CI controlled polyfill.
 
 
-async def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
+def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
     """
     Returns a new callable that perform the button processing based on
     whether the code is running in CircuitPython where a pin will be

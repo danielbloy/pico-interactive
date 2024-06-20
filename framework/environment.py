@@ -7,7 +7,7 @@
 import os
 
 __is_blinka_available: bool = False
-__is_running_on_microcontroller: bool = False
+__is_running_on_microcontroller: bool = True
 
 try:
     # If this works, we assume this means that we have access to pins either
@@ -15,6 +15,7 @@ try:
     import board
 
     __is_blinka_available = True
+    
 except ImportError:
     __is_blinka_available = False
 
@@ -28,17 +29,17 @@ try:
     if __is_running_on_microcontroller:
         __is_blinka_available = False
 
-except:
+except AttributeError:
     pass
 
 # Override for when running under a CI system.
 __is_running_in_ci: bool = (
-        "CI" in os.environ or
-        "TRAVIS" in os.environ or
-        "CIRCLECI" in os.environ or
-        "GITLAB_CI" in os.environ or
-        "GITHUB_ACTIONS" in os.environ or
-        "GITHUB_RUN_ID" in os.environ)
+        os.getenv("CI") is not None or
+        os.getenv("TRAVIS") is not None or
+        os.getenv("CIRCLECI") is not None or
+        os.getenv("GITLAB_CI") is not None or
+        os.getenv("GITHUB_ACTIONS") is not None or
+        os.getenv("GITHUB_RUN_ID") is not None)
 
 if __is_running_in_ci:
     __is_running_in_in_ci = True

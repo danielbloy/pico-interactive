@@ -1,7 +1,15 @@
 import asyncio
 
 from framework.button import Button
+from framework.environment import are_pins_available
 from framework.runner import Runner
+
+BUTTON_PIN = " "
+
+if are_pins_available():
+    import board
+
+    BUTTON_PIN = board.GP27
 
 if __name__ == '__main__':
     i: int = 0
@@ -18,8 +26,6 @@ if __name__ == '__main__':
         while True:
             print("LOOP: runs_forever_task")
             await asyncio.sleep(2.0)
-
-        print("FINISH: runs_forever_task")
 
 
     async def completes_task():

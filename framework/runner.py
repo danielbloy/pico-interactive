@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from framework.debug import debug, info, warn, error
+from framework.debug import debug, info, warn, error, stacktrace
 from framework.environment import is_running_on_desktop
 
 # collections.abc is not available in CircuitPython.
@@ -82,6 +82,8 @@ class Runner:
             asyncio.run(self.__execute(callback))
         except Exception as e:
             error(f'run(): Exception caught running framework: {e}')
+            stacktrace(e)
+
         finally:
             self.__running = False
 
@@ -107,6 +109,7 @@ class Runner:
 
         except Exception as e:
             error(f'Caught the following exception cancelling tasks: {e}!')
+            stacktrace(e)
 
     def __new_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
         """
@@ -138,6 +141,7 @@ class Runner:
 
                 except Exception as e:
                     warn(f'Exception: {e} raised by task {task}')
+                    stacktrace(e)
 
                     if self.restart_on_exception:
                         warn(f'Rerunning task {task}')
@@ -180,6 +184,7 @@ class Runner:
 
                     except Exception as e:
                         error(f'Exception: {e} raised by scheduled task {task}, cancelling runner')
+                        stacktrace(e)
                         self.cancel = True
 
                 await self.__internal_loop_wait()

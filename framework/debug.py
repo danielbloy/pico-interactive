@@ -8,7 +8,8 @@
 
 def stacktrace(exception: Exception) -> None:
     import traceback
-    print(traceback.format_exception(exception))
+    for s in traceback.format_exception(exception):
+        debug(s)
 
 
 # TODO: this should be re-routed to a suitable logging framework based on the execution environment.

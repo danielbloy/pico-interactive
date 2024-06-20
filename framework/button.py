@@ -27,7 +27,7 @@ class Button:
         self.__double_click_handler = handler
 
     def add_long_press_handler(self, handler: Callable[[], Awaitable[None]] = None):
-        self.__long_press_click_handler = handler
+        self.__long_press_handler = handler
 
     def register(self, runner: Runner) -> None:
         """
