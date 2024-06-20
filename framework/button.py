@@ -1,35 +1,42 @@
-# TODO: Single press event
-# TODO: Double press event
-# TODO: Long press event
-
-
-# This needs a polyfill that works on Desktop without Blinka.
-# Rather than button, use key on desktop.
-
 import asyncio
 
-import digitalio
-from adafruit_debouncer import Debouncer
+from framework.environment import is_running_on_desktop
+from framework.runner import Runner
+
+# collections.abc is not available in CircuitPython.
+if is_running_on_desktop():
+    from collections.abc import Callable, Awaitable
 
 
-def button_event():
-    if music:
-        if music.paused:
-            music.resume()
-        else:
-            music.pause()
+class Button:
+    """
+    TODO: Comments
+    """
 
+    def __init__(self):
+        self.__running = False
+        self.__single_click_handler = None
+        self.__double_click_handler = None
+        self.__long_press_handler = None
 
-btn_event = button_event
+    def add_single_click_handler(self, handler: Callable[[], Awaitable[None]] = None):
+        self.__single_click_handler = handler
 
+    def add_double_click_handler(self, handler: Callable[[], Awaitable[None]] = None):
+        self.__double_click_handler = handler
 
-async def button_loop():
-    pin = digitalio.DigitalInOut(BUTTON_PIN)
-    pin.direction = digitalio.Direction.INPUT
-    pin.pull = digitalio.Pull.UP
-    switch = Debouncer(pin)
-    while btn_event:
-        await asyncio.sleep(SLEEP_INTERVAL / 1000)
-        switch.update()
-        if switch.rose:
-            btn_event()
+    def add_long_press_handler(self, handler: Callable[[], Awaitable[None]] = None):
+        self.__long_press_click_handler = handler
+
+    def register(self, runner: Runner) -> None:
+        """
+        TODO: Comments: Register with runner.
+        :param runner:
+        :return:
+        """
+        runner.add_task(self.__loop)
+
+    async def __loop(self) -> None:
+        while True:
+            # TODO: Call the polyfill to handle the actual button signals.
+            await asyncio.sleep(0.1)

@@ -1,5 +1,6 @@
 import asyncio
 
+from framework.button import Button
 from framework.runner import Runner
 
 if __name__ == '__main__':
@@ -35,10 +36,13 @@ if __name__ == '__main__':
 
 
     runner = Runner()
-    runner.restart_on_completion = True
-    runner.restart_on_exception = True
+    runner.restart_on_completion = False
+    runner.restart_on_exception = False
     runner.cancel_on_exception = False
     runner.add_task(runs_forever_task)
     runner.add_task(completes_task)
     runner.add_task(raises_exception_task)
+    button = Button()
+    # TODO: add handlers
+    button.register(runner)
     runner.run(callback)
