@@ -12,36 +12,16 @@ SLEEP_INTERVAL = 0.1
 if are_pins_available():
 
     import digitalio
-    from adafruit_debouncer import Button as Adafruit_Button
 
 
-    class Button:
+    # from adafruit_debouncer import Button
+    # Probably need to import  microcontroller.Pin
 
-        def __init__(self, pin):
-            pin = digitalio.DigitalInOut(pin)
-            pin.direction = digitalio.Direction.INPUT
-            pin.pull = digitalio.Pull.UP
-            self.__button = Adafruit_Button(pin, short_duration_ms=50, long_duration_ms=200)
-
-        def update(self) -> None:
-            self.__button.update()
-
-        @property
-        def pressed(self) -> bool:
-            return self.__button.pressed
-
-        @property
-        def released(self) -> bool:
-            return self.__button.released
-
-        @property
-        def short_count(self) -> int:
-            return self.__button.short_count
-
-        @property
-        def long_press(self) -> bool:
-            return self.__button.long_press
-
+    def __new_button(pin: Pin) -> Button:
+        pin = digitalio.DigitalInOut(pin)
+        pin.direction = digitalio.Direction.INPUT
+        pin.pull = digitalio.Pull.UP
+        return Button(pin, short_duration_ms=50, long_duration_ms=200)
 
 else:
     class Button:
@@ -68,6 +48,10 @@ else:
             return False  # TODO
 
 
+    def __new_button(pin) -> Button:
+        return Button(pin)
+
+
 def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
     """
     Returns a new callable that perform the button processing based on
@@ -78,7 +62,7 @@ def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awai
     :param handler: A handler that will be called when the button is pressed.
     """
 
-    button = Button(pin)
+    button = __new_button(pin)
 
     async def loop():
         while True:
