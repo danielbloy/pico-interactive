@@ -1,6 +1,7 @@
 import asyncio
 import time
 
+from framework.control import RUNNER_DEFAULT_CALLBACK_INTERVAL, RUNNER_INTERNAL_LOOP_RATIO
 from framework.debug import debug, info, warn, error, stacktrace
 from framework.environment import is_running_on_desktop
 
@@ -40,8 +41,6 @@ class Runner:
     possible to get the runner to restart tasks that error by turning setting
     self.restart_on_exception = True. This will override self.cancel_on_exception.
     """
-    DEFAULT_CALLBACK_FREQUENCY = 20  # How many times we expect the callback to be called per second.
-    DEFAULT_CALLBACK_INTERVAL = 1 / DEFAULT_CALLBACK_FREQUENCY
 
     def __init__(self):
         self.__running = False
@@ -49,7 +48,7 @@ class Runner:
         self.cancel_on_exception = True
         self.restart_on_exception = False
         self.restart_on_completion = False
-        self.callback_interval = self.DEFAULT_CALLBACK_INTERVAL
+        self.callback_interval = RUNNER_DEFAULT_CALLBACK_INTERVAL
         self.__tasks_to_run: list[Callable[[], Awaitable[None]]] = []
         self.__internal_loop_sleep_interval = 0.0
 
@@ -78,7 +77,7 @@ class Runner:
 
         self.cancel = False
         try:
-            self.__internal_loop_sleep_interval = self.callback_interval / 8
+            self.__internal_loop_sleep_interval = self.callback_interval / RUNNER_INTERNAL_LOOP_RATIO
             asyncio.run(self.__execute(callback))
         except Exception as e:
             error(f'run(): Exception caught running framework: {e}')

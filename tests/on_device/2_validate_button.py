@@ -1,4 +1,3 @@
-import asyncio
 import time
 
 from framework.button import ButtonController
@@ -21,38 +20,26 @@ if __name__ == '__main__':
 
     async def callback() -> None:
         global start, finish
-        runner.cancel = time.monotonic_ns() > finish
+        runner.cancel = time.monotonic() > finish
 
 
-    async def runs_forever_task():
-        while True:
-            print("LOOP: runs_forever_task")
-            await asyncio.sleep(2.0)
+    async def single_click_handler() -> None:
+        print('Single click!')
 
 
-    async def completes_task():
-        print("START: completes_task")
-        await asyncio.sleep(0.005)
-        print("FINISH: completes_task")
+    async def multi_click_handler() -> None:
+        print('Multi click!')
 
 
-    async def raises_exception_task():
-        print("START: raises_exception_task")
-        await asyncio.sleep(0.005)
-        print("EXCEPTION: raises_exception_task")
-        raise Exception("Raised by task 3")
+    async def long_press_handler() -> None:
+        print('Long press!')
 
 
     runner = Runner()
-    runner.restart_on_completion = False
-    runner.restart_on_exception = False
-    runner.cancel_on_exception = False
-    runner.add_task(runs_forever_task)
-    runner.add_task(completes_task)
-    runner.add_task(raises_exception_task)
-
     button = new_button(BUTTON_PIN)
-    # TODO: add handlers
     button_controller = ButtonController(button)
+    button_controller.add_single_click_handler(single_click_handler)
+    button_controller.add_multi_click_handler(multi_click_handler)
+    button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
     runner.run(callback)
