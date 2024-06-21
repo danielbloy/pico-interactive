@@ -1,2 +1,2 @@
-class TestButton:
+class TestButtonController:
     pass

@@ -1,7 +1,9 @@
 import asyncio
+import time
 
-from framework.button import Button
+from framework.button import ButtonController
 from framework.environment import are_pins_available
+from framework.polyfills.button import new_button
 from framework.runner import Runner
 
 BUTTON_PIN = " "
@@ -12,14 +14,14 @@ if are_pins_available():
     BUTTON_PIN = board.GP27
 
 if __name__ == '__main__':
-    i: int = 0
+    # Allow the application to only run for a defined number of seconds.
+    start = time.monotonic()
+    finish = start + 10
 
 
     async def callback() -> None:
-        global i
-        i += 1
-        print(f'Callback: i={i}')
-        runner.cancel = i == 30
+        global start, finish
+        runner.cancel = time.monotonic_ns() > finish
 
 
     async def runs_forever_task():
@@ -48,7 +50,9 @@ if __name__ == '__main__':
     runner.add_task(runs_forever_task)
     runner.add_task(completes_task)
     runner.add_task(raises_exception_task)
-    button = Button()
+
+    button = new_button(BUTTON_PIN)
     # TODO: add handlers
-    button.register(runner)
+    button_controller = ButtonController(button)
+    button_controller.register(runner)
     runner.run(callback)

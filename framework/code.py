@@ -1,7 +1,8 @@
 # Sample basic application showing how to setup and use the pico-interactive framework.
-import button
 import environment
 import runner
+from framework.button import ButtonController
+from framework.polyfills.button import new_button
 
 BUTTON_PIN = " "
 
@@ -21,7 +22,9 @@ if __name__ == '__main__':
 
 
     runner = runner.Runner()
-    button = button.Button(BUTTON_PIN)
-    button.register(runner)
+
+    button = new_button(BUTTON_PIN)
+    button_controller = ButtonController(button)
+    button_controller.register(runner)
 
     runner.run(callback)

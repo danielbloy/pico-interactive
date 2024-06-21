@@ -1,13 +1,4 @@
-import asyncio
-
-from framework.environment import is_running_on_desktop, are_pins_available
-
-# collections.abc is not available in CircuitPython.
-if is_running_on_desktop():
-    from collections.abc import Callable, Awaitable
-
-# TODO: extract this out
-SLEEP_INTERVAL = 0.1
+from framework.environment import are_pins_available
 
 if are_pins_available():
 
@@ -52,26 +43,12 @@ else:
         return Button(pin)
 
 
-def new_button(pin, handler: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
+def new_button(pin) -> Button:
     """
     Returns a new callable that perform the button processing based on
     whether the code is running in CircuitPython where a pin will be
     provided or in a desktop environment where a key will be used.
 
     :param pin: The pin or key to use for the button signal.
-    :param handler: A handler that will be called when the button is pressed.
     """
-
-    button = __new_button(pin)
-
-    async def loop():
-        while True:
-            await asyncio.sleep(SLEEP_INTERVAL / 1000)
-            button.update()
-
-            print(button.short_count, button.long_press)
-
-            if button.pressed:
-                await handler()
-
-    return loop
+    return __new_button(pin)
