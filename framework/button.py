@@ -73,11 +73,13 @@ class ButtonController:
             await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
             self.__button.update()
 
-            if self.__button.short_count != 0:
-                if self.__button.short_count == 1 and self.__single_click_handler is not None:
+            short_count = self.__button.short_count
+            if short_count != 0:
+
+                if short_count == 1 and self.__single_click_handler is not None:
                     await self.__single_click_handler()
 
-                elif self.__multi_click_handler is not None:
+                elif short_count > 1 and self.__multi_click_handler is not None:
                     await self.__multi_click_handler()
 
             if self.__button.long_press and self.__long_press_handler is not None:

@@ -23,6 +23,10 @@ if are_pins_available():
 
 else:
     class Button:
+        """
+        TODO: Implement a Button that works off of a keypress.
+        """
+
         def __init__(self, pin):
             pass
 

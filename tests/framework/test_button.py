@@ -10,6 +10,42 @@ from framework.runner import Runner
 class TestButton(Button):
     def __init__(self):
         super().__init__(None)
+        self.short_count_pattern = [0]
+        self.short_count_index = 0
+
+        self.long_press_pattern = [False]
+        self.long_press_index = 0
+
+        self.update_count = 0
+
+    def update(self) -> None:
+        self.update_count += 1
+
+    @property
+    def short_count(self) -> int:
+        if len(self.short_count_pattern) == 0:
+            return 0
+
+        if self.short_count_index >= len(self.short_count_pattern):
+            self.short_count_index = 0
+
+        result = self.short_count_pattern[self.short_count_index]
+        self.short_count_index += 1
+
+        return result
+
+    @property
+    def long_press(self) -> bool:
+        if len(self.long_press_pattern) == 0:
+            return False
+
+        if self.long_press_index >= len(self.long_press_pattern):
+            self.long_press_index = 0
+
+        result = self.long_press_pattern[self.long_press_index]
+        self.long_press_index += 1
+
+        return result
 
 
 class TestButtonController:
@@ -108,6 +144,265 @@ class TestButtonController:
         controller.register(runner)
         assert add_task_count == 1
 
-    # TODO: Test running with non handlers.
-    # TODO: Test running with one handler with many event types
-    # TODO: Test running with multi handlers with many event types.
+    def test_running_with_no_handler(self) -> None:
+        """
+        Validates that running with no handlers does not error even
+        though the button is generating events.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 10
+
+        runner = Runner()
+        button = TestButton()
+        button.short_count_pattern = [0, 1, 2]
+        button.long_press_pattern = [True, False]
+        controller = ButtonController(button)
+        controller.register(runner)
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+
+    def test_running_with_only_single_click_handler(self) -> None:
+        """
+        Validates that running with just the single-click handler only
+        raises single-click events.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 10
+
+        single_click_count: int = 0
+
+        async def single_click():
+            nonlocal single_click_count
+            single_click_count += 1
+
+        runner = Runner()
+        button = TestButton()
+        controller = ButtonController(button)
+        controller.add_single_click_handler(single_click)
+        controller.register(runner)
+
+        # First we run generating all events except single-clicks
+        button.short_count_pattern = [0, 2, 3]
+        button.long_press_pattern = [True, False]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count == 0
+
+        # Now we run generating all events
+        called_count = 0
+        button.update_count = 0
+        button.short_count_pattern = [0, 1, 2, 3]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count > 0
+
+    def test_running_with_only_multi_click_handler(self) -> None:
+        """
+        Validates that running with just the multi-click handler only
+        raises multi-click events.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 10
+
+        multi_click_count: int = 0
+
+        async def multi_click():
+            nonlocal multi_click_count
+            multi_click_count += 1
+
+        runner = Runner()
+        button = TestButton()
+        controller = ButtonController(button)
+        controller.add_multi_click_handler(multi_click)
+        controller.register(runner)
+
+        # First we run generating all events except multi-clicks
+        button.short_count_pattern = [0, 1]
+        button.long_press_pattern = [True, False]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert multi_click_count == 0
+
+        # Now we run generating all events
+        called_count = 0
+        button.update_count = 0
+        button.short_count_pattern = [0, 1, 2, 3]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert multi_click_count > 0
+
+    def test_running_with_only_long_press_handler(self) -> None:
+        """
+        Validates that running with just the long-press handler only
+        raises long-press events.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 10
+
+        long_press_count: int = 0
+
+        async def long_press():
+            nonlocal long_press_count
+            long_press_count += 1
+
+        runner = Runner()
+        button = TestButton()
+        controller = ButtonController(button)
+        controller.add_long_press_handler(long_press)
+        controller.register(runner)
+
+        # First we run generating all events except long-presses
+        button.short_count_pattern = [0, 1, 2, 3]
+        button.long_press_pattern = [False]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert long_press_count == 0
+
+        # Now we run generating all events
+        called_count = 0
+        button.update_count = 0
+        button.long_press_pattern = [True, False]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert long_press_count > 0
+
+    def test_running_with_all_handlers(self) -> None:
+        """
+        Validates running with all handlers and only the correct ones
+        are triggered.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 10
+
+        single_click_count: int = 0
+
+        async def single_click():
+            nonlocal single_click_count
+            single_click_count += 1
+
+        multi_click_count: int = 0
+
+        async def multi_click():
+            nonlocal multi_click_count
+            multi_click_count += 1
+
+        long_press_count: int = 0
+
+        async def long_press():
+            nonlocal long_press_count
+            long_press_count += 1
+
+        runner = Runner()
+        button = TestButton()
+        controller = ButtonController(button)
+        controller.add_single_click_handler(single_click)
+        controller.add_multi_click_handler(multi_click)
+        controller.add_long_press_handler(long_press)
+        controller.register(runner)
+
+        # First we run generating no events.
+        button.short_count_pattern = [0]
+        button.long_press_pattern = [False]
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count == 0
+        assert multi_click_count == 0
+        assert long_press_count == 0
+
+        # Now we run generating just single-click events
+        called_count = 0
+        button.update_count = 0
+        button.short_count_pattern = [0, 1]
+        single_click_count = 0
+        multi_click_count = 0
+        long_press_count = 0
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count > 0
+        assert multi_click_count == 0
+        assert long_press_count == 0
+
+        # Now we run generating just multi-click events
+        called_count = 0
+        button.update_count = 0
+        button.short_count_pattern = [0, 2, 3]
+        single_click_count = 0
+        multi_click_count = 0
+        long_press_count = 0
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count == 0
+        assert multi_click_count > 0
+        assert long_press_count == 0
+
+        # Now we run generating just long-press events
+        called_count = 0
+        button.update_count = 0
+        button.short_count_pattern = [0]
+        button.long_press_pattern = [False, True]
+        single_click_count = 0
+        multi_click_count = 0
+        long_press_count = 0
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count == 0
+        assert multi_click_count == 0
+        assert long_press_count > 0
+
+        # Now we run generating all events
+        called_count = 0
+        button.update_count = 0
+        button.short_count_pattern = [0, 1, 2, 3]
+        button.long_press_pattern = [False, True]
+        single_click_count = 0
+        multi_click_count = 0
+        long_press_count = 0
+        runner.run(callback)
+
+        assert called_count == 10
+        assert button.update_count > 10
+        assert single_click_count > 0
+        assert multi_click_count > 0
+        assert long_press_count > 0
