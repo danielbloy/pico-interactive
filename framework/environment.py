@@ -15,14 +15,14 @@ try:
     import board
 
     __is_blinka_available = True
-    
+
 except ImportError:
     __is_blinka_available = False
 
 try:
     # Here we use the environment variable to determine if we are running on a
     # Microcontroller or not.
-    __is_running_on_microcontroller = os.environ["BLINKA_U2IF"] != "1"
+    __is_running_on_microcontroller = os.getenv("BLINKA_U2IF") != "1"
 
     # If we are running on a microcontroller, we force Blinka off as we are
     # not expecting to run Blinka on a microcontroller
