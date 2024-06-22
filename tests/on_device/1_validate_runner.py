@@ -9,24 +9,28 @@ if __name__ == '__main__':
     async def callback() -> None:
         global i
         i += 1
-        print(f'i={i}')
+        print(f'Callback: i={i}')
         runner.cancel = i == 30
 
 
     async def runs_forever_task():
         while True:
-            print("task1")
+            print("LOOP: runs_forever_task")
             await asyncio.sleep(2.0)
+
+        print("FINISH: runs_forever_task")
 
 
     async def completes_task():
-        print("task2")
+        print("START: completes_task")
         await asyncio.sleep(0.005)
+        print("FINISH: completes_task")
 
 
     async def raises_exception_task():
-        print("task3")
+        print("START: raises_exception_task")
         await asyncio.sleep(0.005)
+        print("EXCEPTION: raises_exception_task")
         raise Exception("Raised by task 3")
 
 

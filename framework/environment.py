@@ -7,7 +7,7 @@
 import os
 
 __is_blinka_available: bool = False
-__is_running_on_microcontroller: bool = False
+__is_running_on_microcontroller: bool = True
 
 try:
     # If this works, we assume this means that we have access to pins either
@@ -15,6 +15,7 @@ try:
     import board
 
     __is_blinka_available = True
+    
 except ImportError:
     __is_blinka_available = False
 
@@ -28,16 +29,30 @@ try:
     if __is_running_on_microcontroller:
         __is_blinka_available = False
 
-except:
+except AttributeError:
     pass
 
-# Override for when running in GitHub actions
-__is_running_in_github_actions: bool = "CI" not in os.environ or not os.environ[
-    "CI"] or "GITHUB_RUN_ID" not in os.environ
+# Override for when running under a CI system.
+__is_running_in_ci: bool = (
+        os.getenv("CI") is not None or
+        os.getenv("TRAVIS") is not None or
+        os.getenv("CIRCLECI") is not None or
+        os.getenv("GITLAB_CI") is not None or
+        os.getenv("GITHUB_ACTIONS") is not None or
+        os.getenv("GITHUB_RUN_ID") is not None)
 
-if __is_running_in_github_actions:
+if __is_running_in_ci:
+    __is_running_in_in_ci = True
     __is_running_on_microcontroller = False
     __is_blinka_available = False
+
+
+def is_running_in_ci() -> bool:
+    """
+    Returns whether the code is running in the CI system (GitHub actions).
+    When running in CI, the environment is forced to Desktop without pins.
+    """
+    return __is_running_in_ci
 
 
 def is_running_on_microcontroller() -> bool:
@@ -76,6 +91,8 @@ def report():
     """
     Produces a simple report of the environment the code is running in.
     """
+    if is_running_in_ci():
+        print("Running on CI")
 
     running_on = "microcontroller" if is_running_on_microcontroller() else "desktop"
     pins_available = "are" if are_pins_available() else "are not"

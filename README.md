@@ -47,10 +47,10 @@ the end of this readme for more information about the license.
 - [x] Setup project outline.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
     - [x] Also works on CircuitPython
-    - [ ] Also works with Blinka
-- [ ] Add button support for single, double and long-presses.
-    - [ ] Also works on CircuitPython
-    - [ ] Also works with Blinka
+    - [x] Also works with Blinka
+- [x] Add button support for single, double and long-presses.
+    - [x] Also works on CircuitPython
+    - [x] Also works with Blinka
 - [ ] Add buzzer support for playing tones.
     - [ ] Also works on CircuitPython
     - [ ] Also works with Blinka
@@ -64,6 +64,8 @@ the end of this readme for more information about the license.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
 - [ ] Add SoundBoard support, including display page.
+    - [ ] Also works on CircuitPython
+    - [ ] Also works with Blinka-
 - [ ] Add WiFi support, including display page.
     - [ ] Also works on CircuitPython
     - [ ] Also works with Blinka
