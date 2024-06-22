@@ -21,6 +21,12 @@ class ButtonController:
     """
 
     def __init__(self, button: Button):
+        if button is None:
+            raise ValueError("Button cannot be None")
+
+        if not isinstance(button, Button):
+            raise ValueError("button must be of type Button")
+
         self.__running = False
         self.__single_click_handler = None
         self.__multi_click_handler = None

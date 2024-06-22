@@ -1,3 +1,4 @@
+from framework.control import BUTTON_SHORT_DURATION_MS, BUTTON_LONG_DURATION_MS
 from framework.environment import are_pins_available
 
 if are_pins_available():
@@ -18,7 +19,7 @@ if are_pins_available():
         pin = digitalio.DigitalInOut(pin)
         pin.direction = digitalio.Direction.INPUT
         pin.pull = digitalio.Pull.UP
-        return Button(pin, short_duration_ms=200, long_duration_ms=2000)
+        return Button(pin, short_duration_ms=BUTTON_SHORT_DURATION_MS, long_duration_ms=BUTTON_LONG_DURATION_MS)
 
 else:
     class Button:
