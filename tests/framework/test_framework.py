@@ -2,6 +2,7 @@ import asyncio
 import time
 from collections.abc import Callable, Awaitable
 
+from framework.control import RUNNER_DEFAULT_CALLBACK_INTERVAL, RUNNER_DEFAULT_CALLBACK_FREQUENCY
 from framework.runner import Runner
 
 
@@ -38,7 +39,7 @@ class TestRunner:
 
         assert not runner.cancel
         assert runner.cancel_on_exception
-        assert runner.callback_interval == Runner.DEFAULT_CALLBACK_INTERVAL
+        assert runner.callback_interval == RUNNER_DEFAULT_CALLBACK_INTERVAL
 
     def test_run_with_no_tasks(self) -> None:
         """
@@ -151,7 +152,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= (seconds_to_run * Runner.DEFAULT_CALLBACK_FREQUENCY)
+            runner.cancel = called_count >= (seconds_to_run * RUNNER_DEFAULT_CALLBACK_FREQUENCY)
 
         async def blocking_task():
             while True:
@@ -167,7 +168,7 @@ class TestRunner:
         end = time.time()
 
         assert runner.cancel
-        assert called_count == seconds_to_run * Runner.DEFAULT_CALLBACK_FREQUENCY
+        assert called_count == seconds_to_run * RUNNER_DEFAULT_CALLBACK_FREQUENCY
         assert (end - start) < (seconds_to_run * 1.05)
         assert (end - start) > (seconds_to_run * 0.95)
 
@@ -280,7 +281,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
+            runner.cancel = called_count >= RUNNER_DEFAULT_CALLBACK_FREQUENCY
 
         async def task():
             nonlocal task_count
@@ -292,7 +293,7 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
+        assert called_count == RUNNER_DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task_count > 10
@@ -310,7 +311,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
+            runner.cancel = called_count >= RUNNER_DEFAULT_CALLBACK_FREQUENCY
 
         async def task1():
             nonlocal task1_count
@@ -338,7 +339,7 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
+        assert called_count == RUNNER_DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task1_count > 10
@@ -356,7 +357,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
+            runner.cancel = called_count >= RUNNER_DEFAULT_CALLBACK_FREQUENCY
 
         async def task():
             nonlocal task_count
@@ -369,7 +370,7 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
+        assert called_count == RUNNER_DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task_count > 10
@@ -389,7 +390,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
+            runner.cancel = called_count >= RUNNER_DEFAULT_CALLBACK_FREQUENCY
 
         async def task1():
             nonlocal task1_count
@@ -420,7 +421,7 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
+        assert called_count == RUNNER_DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task1_count > 10
@@ -441,7 +442,7 @@ class TestRunner:
         async def callback():
             nonlocal called_count
             called_count += 1
-            runner.cancel = called_count >= Runner.DEFAULT_CALLBACK_FREQUENCY
+            runner.cancel = called_count >= RUNNER_DEFAULT_CALLBACK_FREQUENCY
 
         async def task1():
             nonlocal task1_count
@@ -484,7 +485,7 @@ class TestRunner:
         runner.run(callback)
 
         assert runner.cancel
-        assert called_count == Runner.DEFAULT_CALLBACK_FREQUENCY
+        assert called_count == RUNNER_DEFAULT_CALLBACK_FREQUENCY
         # The actual number of tasks completed will be a lot but depends on the
         # computers' performance.
         assert task1_count > 10
