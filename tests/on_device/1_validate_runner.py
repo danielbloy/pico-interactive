@@ -18,8 +18,6 @@ if __name__ == '__main__':
             print("LOOP: runs_forever_task")
             await asyncio.sleep(2.0)
 
-        print("FINISH: runs_forever_task")
-
 
     async def completes_task():
         print("START: completes_task")

@@ -2,8 +2,8 @@ import asyncio
 import time
 
 from framework.control import RUNNER_DEFAULT_CALLBACK_INTERVAL, RUNNER_INTERNAL_LOOP_RATIO
-from framework.debug import debug, info, warn, error, stacktrace
 from framework.environment import is_running_on_desktop
+from framework.log import debug, info, warn, error, stacktrace
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
