@@ -249,6 +249,7 @@ add the appropriate libraries into your `venv`. In the project covered here it i
 adafruit-circuitpython-led-animation
 adafruit-circuitpython-neopixel
 adafruit-circuitpython-debouncer
+adafruit-circuitpython-logging
 ```
 
 ## License
