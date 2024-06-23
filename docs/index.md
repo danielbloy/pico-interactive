@@ -8,6 +8,7 @@ For more details on the design and evolution of the base node hardware, see
 the section on [hardware](../hardware/README.md).
 
 Base board configuration (all optionally enabled):
+
 * 1 x button
 * 1 x buzzer
 * 1 x OLED display (128 x 64)
@@ -32,10 +33,30 @@ amplifier, mono or stereo input, power usage. The sound boards are also stackabl
 allowing for one sound board to use one input and a second sound board to use
 the second input.
 
-The OLED display will have an optional screen per framework module (buzzer, button, 
-Network, UART, ultrasonic, debug) as well as an off/blank screen. The default screen 
+The OLED display will have an optional screen per framework module (buzzer, button,
+Network, UART, ultrasonic, debug) as well as an off/blank screen. The default screen
 will be configurable.
 
 The ultrasonic sensor will be able to return the last distance calculated. It can
 also be configured to trigger an event when a set distance is broken. The number
 of distance events will be configurable as are the event callbacks.
+
+## Using the pico-interactive library
+
+TODO: Properly flesh this out, explaining the contents of each file.
+
+### Setup on a CircuitPython device
+
+Copy the framework directory onto the CircuitPython device.
+
+### Examples
+
+See `tests/on_device` for examples.
+
+### Configuration
+
+Settings that are designed to be changed to configure behaviour will be found in `config.toml`
+and `config.py`. Each device can have different settings. The settings in `control.py` are not
+expected to change within the same type of microcontroller (but may have to change across
+microcontroller types).
+
