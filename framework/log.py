@@ -6,11 +6,16 @@ from framework.environment import is_running_on_desktop
 
 if is_running_on_desktop():
     import logging
+    from logging import CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
+
+    FORMAT = '%(asctime)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=WARNING)
 
 else:
     import adafruit_logging as logging
+    from adafruit_logging import CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
 
-from logging import CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
+logger = logging.getLogger(__name__)
 
 # Prevents PyCharm from clearing up the unused imports.
 __CRITICAL = CRITICAL
@@ -20,10 +25,6 @@ __INFO = INFO
 __DEBUG = DEBUG
 __NOTSET = NOTSET
 
-logger = logging.getLogger(__name__)
-FORMAT = '%(asctime)s %(message)s'
-logging.basicConfig(format=FORMAT, level=WARNING)
-
 
 def set_log_level(level) -> None:
     """
@@ -31,7 +32,7 @@ def set_log_level(level) -> None:
 
     :param level: A number, usually oOne of CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
     """
-    logging.basicConfig(level=level)
+    logger.setLevel(level)
 
 
 def stacktrace(e: Exception) -> None:
@@ -41,8 +42,13 @@ def stacktrace(e: Exception) -> None:
     :param e: The exception whose stack trace we want to log.
     """
     import traceback
-    for s in traceback.format_exception(e, value=None, tb=None):
-        logger.debug(s)
+    if is_running_on_desktop():
+        # This is to support Python 3.9 as well as Python 3.12.
+        for s in traceback.format_exception(e, value=None, tb=None):
+            logger.debug(s)
+    else:
+        for s in traceback.format_exception(e):
+            logger.debug(s)
 
 
 def debug(message: str) -> None:

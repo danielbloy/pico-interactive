@@ -54,9 +54,9 @@ the end of this readme for more information about the license.
 - [ ] Add buzzer support for playing tones.
     - [ ] Also works on CircuitPython
     - [ ] Also works with Blinka
-- [ ] Add support for logging in both Desktop and Pico environments.
-    - [ ] Also works on CircuitPython
-    - [ ] Also works with Blinka
+- [x] Add support for logging in both Desktop and Pico environments.
+    - [x] Also works on CircuitPython
+    - [x] Also works with Blinka
 - [ ] Add OLED Display support, including cycling through screen pages.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
