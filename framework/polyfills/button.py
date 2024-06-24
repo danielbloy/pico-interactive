@@ -56,7 +56,7 @@ else:
 
 def new_button(pin) -> Button:
     """
-    Returns a new callable that perform the button processing based on
+    Returns a new Button that perform the button processing based on
     whether the code is running in CircuitPython where a pin will be
     provided or in a desktop environment where a key will be used.
 
