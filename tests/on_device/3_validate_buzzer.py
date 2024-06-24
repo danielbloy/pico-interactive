@@ -8,7 +8,8 @@ from framework.polyfills.button import new_button
 from framework.polyfills.buzzer import new_buzzer
 from framework.runner import Runner
 
-BUTTON_PIN = " "
+BUTTON_PIN = None
+BUZZER_PIN = None
 
 if are_pins_available():
     import board
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     button_controller.register(runner)
 
     buzzer = new_buzzer(BUZZER_PIN)
-    buzzer_controller = BuzzerController(button)
+    buzzer_controller = BuzzerController(buzzer)
     buzzer_controller.register(runner)
 
     runner.run(callback)

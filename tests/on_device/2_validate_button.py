@@ -6,7 +6,7 @@ from framework.log import set_log_level, info, INFO
 from framework.polyfills.button import new_button
 from framework.runner import Runner
 
-BUTTON_PIN = " "
+BUTTON_PIN = None
 
 if are_pins_available():
     import board
