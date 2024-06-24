@@ -2,6 +2,7 @@ import time
 
 from framework.button import ButtonController
 from framework.environment import are_pins_available
+from framework.log import set_log_level, info, INFO
 from framework.polyfills.button import new_button
 from framework.runner import Runner
 
@@ -17,6 +18,8 @@ if __name__ == '__main__':
     start = time.monotonic()
     finish = start + 10
 
+    set_log_level(INFO)
+
 
     async def callback() -> None:
         global start, finish
@@ -24,15 +27,15 @@ if __name__ == '__main__':
 
 
     async def single_click_handler() -> None:
-        print('Single click!')
+        info('Single click!')
 
 
     async def multi_click_handler() -> None:
-        print('Multi click!')
+        info('Multi click!')
 
 
     async def long_press_handler() -> None:
-        print('Long press!')
+        info('Long press!')
 
 
     runner = Runner()

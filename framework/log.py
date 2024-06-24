@@ -41,7 +41,7 @@ def stacktrace(e: Exception) -> None:
     :param e: The exception whose stack trace we want to log.
     """
     import traceback
-    for s in traceback.format_exception(e):
+    for s in traceback.format_exception(e, value=None, tb=None):
         logger.debug(s)
 
 
@@ -63,11 +63,6 @@ def warn(message: str) -> None:
 def error(message: str) -> None:
     """Writes message at the ERROR log level."""
     logger.error(message)
-
-
-def exception(message: str) -> None:
-    """Writes message at the ERROR log level with a stacktrace."""
-    logger.exception(message)
 
 
 def critical(message: str) -> None:
