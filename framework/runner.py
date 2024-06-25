@@ -179,7 +179,7 @@ class Runner:
                 stacktrace(e)
                 self.cancel = True
 
-        return new_scheduled_task(handler, self.callback_frequency, terminate_on_cancel(self))
+        return new_scheduled_task(handler, terminate_on_cancel(self), self.callback_frequency)
 
     async def __internal_loop_wait(self) -> None:
         """

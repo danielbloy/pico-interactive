@@ -34,27 +34,27 @@ def terminate_on_cancel(cancellable) -> Callable[[], bool]:
 
 def new_scheduled_task(
         task: Callable[[], Awaitable[None]],
-        frequency: int = SCHEDULER_DEFAULT_FREQUENCY,
-        terminate_func: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
+        cancel_func: Callable[[], bool] = never_terminate,
+        frequency: int = SCHEDULER_DEFAULT_FREQUENCY) -> Callable[[], Awaitable[None]]:
     """
     Returns an async task function that will invoke the provided task at the
-    desired frequency until the terminate_func returns True. The returned task can
+    desired frequency until the cancel_func returns True. The returned task can
     be added to a Runner so it is called regularly in the background.
 
     :param task: This is called once every cycle based on the callback frequency.
     :param frequency: The desired frequency to invoke the task.
-    :param terminate_func: A function that returns whether to terminate the task or not.
+    :param cancel_func: A function that returns whether to cancel the task or not.
     """
 
     interval = 1 / frequency
-    interval_ns: int = int(interval * 1000000000)
+    interval_ns: int = int(interval * 1_000_000_000)
     next_callback_ns = time.monotonic_ns()
 
     sleep_interval = interval / SCHEDULER_INTERNAL_LOOP_RATIO
 
     async def handler() -> None:
         nonlocal interval_ns, next_callback_ns, sleep_interval
-        while not terminate_func():
+        while not cancel_func():
             if time.monotonic_ns() >= next_callback_ns:
                 next_callback_ns += interval_ns
                 debug(f'Calling scheduled task {task}')

@@ -1,7 +1,7 @@
 # This file contains common control values.
 
 # * * * * *    S C H E D U L E R    * * * * *
-SCHEDULER_DEFAULT_FREQUENCY = 60
+SCHEDULER_DEFAULT_FREQUENCY = 30
 SCHEDULER_INTERNAL_LOOP_RATIO = 8
 
 # * * * * *    R U N N E R    * * * * *
