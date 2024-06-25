@@ -1,10 +1,11 @@
 # This file contains common control values.
 
+# * * * * *    S C H E D U L E R    * * * * *
+SCHEDULER_DEFAULT_FREQUENCY = 30
+SCHEDULER_INTERNAL_LOOP_RATIO = 8
+
 # * * * * *    R U N N E R    * * * * *
-# These variables control the Runner
 RUNNER_DEFAULT_CALLBACK_FREQUENCY = 20  # How many times we expect the callback to be called per second.
-RUNNER_DEFAULT_CALLBACK_INTERVAL = 1 / RUNNER_DEFAULT_CALLBACK_FREQUENCY
-RUNNER_INTERNAL_LOOP_RATIO = 8
 
 # * * * * *    L O O P S    * * * * *
 # This is expected the sleep interval for async loops.

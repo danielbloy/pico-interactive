@@ -66,10 +66,10 @@ the end of this readme for more information about the license.
 - [ ] Add SoundBoard support, including display page.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka-
-- [ ] Add WiFi support, including display page.
+- [ ] Add Wi-Fi support, including display page.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
-- [ ] Add current time of day support via WiFi.
+- [ ] Add current time of day support via Wi-Fi.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
 - [ ] Add NeoPixel connector support.
@@ -176,7 +176,7 @@ very cool but I learned a lot. The key takeaways were:
   and these were on breadboards with push in components. This was problematic as they
   were not particularly robust and if knocked could be disconnected. Also, waterproofing
   was more problematic.
-* Stick to cables that use only 3 wire. A lot of the cabling I used needed 4 wires
+* Stick to cables that use only 3 wires. A lot of the cabling I used needed 4 wires
   as I was connecting NeoPixels. Unfortunately, the cable is more expensive and
   weatherproof connectors are more expensive and harder to get hold of. Sticking to
   3 wire cable means that cable is cheap, plentiful and connectors are easy to get with

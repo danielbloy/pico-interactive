@@ -1,9 +1,9 @@
 import asyncio
-import time
 
-from framework.control import RUNNER_DEFAULT_CALLBACK_INTERVAL, RUNNER_INTERNAL_LOOP_RATIO
+from framework.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
 from framework.environment import is_running_on_desktop
 from framework.log import debug, info, warn, error, stacktrace
+from framework.scheduler import new_scheduled_task, terminate_on_cancel
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
@@ -48,7 +48,7 @@ class Runner:
         self.cancel_on_exception = True
         self.restart_on_exception = False
         self.restart_on_completion = False
-        self.callback_interval = RUNNER_DEFAULT_CALLBACK_INTERVAL
+        self.callback_frequency = RUNNER_DEFAULT_CALLBACK_FREQUENCY
         self.__tasks_to_run: list[Callable[[], Awaitable[None]]] = []
         self.__internal_loop_sleep_interval = 0.0
 
@@ -77,7 +77,7 @@ class Runner:
 
         self.cancel = False
         try:
-            self.__internal_loop_sleep_interval = self.callback_interval / RUNNER_INTERNAL_LOOP_RATIO
+            self.__internal_loop_sleep_interval = 1 / (self.callback_frequency * SCHEDULER_INTERNAL_LOOP_RATIO)
             asyncio.run(self.__execute(callback))
         except Exception as e:
             error(f'run(): Exception caught running framework: {e}')
@@ -155,40 +155,31 @@ class Runner:
 
     def __new_scheduled_task_handler(self, task: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
         """
-        Performs the scheduling invocation of the provided callback based on self.callback_interval.
+        Performs the scheduling invocation of the provided callback based on self.callback_frequency.
         If the callback raises an exception then the Runner will be set to cancel; irrespective of
-        the rest of the runner configuration. This is intended for task internal to the Runner only.
+        the rest of the runner configuration. This is intended to be used to schedule tasks internal
+        to the runner only (such as scheduling invocation of the callback).
 
         Note: This function will complete once it detects that self.cancel is set so cannot be used
               for cleanup during cancellation.
 
-        :param task: This is called once every cycle based on the callback frequency.
+        :param task: Called once every cycle based on the callback frequency.
         """
-        interval: int = int(self.callback_interval * 1000000000)
-        next_callback = time.monotonic_ns()
 
         async def handler() -> None:
-            nonlocal interval, next_callback
-            while not self.cancel:
-                if time.monotonic_ns() >= next_callback:
-                    next_callback += interval
-                    debug(f'Calling scheduled task {task}')
+            try:
+                await task()
 
-                    try:
-                        await task()
+            except asyncio.CancelledError:
+                error(f'Caught CancelledError exception for scheduled task {task}, cancelling runner')
+                self.cancel = True
 
-                    except asyncio.CancelledError:
-                        error(f'Caught CancelledError exception for scheduled task {task}, cancelling runner')
-                        self.cancel = True
+            except Exception as e:
+                error(f'Exception: {e} raised by scheduled task {task}, cancelling runner')
+                stacktrace(e)
+                self.cancel = True
 
-                    except Exception as e:
-                        error(f'Exception: {e} raised by scheduled task {task}, cancelling runner')
-                        stacktrace(e)
-                        self.cancel = True
-
-                await self.__internal_loop_wait()
-
-        return handler
+        return new_scheduled_task(handler, terminate_on_cancel(self), self.callback_frequency)
 
     async def __internal_loop_wait(self) -> None:
         """
