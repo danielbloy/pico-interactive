@@ -4,7 +4,6 @@ import time
 from framework.control import SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
 from framework.environment import is_running_on_desktop
 from framework.log import debug
-from framework.runner import Runner
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
@@ -18,16 +17,17 @@ def never_terminate() -> bool:
     return False
 
 
-def terminate_on_runner_cancel(runner: Runner) -> Callable[[], bool]:
+def terminate_on_cancel(cancellable) -> Callable[[], bool]:
     """
     Returns a function that will terminate the scheduled task based on
-    whether the provided Runner instance has been cancelled or not.
+    whether the provided cancellable "thing" has been cancelled or not.
+    This is detected through testing for a cancel property on cancellable.
 
-    :param runner: The runner to use to terminate the scheduled task.
+    :param cancellable: The thing to use to terminate the scheduled task.
     """
 
     def cancel_func() -> bool:
-        return runner.cancel
+        return cancellable.cancel
 
     return cancel_func
 

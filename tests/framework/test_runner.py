@@ -2,7 +2,7 @@ import asyncio
 import time
 from collections.abc import Callable, Awaitable
 
-from framework.control import RUNNER_DEFAULT_CALLBACK_INTERVAL, RUNNER_DEFAULT_CALLBACK_FREQUENCY
+from framework.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY
 from framework.runner import Runner
 
 
@@ -35,11 +35,11 @@ class TestRunner:
         runner = Runner()
         assert hasattr(runner, "cancel")
         assert hasattr(runner, "cancel_on_exception")
-        assert hasattr(runner, "callback_interval")
+        assert hasattr(runner, "callback_frequency")
 
         assert not runner.cancel
         assert runner.cancel_on_exception
-        assert runner.callback_interval == RUNNER_DEFAULT_CALLBACK_INTERVAL
+        assert runner.callback_frequency == RUNNER_DEFAULT_CALLBACK_FREQUENCY
 
     def test_run_with_no_tasks(self) -> None:
         """
