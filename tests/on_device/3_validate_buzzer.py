@@ -1,7 +1,9 @@
+import asyncio
 import time
 
 from framework.button import ButtonController
-from framework.buzzer import BuzzerController
+from framework.buzzer import BuzzerController, Melody, MelodySequence, decode_song
+from framework.control import ASYNC_LOOP_SLEEP_INTERVAL
 from framework.environment import are_pins_available
 from framework.log import set_log_level, INFO
 from framework.polyfills.button import new_button
@@ -20,9 +22,24 @@ if are_pins_available():
 if __name__ == '__main__':
     # Allow the application to only run for a defined number of seconds.
     start = time.monotonic()
-    finish = start + 10
+    finish = start + 20
 
     set_log_level(INFO)
+
+    notes = [
+        "C4:1", "D:1", "E:1", "F:1", "G:1", "A:1", "B:1", "C5:1",
+        "B4:1", "A:1", "G:1", "F:1", "E:1", "D:1", "C:1"]
+
+    buzzer = new_buzzer(BUZZER_PIN)
+    buzzer.volume = 0.1
+    melody = MelodySequence(Melody(buzzer, decode_song(notes), 0.2), loop=True)
+    melody.pause()
+
+
+    async def play_melody() -> None:
+        while True:
+            melody.play()
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
 
 
     async def callback() -> None:
@@ -38,13 +55,16 @@ if __name__ == '__main__':
 
 
     async def multi_click_handler() -> None:
-        # TODO: Play song
-        pass
+        # Either pause or resume the melody
+        if melody.paused:
+            melody.resume()
+        else:
+            melody.pause()
 
 
     async def long_press_handler() -> None:
-        # TODO: Stop playing song
-        pass
+        # Reset the melody
+        melody.reset()
 
 
     runner = Runner()
@@ -56,8 +76,8 @@ if __name__ == '__main__':
     button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
 
-    buzzer = new_buzzer(BUZZER_PIN)
     buzzer_controller = BuzzerController(buzzer)
     buzzer_controller.register(runner)
+    runner.add_task(play_melody)
 
     runner.run(callback)

@@ -54,11 +54,13 @@ the end of this readme for more information about the license.
 - [x] Add button support for single, double and long-presses.
     - [x] Works on CircuitPython
     - [x] Works with Blinka
-- [ ] Add buzzer support for playing tones.
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
-- [ ] Migrate music.py/Song from originals/christmas to buzzer.py
-- [ ] Migrate music.py/SongSequence from originals/christmas
+- [x] Add buzzer support for playing tones.
+    - [x] Works on CircuitPython
+    - [x] Works with Blinka
+- [x] Migrate music.py/Song from originals/christmas to buzzer.py
+    - [ ] Write tests
+- [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py
+    - [ ] Write tests
 - [ ] Add NeoPixel support
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka

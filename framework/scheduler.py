@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from framework.control import SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
+from framework.control import NS_PER_SECOND, SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
 from framework.environment import is_running_on_desktop
 from framework.log import debug
 
@@ -47,7 +47,7 @@ def new_scheduled_task(
     """
 
     interval = 1 / frequency
-    interval_ns: int = int(interval * 1_000_000_000)
+    interval_ns: int = int(interval * NS_PER_SECOND)
     next_callback_ns = time.monotonic_ns()
 
     sleep_interval = interval / SCHEDULER_INTERNAL_LOOP_RATIO
