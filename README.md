@@ -46,9 +46,6 @@ the end of this readme for more information about the license.
 
 immediate TODOS:
 
-* Write tests for scheduler.new_loop_task()
-* Write tests for runner.add_loop_task()
-
 - [x] Setup project outline.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
     - [x] Works on CircuitPython

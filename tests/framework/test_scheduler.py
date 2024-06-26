@@ -193,3 +193,6 @@ class TestScheduler:
         expected_called_count = seconds_to_run * frequency
         assert called_count >= expected_called_count - 1
         assert called_count <= expected_called_count + 1
+
+    def test_new_loop_task(self) -> None:
+        assert False

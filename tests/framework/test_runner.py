@@ -492,3 +492,6 @@ class TestRunner:
         assert task2_count > 10
         assert task3_count > 10
         assert task4_count > 10
+
+    def test_add_loop_task(self) -> None:
+        assert False
