@@ -1,7 +1,6 @@
-import asyncio
 import time
 
-from framework.control import NS_PER_SECOND, ASYNC_LOOP_SLEEP_INTERVAL
+from framework.control import NS_PER_SECOND
 from framework.polyfills.buzzer import Buzzer
 from framework.runner import Runner
 
@@ -18,14 +17,6 @@ class BuzzerController:
         self.__buzzer = buzzer
         self.__playing = False
         self.__stop_time_ns = 0
-
-    def register(self, runner: Runner) -> None:
-        """
-        Registers this Buzzer instance as a task with the provided Runner.
-
-        :param runner: the runner to register with.
-        """
-        runner.add_task(self.__loop)
 
     def play(self, frequency: int, duration: float) -> None:
         """
@@ -46,14 +37,20 @@ class BuzzerController:
         self.__playing = False
         self.__buzzer.off()
 
+    def register(self, runner: Runner) -> None:
+        """
+        Registers this Buzzer instance as a task with the provided Runner.
+
+        :param runner: the runner to register with.
+        """
+        runner.add_loop_task(self.__loop)
+        
     async def __loop(self):
         """
         Internal loop to turn the buzzer off at the desired time internal.
         """
-        while True:
-            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
-            if self.__playing and time.monotonic_ns() >= self.__stop_time_ns:
-                self.off()
+        if self.__playing and time.monotonic_ns() >= self.__stop_time_ns:
+            self.off()
 
 
 # TODO: Comment this class

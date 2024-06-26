@@ -44,6 +44,11 @@ the end of this readme for more information about the license.
 
 ## List of outstanding tasks for the basic framework.
 
+immediate TODOS:
+
+* Write tests for scheduler.new_loop_task()
+* Write tests for runner.add_loop_task()
+
 - [x] Setup project outline.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
     - [x] Works on CircuitPython
@@ -57,9 +62,9 @@ the end of this readme for more information about the license.
 - [x] Add buzzer support for playing tones.
     - [x] Works on CircuitPython
     - [x] Works with Blinka
-- [x] Migrate music.py/Song from originals/christmas to buzzer.py
+- [x] Migrate music.py/Song from originals/christmas to buzzer.py as Melody
     - [ ] Write tests
-- [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py
+- [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py as MelodySequence
     - [ ] Write tests
 - [ ] Add NeoPixel support
     - [ ] Works on CircuitPython

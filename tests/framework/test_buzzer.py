@@ -50,7 +50,7 @@ class TestBuzzerController:
         add_task_count: int = 0
 
         class TestRunner(Runner):
-            def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
+            def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
                 nonlocal add_task_count
                 add_task_count += 1
 

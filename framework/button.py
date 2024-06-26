@@ -1,6 +1,3 @@
-import asyncio
-
-from framework.control import ASYNC_LOOP_SLEEP_INTERVAL
 from framework.environment import is_running_on_desktop
 from framework.polyfills.button import Button
 from framework.runner import Runner
@@ -62,24 +59,22 @@ class ButtonController:
 
         :param runner: the runner to register with.
         """
-        runner.add_task(self.__loop)
+        runner.add_loop_task(self.__loop)
 
     async def __loop(self):
         """
         The internal loop simply invokes the correct handler based on the button state.
         """
-        while True:
-            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
-            self.__button.update()
+        self.__button.update()
 
-            short_count = self.__button.short_count
-            if short_count != 0:
+        short_count = self.__button.short_count
+        if short_count != 0:
 
-                if short_count == 1 and self.__single_click_handler is not None:
-                    await self.__single_click_handler()
+            if short_count == 1 and self.__single_click_handler is not None:
+                await self.__single_click_handler()
 
-                elif short_count > 1 and self.__multi_click_handler is not None:
-                    await self.__multi_click_handler()
+            elif short_count > 1 and self.__multi_click_handler is not None:
+                await self.__multi_click_handler()
 
-            if self.__button.long_press and self.__long_press_handler is not None:
-                await self.__long_press_handler()
+        if self.__button.long_press and self.__long_press_handler is not None:
+            await self.__long_press_handler()

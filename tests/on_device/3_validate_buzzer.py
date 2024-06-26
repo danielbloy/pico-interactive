@@ -1,9 +1,7 @@
-import asyncio
 import time
 
 from framework.button import ButtonController
 from framework.buzzer import BuzzerController, Melody, MelodySequence, decode_song
-from framework.control import ASYNC_LOOP_SLEEP_INTERVAL
 from framework.environment import are_pins_available
 from framework.log import set_log_level, INFO
 from framework.polyfills.button import new_button
@@ -22,7 +20,7 @@ if are_pins_available():
 if __name__ == '__main__':
     # Allow the application to only run for a defined number of seconds.
     start = time.monotonic()
-    finish = start + 20
+    finish = start + 10
 
     set_log_level(INFO)
 
@@ -37,9 +35,7 @@ if __name__ == '__main__':
 
 
     async def play_melody() -> None:
-        while True:
-            melody.play()
-            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+        melody.play()
 
 
     async def callback() -> None:
@@ -78,6 +74,6 @@ if __name__ == '__main__':
 
     buzzer_controller = BuzzerController(buzzer)
     buzzer_controller.register(runner)
-    runner.add_task(play_melody)
+    runner.add_loop_task(play_melody)
 
     runner.run(callback)
