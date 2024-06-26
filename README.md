@@ -48,33 +48,51 @@ the end of this readme for more information about the license.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
     - [x] Works on CircuitPython
     - [x] Works with Blinka
+- [x] Add support for logging in both Desktop and Pico environments.
+    - [x] Works on CircuitPython
+    - [x] Works with Blinka
 - [x] Add button support for single, double and long-presses.
     - [x] Works on CircuitPython
     - [x] Works with Blinka
 - [ ] Add buzzer support for playing tones.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
-- [x] Add support for logging in both Desktop and Pico environments.
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
+- [ ] Migrate music.py/Song from originals/christmas to buzzer.py
+- [ ] Migrate music.py/SongSequence from originals/christmas
+- [ ] Add NeoPixel support
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
+- [ ] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
+- [ ] Add LED support
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
+- [ ] Add Ultrasonic sensor support
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
+- [ ] Add UART support
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka
+- [ ] Add AudioBoard support
+    - [ ] Works on CircuitPython
+    - [ ] Works with Blinka-
 - [ ] Add OLED Display support, including cycling through screen pages.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
-- [ ] Add Ultrasonic sensor support, including display page.
+- [ ] Add Wi-Fi support
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
-- [ ] Add SoundBoard support, including display page.
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka-
-- [ ] Add Wi-Fi support, including display page.
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
+- [ ] Migrate networking/messaging/coordinator/discovery code from originals/halloween
 - [ ] Add current time of day support via Wi-Fi.
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
-- [ ] Add NeoPixel connector support.
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
+- [ ] OLED display pages available for:
+    - [ ] NeoPixels
+    - [ ] LEDs
+    - [ ] Ultrasonic
+    - [ ] AudioBoard
+    - [ ] UART
+    - [ ] Wi-Fi
+    - [ ] Messaging/discovery/coordination
 
 ## Setting up the development environment
 

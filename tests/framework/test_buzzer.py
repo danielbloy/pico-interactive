@@ -18,7 +18,7 @@ class TestBuzzerController:
 
     def test_creating_with_none_buzzer_errors(self) -> None:
         """
-        Validates that a ButzzerController cannot be constructed with
+        Validates that a BuzzerController cannot be constructed with
         a None value.
         """
         with pytest.raises(ValueError):
