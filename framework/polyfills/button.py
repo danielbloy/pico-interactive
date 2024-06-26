@@ -24,7 +24,7 @@ if are_pins_available():
 else:
     class Button:
         """
-        TODO: Implement a Button that works off of a keypress.
+        Stub implementation of Button for Desktop without pins. Does nothing.
         """
 
         def __init__(self, pin):

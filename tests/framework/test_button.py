@@ -56,6 +56,7 @@ class TestButtonController:
         a None value.
         """
         with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
             ButtonController(None)
 
     def test_creating_with_string_errors(self) -> None:
@@ -64,6 +65,7 @@ class TestButtonController:
         a value that is not a Button.
         """
         with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
             ButtonController("")
 
     def test_adding_single_click_handler(self) -> None:
@@ -133,7 +135,7 @@ class TestButtonController:
         add_task_count: int = 0
 
         class TestRunner(Runner):
-            def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
+            def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
                 nonlocal add_task_count
                 add_task_count += 1
 

@@ -1,7 +1,8 @@
 import asyncio
 import time
 
-from framework.control import SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
+from framework.control import (NS_PER_SECOND, ASYNC_LOOP_SLEEP_INTERVAL,
+                               SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO)
 from framework.environment import is_running_on_desktop
 from framework.log import debug
 
@@ -47,7 +48,7 @@ def new_scheduled_task(
     """
 
     interval = 1 / frequency
-    interval_ns: int = int(interval * 1_000_000_000)
+    interval_ns: int = int(interval * NS_PER_SECOND)
     next_callback_ns = time.monotonic_ns()
 
     sleep_interval = interval / SCHEDULER_INTERNAL_LOOP_RATIO
@@ -61,5 +62,24 @@ def new_scheduled_task(
                 await task()
 
             await asyncio.sleep(sleep_interval)
+
+    return handler
+
+
+def new_loop_task(
+        task: Callable[[], Awaitable[None]],
+        cancel_func: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
+    """
+    Returns an async task that just loops until the cancel_func returns True. This
+    helps avoid having to write the same loop code endlessly.
+
+    :param task: This is called once every cycle.
+    :param cancel_func: A function that returns whether to cancel the task or not.
+    """
+
+    async def handler() -> None:
+        while not cancel_func():
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+            await task()
 
     return handler
