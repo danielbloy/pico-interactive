@@ -15,7 +15,7 @@ if are_pins_available():
     import board
 
     BUTTON_PIN = board.GP27
-    BUZZER_PIN = board.GP28
+    BUZZER_PIN = board.GP2
 
 if __name__ == '__main__':
     # Allow the application to only run for a defined number of seconds.
@@ -28,20 +28,22 @@ if __name__ == '__main__':
     async def callback() -> None:
         global start, finish
         runner.cancel = time.monotonic() > finish
+        if runner.cancel:
+            buzzer_controller.off()
 
 
     async def single_click_handler() -> None:
-        # TODO: Pause/Unpause
-        pass
+        # Make an annoying beep
+        buzzer_controller.play(550, 0.5)
 
 
     async def multi_click_handler() -> None:
-        # TODO: Next song
+        # TODO: Play song
         pass
 
 
     async def long_press_handler() -> None:
-        # TODO: Restart song
+        # TODO: Stop playing song
         pass
 
 
