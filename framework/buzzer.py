@@ -39,7 +39,7 @@ class BuzzerController:
         self.__playing = True
         self.__buzzer.play(frequency)
 
-    def off(self):
+    def off(self) -> None:
         """
         Turns off the buzzer.
         """
