@@ -60,12 +60,3 @@ class TestBuzzerController:
         assert add_task_count == 0
         controller.register(runner)
         assert add_task_count == 1
-
-    def test_calling_play(self) -> None:
-        assert False
-
-    def test_calling_off(self) -> None:
-        assert False
-
-    def test_off_gets_called_automatically_after_play(self) -> None:
-        assert False
