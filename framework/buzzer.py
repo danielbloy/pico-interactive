@@ -98,7 +98,6 @@ class Melody:
         self.speed = speed  # sets _speed_ns
         self.name = name
 
-    # TODO: This should probably be called update().
     def play(self) -> bool:
         if self.paused:
             return False
