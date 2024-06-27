@@ -24,14 +24,6 @@ class BuzzerController:
         """
         self.play(262, 0.5)
 
-    def beeps(self, count: int) -> None:
-        """
-        Plays a series of beeps.
-
-        :param count: The number of beeps to play.
-        """
-        pass
-
     def play(self, frequency: int, duration: float) -> None:
         """
         Plays a tone at the given frequency for the specified number of seconds.
