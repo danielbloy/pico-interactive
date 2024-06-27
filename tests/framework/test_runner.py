@@ -494,4 +494,33 @@ class TestRunner:
         assert task4_count > 10
 
     def test_add_loop_task(self) -> None:
-        assert False
+        """
+        This is a very simple test in that we just validate that adding a loop task
+        results in it executing multiple times.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 5
+
+        called_1_count = False
+        called_2_count = False
+
+        async def task1():
+            nonlocal called_1_count
+            called_1_count += 1
+
+        async def task2():
+            nonlocal called_2_count
+            called_2_count += 1
+
+        runner = Runner()
+        runner.add_loop_task(task1)
+        runner.add_loop_task(task2)
+        runner.run(callback)
+        assert runner.cancel
+        assert called_count == 5
+        assert called_1_count > 5
+        assert called_2_count > 5
