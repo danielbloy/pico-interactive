@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     async def single_click_handler() -> None:
         # Make an annoying beep
-        buzzer_controller.play(262, 0.5)
+        buzzer_controller.beeps(3)
 
 
     async def multi_click_handler() -> None:
