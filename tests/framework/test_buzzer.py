@@ -140,4 +140,30 @@ class TestBuzzerController:
         assert buzzer.off_count == 1
 
     def test_beeps(self) -> None:
-        assert False
+        """
+        Validates beeps() invokes the buzzer multiple times.
+        """
+
+        async def callback():
+            nonlocal start, finish
+            runner.cancel = time.monotonic() > finish
+
+        runner = Runner()
+        buzzer = TestBuzzer()
+        controller = BuzzerController(buzzer)
+        controller.register(runner)
+        controller.beeps(3)
+
+        # Calling play will starts the buzzer, it will only
+        # get turned off at the appropriate time.
+        assert buzzer.last_frequency == 262
+        assert buzzer.play_count == 1
+        assert buzzer.off_count == 0
+
+        start = time.monotonic()
+        finish = start + 2
+        runner.run(callback)
+
+        assert buzzer.last_frequency == 262
+        assert buzzer.play_count == 3
+        assert buzzer.off_count == 3
