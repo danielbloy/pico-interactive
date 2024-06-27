@@ -138,3 +138,65 @@ class TestBuzzerController:
         assert buzzer.last_frequency == 999
         assert buzzer.play_count == 1
         assert buzzer.off_count == 1
+
+    def test_beeps(self) -> None:
+        """
+        Validates beeps() invokes the buzzer multiple times.
+        """
+
+        async def callback():
+            nonlocal start, finish
+            runner.cancel = time.monotonic() > finish
+
+        runner = Runner()
+        buzzer = TestBuzzer()
+        controller = BuzzerController(buzzer)
+        controller.register(runner)
+        controller.beeps(3)
+
+        # Calling beeps will start the buzzer, it will only
+        # get turned off at the appropriate time.
+        assert buzzer.last_frequency == 262
+        assert buzzer.play_count == 1
+        assert buzzer.off_count == 0
+
+        start = time.monotonic()
+        finish = start + 2
+        runner.run(callback)
+
+        assert buzzer.last_frequency == 262
+        assert buzzer.play_count == 3
+        assert buzzer.off_count == 3
+
+    def test_off_cancels_beeps(self) -> None:
+        """
+        Validates off() cancels any future beeps().
+        """
+        call_off = True
+
+        async def callback():
+            nonlocal start, finish, call_off
+            runner.cancel = time.monotonic() > finish
+            if call_off:
+                controller.off()
+                call_off = False
+
+        runner = Runner()
+        buzzer = TestBuzzer()
+        controller = BuzzerController(buzzer)
+        controller.register(runner)
+        controller.beeps(100)
+
+        # Calling beeps will start the buzzer, it will only
+        # get turned off at the appropriate time.
+        assert buzzer.last_frequency == 262
+        assert buzzer.play_count == 1
+        assert buzzer.off_count == 0
+
+        start = time.monotonic()
+        finish = start + 2
+        runner.run(callback)
+
+        assert buzzer.last_frequency == 262
+        assert buzzer.play_count == 1
+        assert buzzer.off_count == 1

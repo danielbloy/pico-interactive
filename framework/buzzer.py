@@ -17,12 +17,23 @@ class BuzzerController:
         self.__buzzer = buzzer
         self.__playing = False
         self.__stop_time_ns = 0
+        self.__beeps = 0
 
     def beep(self) -> None:
         """
         Makes a beep.
         """
-        self.play(262, 0.5)
+        self.__beeps -= 1
+        self.play(262, 0.3)
+
+    def beeps(self, count: int) -> None:
+        """
+        Plays a series of beeps.
+
+        :param count: The number of beeps to play.
+        """
+        self.__beeps = count
+        self.beep()
 
     def play(self, frequency: int, duration: float) -> None:
         """
@@ -38,8 +49,12 @@ class BuzzerController:
 
     def off(self) -> None:
         """
-        Turns off the buzzer.
+        Turns off the buzzer; cancelling and additional beeps..
         """
+        self.__beeps = 0
+        self.__off()
+
+    def __off(self) -> None:
         self.__playing = False
         self.__buzzer.off()
 
@@ -55,8 +70,19 @@ class BuzzerController:
         """
         Internal loop to turn the buzzer off at the desired time internal.
         """
-        if self.__playing and time.monotonic_ns() >= self.__stop_time_ns:
-            self.off()
+        if (self.__playing or self.__beeps > 0) and time.monotonic_ns() >= self.__stop_time_ns:
+            if self.__playing:
+                self.__off()
+
+                # Allow for a delay between beeps.
+                if self.__beeps > 0:
+                    self.__stop_time_ns += (0.1 * NS_PER_SECOND)
+
+            else:
+
+                # If there are more beeps expected in the sequence then play them.
+                if self.__beeps > 0:
+                    self.beep()
 
 
 # TODO: Comment this class
@@ -76,7 +102,6 @@ class Melody:
         self.speed = speed  # sets _speed_ns
         self.name = name
 
-    # TODO: This should probably be called update().
     def play(self) -> bool:
         if self.paused:
             return False
