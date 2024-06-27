@@ -138,3 +138,6 @@ class TestBuzzerController:
         assert buzzer.last_frequency == 999
         assert buzzer.play_count == 1
         assert buzzer.off_count == 1
+
+    def test_beeps(self) -> None:
+        assert False
