@@ -2,7 +2,7 @@ import asyncio
 import time
 
 from framework.control import SCHEDULER_DEFAULT_FREQUENCY
-from framework.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task
+from framework.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task
 
 
 class Cancellable:
@@ -18,6 +18,9 @@ class CancellableCount:
     def cancel(self):
         self.left -= 1
         return self.left <= 0
+
+    def reset(self, count) -> None:
+        self.left = count
 
 
 class CancellableDuration:
@@ -64,7 +67,7 @@ class TestScheduler:
         cancellable.cancel = True
         assert fn()
 
-    def test_scheduled_task_never_called(self) -> None:
+    def test_task_never_called(self) -> None:
         """
         Validates that the returned task terminates straight away
         when the terminate_func always returns true.
@@ -86,7 +89,13 @@ class TestScheduler:
         asyncio.run(scheduled_task())
         assert not called
 
-    def test_scheduled_task_stops(self) -> None:
+        loop_task = new_loop_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert not called
+
+    def test_task_stops(self) -> None:
         """
         Validates that the returned task terminates
         when the terminate_func returns true.
@@ -108,7 +117,17 @@ class TestScheduler:
         assert called == 1
         assert cancellable.cancel
 
-    def test_scheduled_task_called_multiple_times(self) -> None:
+        loop_task = new_loop_task(task, cancel_fn)
+
+        called = 0
+        cancellable.reset(2)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert called == 1
+        assert cancellable.cancel
+
+    def test_task_called_multiple_times(self) -> None:
         """
         Validates that the returned task terminates after having been
         called multiple times. Because of the way the loop works, the
@@ -133,7 +152,18 @@ class TestScheduler:
         assert called <= 20
         assert cancellable.cancel
 
-    def test_run_invokes_callback_with_sensible_frequency(self) -> None:
+        loop_task = new_loop_task(task, cancel_fn)
+
+        called = 0
+        cancellable.reset(20)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert called > 2
+        assert called <= 20
+        assert cancellable.cancel
+
+    def test_run_invokes_scheduled_taskcallback_with_sensible_frequency(self) -> None:
         """
         This test allows the callback to be called the same number of times
         as the default callback frequency and validates that we are within
@@ -164,9 +194,9 @@ class TestScheduler:
         assert called_count >= expected_called_count - 1
         assert called_count <= expected_called_count + 1
 
-    def test_run_invokes_callback_with_custom_frequency(self) -> None:
+    def test_run_invokes_scheduled_task_callback_with_custom_frequency(self) -> None:
         """
-        This test is the same as test_run_invokes_callback_with_sensible_frequency()
+        This test is the same as test_scheduled_task_invokes_callback_with_sensible_frequency()
         but we specify a custom frequency instead.
         """
         called_count: int = 0
@@ -193,3 +223,29 @@ class TestScheduler:
         expected_called_count = seconds_to_run * frequency
         assert called_count >= expected_called_count - 1
         assert called_count <= expected_called_count + 1
+
+    def test_run_invokes_loop_task_callback_with_custom_frequency(self) -> None:
+        """
+        This test is similar to the scheudled_task frequency tests above but the
+        loop task will execute many more times.
+        """
+        called_count: int = 0
+        seconds_to_run: int = 2
+
+        async def task():
+            nonlocal called_count
+            called_count += 1
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        loop_task = new_loop_task(task, cancel_fn)
+
+        start = time.time()
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        end = time.time()
+
+        assert (end - start) < (seconds_to_run * 1.05)
+        assert (end - start) > (seconds_to_run * 0.95)
+        assert called_count >= 50

@@ -18,6 +18,12 @@ class BuzzerController:
         self.__playing = False
         self.__stop_time_ns = 0
 
+    def beep(self) -> None:
+        """
+        Makes a beep.
+        """
+        self.play(262, 0.5)
+
     def play(self, frequency: int, duration: float) -> None:
         """
         Plays a tone at the given frequency for the specified number of seconds.
@@ -44,7 +50,7 @@ class BuzzerController:
         :param runner: the runner to register with.
         """
         runner.add_loop_task(self.__loop)
-        
+
     async def __loop(self):
         """
         Internal loop to turn the buzzer off at the desired time internal.
@@ -55,7 +61,7 @@ class BuzzerController:
 
 # TODO: Comment this class
 # TODO: Write tests for this class.
-# TODO: Should Melody be controlled by the BuzzzerController or a new MelodyController?
+# TODO: Write new MelodyController to easily attach Melody to a runner.
 class Melody:
     def __init__(self, buzzer: Buzzer, song: [(int, int)], speed, loop=True, paused=False, name=None):
 

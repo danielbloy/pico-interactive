@@ -7,7 +7,7 @@ SCHEDULER_DEFAULT_FREQUENCY = 30
 SCHEDULER_INTERNAL_LOOP_RATIO = 8
 
 # * * * * *    R U N N E R    * * * * *
-RUNNER_DEFAULT_CALLBACK_FREQUENCY = 20  # How many times we expect the callback to be called per second.
+RUNNER_DEFAULT_CALLBACK_FREQUENCY = 10  # How many times we expect the callback to be called per second.
 
 # * * * * *    L O O P S    * * * * *
 # This is expected the sleep interval for async loops.
