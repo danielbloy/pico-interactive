@@ -154,7 +154,7 @@ class TestBuzzerController:
         controller.register(runner)
         controller.beeps(3)
 
-        # Calling play will starts the buzzer, it will only
+        # Calling beeps will start the buzzer, it will only
         # get turned off at the appropriate time.
         assert buzzer.last_frequency == 262
         assert buzzer.play_count == 1
