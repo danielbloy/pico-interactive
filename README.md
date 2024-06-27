@@ -97,6 +97,8 @@ immediate TODOS:
     - [ ] UART
     - [ ] Wi-Fi
     - [ ] Messaging/discovery/coordination
+- [ ] Recreate originals/christmas in demo
+- [ ] Recreate originals/light_jars in demo
 
 ## Setting up the development environment
 

@@ -24,7 +24,7 @@ class BuzzerController:
         Makes a beep.
         """
         self.__beeps -= 1
-        self.play(262, 0.5)
+        self.play(262, 0.3)
 
     def beeps(self, count: int) -> None:
         """
@@ -49,8 +49,12 @@ class BuzzerController:
 
     def off(self) -> None:
         """
-        Turns off the buzzer.
+        Turns off the buzzer; cancelling and additional beeps..
         """
+        self.__beeps = 0
+        self.__off()
+
+    def __off(self) -> None:
         self.__playing = False
         self.__buzzer.off()
 
@@ -68,11 +72,11 @@ class BuzzerController:
         """
         if (self.__playing or self.__beeps > 0) and time.monotonic_ns() >= self.__stop_time_ns:
             if self.__playing:
-                self.off()
+                self.__off()
 
                 # Allow for a delay between beeps.
                 if self.__beeps > 0:
-                    self.__stop_time_ns += (0.2 * NS_PER_SECOND)
+                    self.__stop_time_ns += (0.1 * NS_PER_SECOND)
 
             else:
 
