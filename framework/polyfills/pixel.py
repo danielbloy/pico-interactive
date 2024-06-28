@@ -1,7 +1,6 @@
 from framework.environment import are_pins_available
 
 if are_pins_available():
-    from adafruit_led_animation.animation import Animation as Animation
     from adafruit_led_animation.color import BLACK
 
     from microcontroller import Pin
@@ -13,11 +12,6 @@ if are_pins_available():
         pixels.fill(BLACK)
         pixels.write()
         return pixels
-
-
-    def __new_animation(pixel_object, speed, color, name=None):
-        """This is not expected to be needed but stops PyCharm removing the import"""
-        return Animation(pixel_object, speed, color, name)
 
 else:
 
@@ -57,40 +51,8 @@ else:
             return 0
 
 
-    class Animation:
-        """
-        Stubs out the Animate class.
-        """
-
-        def __init__(self, pixel_object, speed, color, name=None):
-            self.pixel_object = pixel_object
-            self.speed = speed
-            self.color = color
-            self.name = name
-
-        def animate(self, show=True):
-            pass
-
-        def freeze(self):
-            pass
-
-        def resume(self):
-            pass
-
-        def fill(self, color):
-            self.color = color
-
-        def reset(self):
-            pass
-
-
     def __new_pixel(pin, num_pixels: int, brightness: float) -> Pixels:
         return Pixels(pin, num_pixels, brightness=brightness)
-
-
-    def __new_animation(pixel_object, speed, color, name=None):
-        """Just for consistency"""
-        return Animation(pixel_object, speed, color, name)
 
 
 def new_pixels(pin, num_pixels: int, brightness: float = 1.0) -> Pixels:

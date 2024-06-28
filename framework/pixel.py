@@ -1,23 +1,7 @@
 import array
 import random
 
-from framework.polyfills.pixel import Animation, Pixels
-from framework.runner import Runner
-
-# TODO: remove as only stopping the autocorrect from removing the imports.
-pixels = Pixels()
-runner = Runner()
-
-
-# TODO: PixelsController that allows multiple pixel or animate objects to be added.
-async def animate_pixels():
-    while True:
-        if ANIMATE_PIXELS:
-            if animation:
-                animation.animate()
-            await asyncio.sleep(SLEEP_INTERVAL / 1000)
-        else:
-            await asyncio.sleep(1)
+from framework.polyfills.animation import Animation
 
 
 class Flicker(Animation):
