@@ -67,6 +67,7 @@ immediate TODOS:
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
 - [ ] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
+- [ ] Add AnimationSequence to pixels.py
 - [ ] Add LED support
     - [ ] Works on CircuitPython
     - [ ] Works with Blinka
