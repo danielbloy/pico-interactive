@@ -16,25 +16,26 @@ The basic structure of this project is:
   with this project along with the libraries that are used extracted out into the
   `circuitpython/lib` directory.
 * `coordinator` contains the additional code that a coordinator node requires if used.
-  The `coordinator` is based on the `framework` but adds additional specialisation and
-  can be viewed as an example of how to build a custom node type based on the `framework`.
-  Custom code can also be added to a coordinator node.
+  The `coordinator` is based on the `interactive` framework but adds additional
+  specialisation and can be viewed as an example of how to build a custom node type
+  based on the `interactive` framework. Custom code can also be added to a coordinator
+  node.
 * `demo` contains demonstration and test *interactive* displays that are used to test
   the functionality of this project on a range of boards.
-* `docs` contains the documentation for the `framework` and `coordinator` directories.
-* `framework` contains the base framework code which provides the basic functionality
-  that operates on a supported board. This code is configurable and extensible, allowing
-  the individual nodes in an interactive display to use whichever functionality they
-  need, whilst also providing their own customisation code. All nodes will make use
-  of the `framework`.
+* `docs` contains the documentation for the `interactive` and `coordinator` directories.
 * `halloween` contains the complete Halloween interactive displays that make use of
   this project. Each node will be represented.
 * `hardware` contains information on the boards that have been designed for use with
   this framework and interactive displays.
+* `interactive` contains the base framework code which provides the basic functionality
+  that operates on a supported board. This code is configurable and extensible, allowing
+  the individual nodes in an interactive display to use whichever functionality they
+  need, whilst also providing their own customisation code. All nodes will make use
+  of the `interactive` framework.
 * `originals` contains the code for the original MicroPython and CircuitPython projects
   that form the inspiration for this project. See the section [Origins](#origins) below
   for some background on those projects.
-* `tests` contains the tests for the code contained in the `framework` and `coordinator`
+* `tests` contains the tests for the code contained in the `interactive` and `coordinator`
   directories.
 
 All work in this project (including the supplied original code from the previous

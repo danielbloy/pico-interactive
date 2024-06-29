@@ -3,9 +3,9 @@ from collections.abc import Callable, Awaitable
 
 import pytest
 
-from framework.buzzer import BuzzerController
-from framework.polyfills.buzzer import Buzzer
-from framework.runner import Runner
+from interactive.buzzer import BuzzerController
+from interactive.polyfills.buzzer import Buzzer
+from interactive.runner import Runner
 
 
 class TestBuzzer(Buzzer):

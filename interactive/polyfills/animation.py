@@ -1,4 +1,4 @@
-from framework.environment import are_pins_available
+from interactive.environment import are_pins_available
 
 if are_pins_available():
     from adafruit_led_animation.animation import Animation as Animation

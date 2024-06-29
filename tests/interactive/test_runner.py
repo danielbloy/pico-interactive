@@ -2,8 +2,8 @@ import asyncio
 import time
 from collections.abc import Callable, Awaitable
 
-from framework.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY
-from framework.runner import Runner
+from interactive.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY
+from interactive.runner import Runner
 
 
 def new_test_async_function(delay: float, name: str = "dummy", error: str = None) -> Callable[[], Awaitable[None]]:
@@ -272,7 +272,7 @@ class TestRunner:
 
     def test_restart_on_task_completion_single(self) -> None:
         """
-        Run a single background task that simply terminates. The framework will
+        Run a single background task that simply terminates. The interactive will
         rerun it allowing it to continue to increment the counter.
         """
         called_count: int = 0
@@ -300,7 +300,7 @@ class TestRunner:
 
     def test_restart_on_task_completion_multiple(self) -> None:
         """
-        Runs several background task that simply terminate. The framework will
+        Runs several background task that simply terminate. The interactive will
         rerun them allowing them to continue to increment the counters.
         """
         called_count: int = 0
@@ -348,7 +348,7 @@ class TestRunner:
 
     def test_restart_on_exception_single(self) -> None:
         """
-        Run a single background task that raises an exception. The framework will
+        Run a single background task that raises an exception. The interactive will
         rerun it allowing it to continue to increment the counter.
         """
         called_count: int = 0
@@ -377,9 +377,9 @@ class TestRunner:
 
     def test_restart_on_exception_multiple(self) -> None:
         """
-        Runs several background tasks that raise exceptions. The framework
+        Runs several background tasks that raise exceptions. The interactive
         will rerun them allowing them to continue to increment the counters.
-        The framework will run for 1 second which should give plenty of time
+        The interactive will run for 1 second which should give plenty of time
         for multiple executions of each task.
         """
         called_count: int = 0
@@ -431,7 +431,7 @@ class TestRunner:
     def test_restart_on_exception_and_completion_multiple(self) -> None:
         """
         Runs lots of background tasks that raise exceptions, complete or run forever.
-        The framework will rerun them allowing them to continue to increment the counters.
+        The interactive will rerun them allowing them to continue to increment the counters.
         """
         called_count: int = 0
         task1_count: int = 0

@@ -1,7 +1,7 @@
 import time
 
-from framework.control import NS_PER_SECOND
-from framework.polyfills.buzzer import Buzzer
+from interactive.control import NS_PER_SECOND
+from interactive.polyfills.buzzer import Buzzer
 
 
 # TODO: Comment this class

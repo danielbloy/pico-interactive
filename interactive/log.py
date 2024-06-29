@@ -2,7 +2,7 @@
 # It offers a very basic set of functions using the single fallback logger.
 # This is for simplicity as we are expecting this to run on a microcontroller
 # where complex logging is simply not available.
-from framework.environment import is_running_on_desktop
+from interactive.environment import is_running_on_desktop
 
 if is_running_on_desktop():
     import logging

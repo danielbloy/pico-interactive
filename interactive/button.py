@@ -1,6 +1,6 @@
-from framework.environment import is_running_on_desktop
-from framework.polyfills.button import Button
-from framework.runner import Runner
+from interactive.environment import is_running_on_desktop
+from interactive.polyfills.button import Button
+from interactive.runner import Runner
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():

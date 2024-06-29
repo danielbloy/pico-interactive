@@ -1,10 +1,10 @@
 import time
 
-from framework.button import ButtonController
-from framework.environment import are_pins_available
-from framework.log import set_log_level, info, INFO
-from framework.polyfills.button import new_button
-from framework.runner import Runner
+from interactive.button import ButtonController
+from interactive.environment import are_pins_available
+from interactive.log import set_log_level, info, INFO
+from interactive.polyfills.button import new_button
+from interactive.runner import Runner
 
 BUTTON_PIN = None
 

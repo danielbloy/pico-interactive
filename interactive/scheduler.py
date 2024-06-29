@@ -1,10 +1,10 @@
 import asyncio
 import time
 
-from framework.control import (NS_PER_SECOND, ASYNC_LOOP_SLEEP_INTERVAL,
-                               SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO)
-from framework.environment import is_running_on_desktop
-from framework.log import debug
+from interactive.control import (NS_PER_SECOND, ASYNC_LOOP_SLEEP_INTERVAL,
+                                 SCHEDULER_DEFAULT_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO)
+from interactive.environment import is_running_on_desktop
+from interactive.log import debug
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():

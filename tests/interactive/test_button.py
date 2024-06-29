@@ -2,9 +2,9 @@ from collections.abc import Callable, Awaitable
 
 import pytest
 
-from framework.button import ButtonController
-from framework.polyfills.button import Button
-from framework.runner import Runner
+from interactive.button import ButtonController
+from interactive.polyfills.button import Button
+from interactive.runner import Runner
 
 
 class TestButton(Button):

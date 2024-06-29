@@ -1,7 +1,7 @@
 import array
 import random
 
-from framework.polyfills.animation import Animation
+from interactive.polyfills.animation import Animation
 
 
 class Flicker(Animation):

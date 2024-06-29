@@ -1,4 +1,4 @@
-from framework import environment
+from interactive import environment
 
 
 class TestEnvironment:

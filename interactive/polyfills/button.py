@@ -1,5 +1,5 @@
-from framework.control import BUTTON_SHORT_DURATION_MS, BUTTON_LONG_DURATION_MS
-from framework.environment import are_pins_available
+from interactive.control import BUTTON_SHORT_DURATION_MS, BUTTON_LONG_DURATION_MS
+from interactive.environment import are_pins_available
 
 if are_pins_available():
 

@@ -1,4 +1,4 @@
-from framework import log
+from interactive import log
 
 
 class TestLog:

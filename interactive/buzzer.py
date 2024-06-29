@@ -1,8 +1,8 @@
 import time
 
-from framework.control import NS_PER_SECOND
-from framework.polyfills.buzzer import Buzzer
-from framework.runner import Runner
+from interactive.control import NS_PER_SECOND
+from interactive.polyfills.buzzer import Buzzer
+from interactive.runner import Runner
 
 
 class BuzzerController:

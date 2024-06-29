@@ -1,13 +1,13 @@
 import time
 
-from framework.animation import AMBER, BLACK
-from framework.button import ButtonController
-from framework.environment import are_pins_available
-from framework.log import set_log_level, INFO
-from framework.pixel import Flicker
-from framework.polyfills.button import new_button
-from framework.polyfills.pixel import new_pixels
-from framework.runner import Runner
+from interactive.animation import AMBER, BLACK
+from interactive.button import ButtonController
+from interactive.environment import are_pins_available
+from interactive.log import set_log_level, INFO
+from interactive.pixel import Flicker
+from interactive.polyfills.button import new_button
+from interactive.polyfills.pixel import new_pixels
+from interactive.runner import Runner
 
 BUTTON_PIN = None
 PIXELS_PIN = None

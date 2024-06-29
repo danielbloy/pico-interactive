@@ -1,8 +1,8 @@
 import asyncio
 import time
 
-from framework.control import SCHEDULER_DEFAULT_FREQUENCY
-from framework.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task
+from interactive.control import SCHEDULER_DEFAULT_FREQUENCY
+from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task
 
 
 class Cancellable:

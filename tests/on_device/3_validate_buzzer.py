@@ -1,13 +1,13 @@
 import time
 
-from framework.button import ButtonController
-from framework.buzzer import BuzzerController
-from framework.environment import are_pins_available
-from framework.log import set_log_level, INFO
-from framework.melody import Melody, MelodySequence, decode_melody
-from framework.polyfills.button import new_button
-from framework.polyfills.buzzer import new_buzzer
-from framework.runner import Runner
+from interactive.button import ButtonController
+from interactive.buzzer import BuzzerController
+from interactive.environment import are_pins_available
+from interactive.log import set_log_level, INFO
+from interactive.melody import Melody, MelodySequence, decode_melody
+from interactive.polyfills.button import new_button
+from interactive.polyfills.buzzer import new_buzzer
+from interactive.runner import Runner
 
 BUTTON_PIN = None
 BUZZER_PIN = None

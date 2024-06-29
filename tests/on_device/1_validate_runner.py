@@ -1,7 +1,7 @@
 import asyncio
 
-from framework.log import set_log_level, debug, info, INFO
-from framework.runner import Runner
+from interactive.log import set_log_level, debug, info, INFO
+from interactive.runner import Runner
 
 if __name__ == '__main__':
     i: int = 0

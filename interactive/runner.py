@@ -1,9 +1,9 @@
 import asyncio
 
-from framework.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
-from framework.environment import is_running_on_desktop
-from framework.log import debug, info, warn, error, stacktrace
-from framework.scheduler import new_scheduled_task, terminate_on_cancel, new_loop_task
+from interactive.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
+from interactive.environment import is_running_on_desktop
+from interactive.log import debug, info, warn, error, stacktrace
+from interactive.scheduler import new_scheduled_task, terminate_on_cancel, new_loop_task
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
@@ -33,11 +33,11 @@ class Runner:
     Background tasks to be run can be added with add_task(). All tasks should be added prior
     to calling run() because any added when run() is executing will not be started.
 
-    Where a task completes, the framework will not (by default) restart the task. This behaviour
+    Where a task completes, the interactive will not (by default) restart the task. This behaviour
     is controlled by self.restart_on_completion. Setting self.restart_on_completion to true
     will cause the tasks to restart upon completion.
 
-    Where a task errors with an exception, the framework normally cancels the runner. It is
+    Where a task errors with an exception, the interactive normally cancels the runner. It is
     possible to get the runner to restart tasks that error by turning setting
     self.restart_on_exception = True. This will override self.cancel_on_exception.
     """
@@ -71,10 +71,10 @@ class Runner:
 
     def run(self, callback: Callable[[], Awaitable[None]] = None) -> None:
         """
-        Runs the framework. This creates an asynchronous task for all configured background
+        Runs the interactive. This creates an asynchronous task for all configured background
         tasks, allowing them all to run concurrently. It will also call the passed in callback
         function the desired number of times per second (defaulting to DEFAULT_CALLBACK_FREQUENCY).
-        The callback can terminate the framework by setting runner.cancel = True.
+        The callback can terminate the interactive by setting runner.cancel = True.
 
         :param callback: This is called once every cycle based on the callback frequency.
         """
@@ -90,7 +90,7 @@ class Runner:
             self.__internal_loop_sleep_interval = 1 / (self.callback_frequency * SCHEDULER_INTERNAL_LOOP_RATIO)
             asyncio.run(self.__execute(callback))
         except Exception as e:
-            error(f'run(): Exception caught running framework: {e}')
+            error(f'run(): Exception caught running interactive: {e}')
             stacktrace(e)
 
         finally:
