@@ -48,11 +48,10 @@ if __name__ == '__main__':
 
 
     async def animate() -> None:
-        if not runner.cancel:
-            yellow_animation.animate()
-            green_animation.animate()
-            red_animation.animate()
-            animation.animate()
+        yellow_animation.animate()
+        green_animation.animate()
+        red_animation.animate()
+        animation.animate()
 
 
     async def callback() -> None:
