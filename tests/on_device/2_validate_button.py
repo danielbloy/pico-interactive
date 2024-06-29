@@ -9,6 +9,7 @@ from interactive.runner import Runner
 BUTTON_PIN = None
 
 if are_pins_available():
+    # noinspection PyPackageRequirements
     import board
 
     BUTTON_PIN = board.GP27

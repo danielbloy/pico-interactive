@@ -13,6 +13,7 @@ BUTTON_PIN = None
 BUZZER_PIN = None
 
 if are_pins_available():
+    # noinspection PyPackageRequirements
     import board
 
     BUTTON_PIN = board.GP27
@@ -31,7 +32,7 @@ if __name__ == '__main__':
 
     buzzer = new_buzzer(BUZZER_PIN)
     buzzer.volume = 0.1
-    melody = MelodySequence(Melody(buzzer, decode_melody(notes), 0.2), loop=True)
+    melody = MelodySequence(Melody(buzzer, decode_melody(notes), 0.2))
     melody.pause()
 
 

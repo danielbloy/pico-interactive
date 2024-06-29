@@ -20,10 +20,12 @@ else:
             self.pin = pin
             self.num_pixels = num_pixels
             self.brightness = brightness
-            self.brightness = brightness
 
         def deinit(self) -> None:
             pass
+
+        def __len__(self):
+            return self.num_pixels
 
         @property
         def n(self) -> int:
@@ -44,8 +46,9 @@ else:
         def __setitem__(self, index, val):
             pass
 
+        # noinspection PyMethodMayBeStatic
         def _getitem(self, index):
-            return 0
+            return index
 
         def __getitem__(self, index):
             return 0

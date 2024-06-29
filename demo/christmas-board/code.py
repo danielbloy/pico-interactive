@@ -2,29 +2,18 @@
 # Christmas board.
 import time
 
-# TODO: We want these references to go
-from adafruit_led_animation.animation.blink import Blink
-from adafruit_led_animation.animation.chase import Chase
-from adafruit_led_animation.animation.colorcycle import ColorCycle
-from adafruit_led_animation.animation.comet import Comet
-from adafruit_led_animation.animation.pulse import Pulse
-from adafruit_led_animation.animation.rainbow import Rainbow
-from adafruit_led_animation.animation.rainbowchase import RainbowChase
-from adafruit_led_animation.animation.rainbowcomet import RainbowComet
-from adafruit_led_animation.animation.rainbowsparkle import RainbowSparkle
-from adafruit_led_animation.animation.sparkle import Sparkle
-from adafruit_led_animation.sequence import AnimationSequence
-
 from chrismas_songs import ALL_SONGS
-from interactive.animation import AMBER, BLACK, WHITE, JADE, PINK, OLD_LACE
-from interactive.animation import RED, AQUA, GOLD, YELLOW, ORANGE, GREEN
-from interactive.animation import TEAL, CYAN, BLUE, PURPLE, MAGENTA
+from interactive.animation import Flicker
 from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.led import Led
 from interactive.log import set_log_level, INFO
 from interactive.melody import Melody, decode_melody, MelodySequence
-from interactive.pixel import Flicker
+from interactive.polyfills.animation import AMBER, BLACK, WHITE, JADE, PINK, OLD_LACE, AnimationSequence
+from interactive.polyfills.animation import AQUA, RED, GOLD, YELLOW, ORANGE, GREEN
+from interactive.polyfills.animation import BLUE, CYAN, PURPLE, MAGENTA, TEAL
+from interactive.polyfills.animation import ColorCycle, Sparkle, Rainbow, RainbowComet, RainbowChase
+from interactive.polyfills.animation import RainbowSparkle, Blink, Chase, Pulse, Comet
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.led import new_led_pin
@@ -77,7 +66,7 @@ if __name__ == '__main__':
     for song, speed in ALL_SONGS:
         songs.append(Melody(audio, decode_melody(song), speed))
 
-    songs = MelodySequence(*songs, loop=True)
+    songs = MelodySequence(*songs)
 
 
     async def play_songs() -> None:
@@ -96,11 +85,11 @@ if __name__ == '__main__':
     green_animation = Pulse(green, speed=0.1, color=WHITE, period=2)
 
     yellow_animations = [
-        Flicker(yellow, speed=0.1, color=WHITE, spacing=1),
+        Flicker(yellow, speed=0.1, color=WHITE),
         Pulse(yellow, speed=0.1, color=WHITE, period=1),
         Blink(yellow, speed=0.5, color=WHITE),
     ]
-    yellow_animation = AnimationSequence(*yellow_animations, advance_interval=3, auto_clear=True)
+    yellow_animation = AnimationSequence(*yellow_animations, advance_interval=3)
 
 
     async def animate_leds() -> None:
@@ -126,10 +115,10 @@ if __name__ == '__main__':
         Sparkle(pixels, speed=0.05, color=GOLD, num_sparkles=3),
         Rainbow(pixels, speed=0.1, period=2),
         RainbowComet(pixels, speed=0.1, tail_length=7, bounce=True),
-        RainbowChase(pixels, speed=0.1, size=5, spacing=3),
+        RainbowChase(pixels, speed=0.1, size=5),
         RainbowSparkle(pixels, speed=0.1, num_sparkles=3),
     ]
-    animation = AnimationSequence(*animations, advance_interval=5, auto_clear=True)
+    animation = AnimationSequence(*animations, advance_interval=5)
 
 
     async def animate_pixels() -> None:
@@ -163,7 +152,6 @@ if __name__ == '__main__':
 
 
     async def single_click_handler() -> None:
-        # Move to the next animation in the sequence
         if songs:
             if songs.paused:
                 songs.resume()
