@@ -103,6 +103,6 @@ def new_buzzer(pin) -> Buzzer:
     whether the code is running in CircuitPython where a pin will be
     provided or in a desktop environment where a key will be used.
 
-    :param pin: The pin or key to use for the buzzer signal.
+    :param pin: The pin to use for the buzzer signal.
     """
     return __new_buzzer(pin)
