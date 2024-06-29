@@ -42,6 +42,7 @@ PIXELS_BRIGHTNESS = 0.2
 DEMO_MODE = True
 
 if are_pins_available():
+    # noinspection PyPackageRequirements
     import board
 
     AUDIO_PIN = board.GP2  # or GP3

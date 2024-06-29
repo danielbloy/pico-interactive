@@ -22,6 +22,7 @@ LED_RED = None
 PIXELS_PIN = None
 
 if are_pins_available():
+    # noinspection PyPackageRequirements
     import board
 
     BUTTON_PIN = board.GP27
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         Pulse(yellow, speed=0.1, color=WHITE, period=1),
         Blink(yellow, speed=0.5, color=WHITE),
     ]
-    yellow_animation = AnimationSequence(*yellow_animations, advance_interval=3, auto_clear=True)
+    yellow_animation = AnimationSequence(*yellow_animations, advance_interval=3)
 
 
     async def animate_leds() -> None:
@@ -80,7 +81,7 @@ if __name__ == '__main__':
         RainbowChase(pixels, speed=0.1, size=5, spacing=3),
         RainbowSparkle(pixels, speed=0.1, num_sparkles=3),
     ]
-    animation = AnimationSequence(*animations, advance_interval=5, auto_clear=True)
+    animation = AnimationSequence(*animations, advance_interval=5)
 
 
     async def animate_pixels() -> None:
@@ -113,18 +114,18 @@ if __name__ == '__main__':
 
 
     async def single_click_handler() -> None:
-        # Move to the next animation in the sequence
-        pass
+        if not runner.cancel and animation:
+            animation.next()
 
 
     async def multi_click_handler() -> None:
-        # Either pause or resume the pixel animations
-        pass
+        if not runner.cancel and animation:
+            animation.previous()
 
 
     async def long_press_handler() -> None:
-        # Either turn on or off the LEDs
-        pass
+        if not runner.cancel and animation:
+            animation.reset()
 
 
     button = new_button(BUTTON_PIN)

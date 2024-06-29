@@ -67,7 +67,6 @@ the end of this readme for more information about the license.
     - [x] Works with Blinka
 - [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
     - [ ] Add tests for Flicker
-- [ ] Add AnimationSequence to animations.py
 - [x] Add LED support
     - [x] Works on CircuitPython
     - [x] Works with Blinka
