@@ -65,13 +65,13 @@ immediate TODOS:
 - [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py as MelodySequence
     - [ ] Write tests
 - [x] Add NeoPixel support
-    - [ ] Works on CircuitPython
+    - [x] Works on CircuitPython
     - [x] Works with Blinka
 - [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
     - [ ] Add tests for Flicker
 - [ ] Add AnimationSequence to animations.py
 - [x] Add LED support
-    - [ ] Works on CircuitPython
+    - [x] Works on CircuitPython
     - [x] Works with Blinka
 - [ ] Add Ultrasonic sensor support
     - [ ] Works on CircuitPython

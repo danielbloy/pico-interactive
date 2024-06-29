@@ -36,7 +36,8 @@ if __name__ == '__main__':
 
 
     async def play_melody() -> None:
-        melody.play()
+        if not runner.cancel:
+            melody.play()
 
 
     async def callback() -> None:
@@ -48,20 +49,23 @@ if __name__ == '__main__':
 
     async def single_click_handler() -> None:
         # Make an annoying beep
-        buzzer_controller.beeps(3)
+        if not runner.cancel:
+            buzzer_controller.beeps(3)
 
 
     async def multi_click_handler() -> None:
         # Either pause or resume the melody
-        if melody.paused:
-            melody.resume()
-        else:
-            melody.pause()
+        if not runner.cancel:
+            if melody.paused:
+                melody.resume()
+            else:
+                melody.pause()
 
 
     async def long_press_handler() -> None:
         # Reset the melody
-        melody.reset()
+        if not runner.cancel:
+            melody.reset()
 
 
     runner = Runner()
