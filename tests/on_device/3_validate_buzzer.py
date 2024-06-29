@@ -1,9 +1,10 @@
 import time
 
 from framework.button import ButtonController
-from framework.buzzer import BuzzerController, Melody, MelodySequence, decode_song
+from framework.buzzer import BuzzerController
 from framework.environment import are_pins_available
 from framework.log import set_log_level, INFO
+from framework.melody import Melody, MelodySequence, decode_melody
 from framework.polyfills.button import new_button
 from framework.polyfills.buzzer import new_buzzer
 from framework.runner import Runner
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 
     buzzer = new_buzzer(BUZZER_PIN)
     buzzer.volume = 0.1
-    melody = MelodySequence(Melody(buzzer, decode_song(notes), 0.2), loop=True)
+    melody = MelodySequence(Melody(buzzer, decode_melody(notes), 0.2), loop=True)
     melody.pause()
 
 
