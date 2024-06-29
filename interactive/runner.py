@@ -136,8 +136,9 @@ class Runner:
                     # can happen if the task keeps ending with restarts on or if it keeps
                     # raising exceptions.
                     await self.__internal_loop_wait()
-                    await task()
-                    info(f'Task completed {task}')
+                    if not self.cancel:
+                        await task()
+                        info(f'Task completed {task}')
 
                     if self.restart_on_completion:
                         info(f'Rerunning task {task}')
@@ -178,7 +179,8 @@ class Runner:
 
         async def handler() -> None:
             try:
-                await task()
+                if not self.cancel:
+                    await task()
 
             except asyncio.CancelledError:
                 error(f'Caught CancelledError exception for scheduled task {task}, cancelling runner')

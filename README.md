@@ -45,8 +45,6 @@ the end of this readme for more information about the license.
 
 ## List of outstanding tasks for the basic framework.
 
-immediate TODOS:
-
 - [x] Setup project outline.
 - [x] Add generic task runner that handles both completion and exceptions and support restarts.
     - [x] Works on CircuitPython
@@ -69,7 +67,6 @@ immediate TODOS:
     - [x] Works with Blinka
 - [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
     - [ ] Add tests for Flicker
-- [ ] Add AnimationSequence to animations.py
 - [x] Add LED support
     - [x] Works on CircuitPython
     - [x] Works with Blinka
@@ -100,7 +97,7 @@ immediate TODOS:
     - [ ] UART
     - [ ] Wi-Fi
     - [ ] Messaging/discovery/coordination
-- [ ] Recreate originals/christmas in demo
+- [x] Recreate originals/christmas in demo
 - [ ] Recreate originals/light_jars in demo
 
 ## Setting up the development environment

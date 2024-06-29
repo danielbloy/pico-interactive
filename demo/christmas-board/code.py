@@ -1,30 +1,51 @@
+# This tests the button and buzzer functionality on the basic Code Club
+# Christmas board.
 import time
 
+from chrismas_songs import ALL_SONGS
 from interactive.animation import Flicker
 from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.led import Led
 from interactive.log import set_log_level, INFO
+from interactive.melody import Melody, decode_melody, MelodySequence
 from interactive.polyfills.animation import AMBER, BLACK, WHITE, JADE, PINK, OLD_LACE, AnimationSequence
 from interactive.polyfills.animation import AQUA, RED, GOLD, YELLOW, ORANGE, GREEN
 from interactive.polyfills.animation import BLUE, CYAN, PURPLE, MAGENTA, TEAL
 from interactive.polyfills.animation import ColorCycle, Sparkle, Rainbow, RainbowComet, RainbowChase
 from interactive.polyfills.animation import RainbowSparkle, Blink, Chase, Pulse, Comet
 from interactive.polyfills.button import new_button
+from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.led import new_led_pin
 from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
 
+AUDIO_PIN = None
 BUTTON_PIN = None
 LED_YELLOW = None
 LED_GREEN = None
 LED_RED = None
 PIXELS_PIN = None
 
+# Audio configuration
+PLAY_SONGS = True
+AUDIO_VOLUME = 0.1
+
+# LED configuration
+ANIMATE_LEDS = True
+
+# Neopixel configuration
+ANIMATE_PIXELS = True
+PIXELS_BRIGHTNESS = 0.2
+
+# Demo mode configuration
+DEMO_MODE = True
+
 if are_pins_available():
     # noinspection PyPackageRequirements
     import board
 
+    AUDIO_PIN = board.GP2  # or GP3
     BUTTON_PIN = board.GP27
     LED_YELLOW = board.GP6
     LED_GREEN = board.GP5
@@ -40,6 +61,23 @@ if __name__ == '__main__':
 
     runner = Runner()
 
+    audio = new_buzzer(AUDIO_PIN)
+    audio.volume = AUDIO_VOLUME
+    songs = []
+    for song, speed in ALL_SONGS:
+        songs.append(Melody(audio, decode_melody(song), speed))
+
+    songs = MelodySequence(*songs)
+
+
+    async def play_songs() -> None:
+        if not runner.cancel and PLAY_SONGS:
+            if songs:
+                songs.play()
+
+
+    runner.add_loop_task(play_songs)
+
     yellow = Led(new_led_pin(LED_YELLOW))
     green = Led(new_led_pin(LED_GREEN))
     red = Led(new_led_pin(LED_RED))
@@ -48,7 +86,7 @@ if __name__ == '__main__':
     green_animation = Pulse(green, speed=0.1, color=WHITE, period=2)
 
     yellow_animations = [
-        Flicker(yellow, speed=0.1, color=WHITE, spacing=1),
+        Flicker(yellow, speed=0.1, color=WHITE),
         Pulse(yellow, speed=0.1, color=WHITE, period=1),
         Blink(yellow, speed=0.5, color=WHITE),
     ]
@@ -56,7 +94,7 @@ if __name__ == '__main__':
 
 
     async def animate_leds() -> None:
-        if not runner.cancel:
+        if not runner.cancel and ANIMATE_LEDS:
             if red_animation:
                 red_animation.animate()
             if green_animation:
@@ -67,7 +105,7 @@ if __name__ == '__main__':
 
     runner.add_loop_task(animate_leds)
 
-    pixels = new_pixels(PIXELS_PIN, 8, brightness=0.5)
+    pixels = new_pixels(PIXELS_PIN, 8, brightness=PIXELS_BRIGHTNESS)
     animations = [
         Flicker(pixels, speed=0.1, color=AMBER, spacing=2),
         Blink(pixels, speed=0.5, color=JADE),
@@ -78,14 +116,14 @@ if __name__ == '__main__':
         Sparkle(pixels, speed=0.05, color=GOLD, num_sparkles=3),
         Rainbow(pixels, speed=0.1, period=2),
         RainbowComet(pixels, speed=0.1, tail_length=7, bounce=True),
-        RainbowChase(pixels, speed=0.1, size=5, spacing=3),
+        RainbowChase(pixels, speed=0.1, size=5),
         RainbowSparkle(pixels, speed=0.1, num_sparkles=3),
     ]
     animation = AnimationSequence(*animations, advance_interval=5)
 
 
     async def animate_pixels() -> None:
-        if not runner.cancel:
+        if not runner.cancel and ANIMATE_PIXELS:
             if animation:
                 animation.animate()
 
@@ -97,10 +135,11 @@ if __name__ == '__main__':
         global start, finish
         runner.cancel = time.monotonic() > finish
         if runner.cancel:
+            audio.off()
+
             yellow_animation.freeze()
             green_animation.freeze()
             red_animation.freeze()
-
             yellow.off()
             green.off()
             red.off()
@@ -114,25 +153,16 @@ if __name__ == '__main__':
 
 
     async def single_click_handler() -> None:
-        if not runner.cancel and animation:
-            animation.next()
-
-
-    async def multi_click_handler() -> None:
-        if not runner.cancel and animation:
-            animation.previous()
-
-
-    async def long_press_handler() -> None:
-        if not runner.cancel and animation:
-            animation.reset()
+        if songs:
+            if songs.paused:
+                songs.resume()
+            else:
+                songs.pause()
 
 
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_click_handler(single_click_handler)
-    button_controller.add_multi_click_handler(multi_click_handler)
-    button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
 
     runner.run(callback)

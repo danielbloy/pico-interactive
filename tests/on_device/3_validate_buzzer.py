@@ -13,6 +13,7 @@ BUTTON_PIN = None
 BUZZER_PIN = None
 
 if are_pins_available():
+    # noinspection PyPackageRequirements
     import board
 
     BUTTON_PIN = board.GP27
@@ -31,7 +32,7 @@ if __name__ == '__main__':
 
     buzzer = new_buzzer(BUZZER_PIN)
     buzzer.volume = 0.1
-    melody = MelodySequence(Melody(buzzer, decode_melody(notes), 0.2), loop=True)
+    melody = MelodySequence(Melody(buzzer, decode_melody(notes), 0.2))
     melody.pause()
 
 
@@ -48,24 +49,18 @@ if __name__ == '__main__':
 
 
     async def single_click_handler() -> None:
-        # Make an annoying beep
-        if not runner.cancel:
-            buzzer_controller.beeps(3)
+        buzzer_controller.beeps(3)
 
 
     async def multi_click_handler() -> None:
-        # Either pause or resume the melody
-        if not runner.cancel:
-            if melody.paused:
-                melody.resume()
-            else:
-                melody.pause()
+        if melody.paused:
+            melody.resume()
+        else:
+            melody.pause()
 
 
     async def long_press_handler() -> None:
-        # Reset the melody
-        if not runner.cancel:
-            melody.reset()
+        melody.reset()
 
 
     runner = Runner()
