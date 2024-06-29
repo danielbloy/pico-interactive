@@ -24,6 +24,7 @@ class ButtonController:
         if not isinstance(button, Button):
             raise ValueError("button must be of type Button")
 
+        self.__runner = None
         self.__button = button
         self.__single_click_handler = None
         self.__multi_click_handler = None
@@ -59,22 +60,24 @@ class ButtonController:
 
         :param runner: the runner to register with.
         """
+        self.__runner = runner
         runner.add_loop_task(self.__loop)
 
     async def __loop(self):
         """
         The internal loop simply invokes the correct handler based on the button state.
         """
-        self.__button.update()
+        if not self.__runner.cancel:
+            self.__button.update()
 
-        short_count = self.__button.short_count
-        if short_count != 0:
+            short_count = self.__button.short_count
+            if short_count != 0:
 
-            if short_count == 1 and self.__single_click_handler is not None:
-                await self.__single_click_handler()
+                if short_count == 1 and self.__single_click_handler is not None:
+                    await self.__single_click_handler()
 
-            elif short_count > 1 and self.__multi_click_handler is not None:
-                await self.__multi_click_handler()
+                elif short_count > 1 and self.__multi_click_handler is not None:
+                    await self.__multi_click_handler()
 
-        if self.__button.long_press and self.__long_press_handler is not None:
-            await self.__long_press_handler()
+            if self.__button.long_press and self.__long_press_handler is not None:
+                await self.__long_press_handler()

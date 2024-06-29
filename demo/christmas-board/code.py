@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
 
     async def play_songs() -> None:
-        if PLAY_SONGS:
+        if not runner.cancel and PLAY_SONGS:
             if songs:
                 songs.play()
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
 
     async def animate_leds() -> None:
-        if ANIMATE_LEDS:
+        if not runner.cancel and ANIMATE_LEDS:
             if red_animation:
                 red_animation.animate()
             if green_animation:
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
 
     async def animate_pixels() -> None:
-        if ANIMATE_PIXELS:
+        if not runner.cancel and ANIMATE_PIXELS:
             if animation:
                 animation.animate()
 
@@ -145,6 +145,8 @@ if __name__ == '__main__':
         global start, finish
         runner.cancel = time.monotonic() > finish
         if runner.cancel:
+            audio.off()
+
             yellow_animation.freeze()
             green_animation.freeze()
             red_animation.freeze()
@@ -155,7 +157,7 @@ if __name__ == '__main__':
             green.show()
             red.show()
 
-            animation.freeze()  # TODO: This should be animations.off() when implemented
+            animation.freeze()
             pixels.fill(BLACK)
             pixels.write()
 

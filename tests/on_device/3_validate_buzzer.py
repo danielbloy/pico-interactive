@@ -36,7 +36,8 @@ if __name__ == '__main__':
 
 
     async def play_melody() -> None:
-        melody.play()
+        if not runner.cancel:
+            melody.play()
 
 
     async def callback() -> None:
