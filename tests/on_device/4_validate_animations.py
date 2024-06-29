@@ -1,11 +1,10 @@
 import time
-from logging import INFO
 
 from interactive.animation import AMBER, BLACK, WHITE
 from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.led import Led
-from interactive.log import set_log_level
+from interactive.log import set_log_level, INFO
 from interactive.pixel import Flicker
 from interactive.polyfills.button import new_button
 from interactive.polyfills.led import new_led_pin

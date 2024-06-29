@@ -1,7 +1,6 @@
 # This tests the button and buzzer functionality on the basic Code Club
 # Christmas board.
 import time
-from logging import INFO
 
 # TODO: We want these references to go
 from adafruit_led_animation.animation.blink import Blink
@@ -23,7 +22,7 @@ from interactive.animation import TEAL, CYAN, BLUE, PURPLE, MAGENTA
 from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.led import Led
-from interactive.log import set_log_level
+from interactive.log import set_log_level, INFO
 from interactive.melody import Melody, decode_melody, MelodySequence
 from interactive.pixel import Flicker
 from interactive.polyfills.button import new_button
@@ -170,21 +169,9 @@ if __name__ == '__main__':
                 songs.pause()
 
 
-    async def multi_click_handler() -> None:
-        # Either pause or resume the pixel animations
-        pass
-
-
-    async def long_press_handler() -> None:
-        # Either turn on or off the LEDs
-        pass
-
-
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_click_handler(single_click_handler)
-    button_controller.add_multi_click_handler(multi_click_handler)
-    button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
 
     runner.run(callback)
