@@ -19,6 +19,12 @@ class TestLog:
         except Exception as e:
             log.stacktrace(e)
 
+    def test_log(self):
+        """
+        Simply tests there is no error when calling log()
+        """
+        log.log(log.INFO, "LOG message")
+
     def test_debug(self):
         """
         Simply tests there is no error when calling debug()

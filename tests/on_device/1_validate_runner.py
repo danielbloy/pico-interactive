@@ -4,16 +4,7 @@ from interactive.log import set_log_level, debug, info, INFO
 from interactive.runner import Runner
 
 if __name__ == '__main__':
-    i: int = 0
-
     set_log_level(INFO)
-
-
-    async def callback() -> None:
-        global i
-        i += 1
-        debug(f'Callback: i={i}')
-        runner.cancel = i == 30
 
 
     async def runs_forever_task():
@@ -36,10 +27,23 @@ if __name__ == '__main__':
 
 
     runner = Runner()
+
     runner.restart_on_completion = True
     runner.restart_on_exception = True
     runner.cancel_on_exception = False
+
     runner.add_task(runs_forever_task)
     runner.add_task(completes_task)
     runner.add_task(raises_exception_task)
+
+    i: int = 0
+
+
+    async def callback() -> None:
+        global i
+        i += 1
+        debug(f'Callback: i={i}')
+        runner.cancel = i == 30
+
+
     runner.run(callback)
