@@ -13,7 +13,20 @@ if is_running_on_desktop():
 
 
 class Interactive:
+    """
+    Interactive is the entry point class and sets up a running environment based on the
+    configuration provided bby a Config instance. Interactive will create all the
+    necessary instances to control the buzzer, button etc. Most of the configuration
+    properties are optional and will only invoke the relevant control objects if
+    valid properties are provided. This allows a large range of boards to be supported.
+    """
+
     class Config:
+        """
+        Holds the configuration settings required for constructing an instance of
+        Interactive.
+        """
+
         def __init__(self):
             self.button_pin = None
             self.buzzer_pin = None
