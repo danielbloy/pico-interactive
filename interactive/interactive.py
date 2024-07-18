@@ -80,18 +80,24 @@ class Interactive:
         self.runner.run(callback)
 
     async def __cancel_buzzer(self) -> None:
+        """
+        Ensures the buzzer is turned off when the system is ready to terminate.
+        """
         if self.runner.cancel and self.buzzer_controller:
             debug('Turning off the buzzer')
             self.buzzer_controller.off()
 
     async def __single_click_handler(self) -> None:
         if not self.runner.cancel and self.buzzer_controller:
+            # TODO: This needs to be a proper action
             self.buzzer_controller.beep()
 
     async def __multi_click_handler(self) -> None:
         if not self.runner.cancel and self.buzzer_controller:
+            # TODO: This needs to be a proper action
             self.buzzer_controller.beeps(2)
 
     async def __long_press_handler(self) -> None:
         if not self.runner.cancel and self.buzzer_controller:
+            # TODO: This needs to be a proper action
             self.buzzer_controller.beeps(5)

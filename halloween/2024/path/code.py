@@ -1,16 +1,20 @@
 # Entry point for a path node. This supports both path nodes that are on either
 # side of the path. One will be the primary node and the other the secondary.
-
-# TODO: This is boilerplate and should be moved into common code.
-
+from interactive.animation import Flicker
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO
+from interactive.polyfills.animation import AMBER, BLACK
+from interactive.polyfills.pixel import new_pixels
 
 PRIMARY = True
 BUTTON_PIN = None
 BUZZER_PIN = None
 BUZZER_VOLUME = 0.1
+SKULL_BRIGHTNESS = 1.0
+SKULL_SPEED = 0.1
+SKULL_COLOUR = AMBER
+SKULL_PINS = [None, None, None, None, None, None]
 
 # Default settings
 if are_pins_available():
@@ -41,9 +45,29 @@ if __name__ == '__main__':
 
     interactive = Interactive(config)
 
+    # Construct the pixels and animate them.
+    pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS]
+    animations = [Flicker(pixel, speed=SKULL_SPEED, colour=SKULL_COLOUR) for pixel in pixels]
+
+
+    async def animate_skulls() -> None:
+        for animation in animations:
+            animation.animate()
+
+
+    interactive.runner.add_loop_task()
+
+
+    # TODO: Control how the skulls are enabled/disabled.
 
     async def callback() -> None:
-        pass
+        if interactive.cancel:
+            for animation in animations:
+                animation.freeze()
+
+            for pixel in pixels:
+                pixel.fill(BLACK)
+                pixel.write()
 
 
     interactive.run(callback)
