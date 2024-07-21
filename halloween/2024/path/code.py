@@ -24,6 +24,8 @@ if are_pins_available():
     BUTTON_PIN = board.GP27
     BUZZER_PIN = board.GP2
 
+    SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
+
 if __name__ == '__main__':
 
     set_log_level(INFO)
@@ -46,8 +48,8 @@ if __name__ == '__main__':
     interactive = Interactive(config)
 
     # Construct the pixels and animate them.
-    pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS]
-    animations = [Flicker(pixel, speed=SKULL_SPEED, colour=SKULL_COLOUR) for pixel in pixels]
+    pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS if pin is not None]
+    animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
 
 
     async def animate_skulls() -> None:
@@ -55,7 +57,7 @@ if __name__ == '__main__':
             animation.animate()
 
 
-    interactive.runner.add_loop_task()
+    interactive.runner.add_loop_task(animate_skulls)
 
 
     # TODO: Control how the skulls are enabled/disabled.
