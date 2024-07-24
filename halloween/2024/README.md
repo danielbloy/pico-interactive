@@ -11,7 +11,7 @@ nodes to improve them further. The basic plan as it stands is as follows:
 
 In 2023, all nodes (apart from the coordinator) were battery powered. This
 offered great flexibility as to positioning but required a lot of batteries
-and meant the whole system could not easily be turned off (or on) with a 
+and meant the whole system could not easily be turned off (or on) with a
 single switch. For 2024, I am looking for more mains powered distribution.
 
 ## New nodes
@@ -24,7 +24,7 @@ greenhouse frame. We also have a massive spider to add to the middle :).
 This probably needs 1 or 2 of the new style nodes.
 * Thunder and lightning - This can be a repurposed 2023 style node connected
 to a large NeoPixel ring and a set of PC speakers (rather than the in-built
-40mm speakers) to add nice thunder and lightning. It can be triggered 
+40mm speakers) to add nice thunder and lightning. It can be triggered
 randomly or via the coordinator node.
 
 ## Replaced nodes
