@@ -20,9 +20,6 @@ if are_pins_available():
     BUZZER_PIN = board.GP2
 
 if __name__ == '__main__':
-    # Allow the application to only run for a defined number of seconds.
-    start = time.monotonic()
-    finish = start + 10
 
     set_log_level(INFO)
 
@@ -39,13 +36,6 @@ if __name__ == '__main__':
     async def play_melody() -> None:
         if not runner.cancel:
             melody.play()
-
-
-    async def callback() -> None:
-        global start, finish
-        runner.cancel = time.monotonic() > finish
-        if runner.cancel:
-            buzzer_controller.off()
 
 
     async def single_click_handler() -> None:
@@ -75,5 +65,15 @@ if __name__ == '__main__':
     buzzer_controller = BuzzerController(buzzer)
     buzzer_controller.register(runner)
     runner.add_loop_task(play_melody)
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + 10
+
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+        if runner.cancel:
+            buzzer_controller.off()
+
 
     runner.run(callback)

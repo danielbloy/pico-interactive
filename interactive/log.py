@@ -51,6 +51,11 @@ def stacktrace(e: Exception) -> None:
             logger.debug(s)
 
 
+def log(level, message: str):
+    """Writes message at the specified log level."""
+    logger.log(level, message)
+
+
 def debug(message: str) -> None:
     """Writes message at the DEBUG log level."""
     logger.debug(message)

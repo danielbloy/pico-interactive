@@ -43,62 +43,70 @@ three projects that serve as inspiration) are provided under a permissive licens
 to allow this code to be used in a range of educational and personal settings. See
 the end of this readme for more information about the license.
 
-## List of outstanding tasks for the basic framework.
+## List of outstanding tasks for the basic framework
 
-- [x] Setup project outline.
-- [x] Add generic task runner that handles both completion and exceptions and support restarts.
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
-- [x] Add support for logging in both Desktop and Pico environments.
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
-- [x] Add button support for single, double and long-presses.
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
-- [x] Add buzzer support for playing tones.
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
-- [x] Migrate music.py/Song from originals/christmas to buzzer.py as Melody
-    - [ ] Write tests
-- [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py as MelodySequence
-    - [ ] Write tests
-- [x] Add NeoPixel support
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
-- [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
-    - [ ] Add tests for Flicker
-- [x] Add LED support
-    - [x] Works on CircuitPython
-    - [x] Works with Blinka
-- [ ] Add Ultrasonic sensor support
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
-- [ ] Add UART support
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
-- [ ] Add AudioBoard support
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka-
-- [ ] Add OLED Display support, including cycling through screen pages.
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
-- [ ] Add Wi-Fi support
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
-- [ ] Migrate networking/messaging/coordinator/discovery code from originals/halloween
-- [ ] Add current time of day support via Wi-Fi.
-    - [ ] Works on CircuitPython
-    - [ ] Works with Blinka
-- [ ] OLED display pages available for:
-    - [ ] NeoPixels
-    - [ ] LEDs
-    - [ ] Ultrasonic
-    - [ ] AudioBoard
-    - [ ] UART
-    - [ ] Wi-Fi
-    - [ ] Messaging/discovery/coordination
-- [x] Recreate originals/christmas in demo
-- [ ] Recreate originals/light_jars in demo
+* [x] Setup project outline.
+* [x] Add generic task runner that handles both completion and exceptions and support restarts.
+  * [x] Works on CircuitPython
+  * [x] Works with Blinka
+* [x] Add support for logging in both Desktop and Pico environments.
+  * [x] Works on CircuitPython
+  * [x] Works with Blinka
+* [x] Add button support for single, double and long-presses.
+  * [x] Works on CircuitPython
+  * [x] Works with Blinka
+* [x] Add buzzer support for playing tones.
+  * [x] Works on CircuitPython
+  * [x] Works with Blinka
+* [x] Migrate music.py/Song from originals/christmas to buzzer.py as Melody
+  * [ ] Write tests
+* [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py as MelodySequence
+  * [ ] Write tests
+* [x] Add NeoPixel support
+  * [x] Works on CircuitPython
+  * [x] Works with Blinka
+* [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
+  * [ ] Add tests for Flicker
+* [x] Add LED support
+  * [x] Works on CircuitPython
+  * [x] Works with Blinka
+* [ ] Add Ultrasonic sensor support
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
+* [ ] Add UART support
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
+* [ ] Add AudioBoard support
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka-
+* [ ] Add OLED Display support, including cycling through screen pages
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
+* [ ] Add Wi-Fi support
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
+* [ ] Add current time of day support via Wi-Fi
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
+* [ ] Add support for network node information page
+* [ ] Add support for network discovery via coordinator node (PC/Raspberry Pi)
+* [ ] Add support for network messaging via coordinator node (PC/Raspberry Pi)
+* [ ] OLED display pages available for:
+  * [ ] NeoPixels
+  * [ ] LEDs
+  * [ ] Ultrasonic
+  * [ ] AudioBoard
+  * [ ] UART
+  * [ ] Wi-Fi
+  * [ ] Messaging/discovery/coordination
+* [x] Recreate originals/christmas in demo
+* [ ] Recreate originals/light_jars in demo
+* [ ] Recreate originals/halloween
+  * [ ] Migrate code from path node
+  * [ ] Implement spider node
+  * [ ] Implement thunder node
+  * [ ] Implement coordinator node that runs on the laptop
+  * [ ] Implement node communications
 
 ## Setting up the development environment
 

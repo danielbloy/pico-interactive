@@ -15,16 +15,7 @@ if are_pins_available():
     BUTTON_PIN = board.GP27
 
 if __name__ == '__main__':
-    # Allow the application to only run for a defined number of seconds.
-    start = time.monotonic()
-    finish = start + 10
-
     set_log_level(INFO)
-
-
-    async def callback() -> None:
-        global start, finish
-        runner.cancel = time.monotonic() > finish
 
 
     async def single_click_handler() -> None:
@@ -40,10 +31,20 @@ if __name__ == '__main__':
 
 
     runner = Runner()
+
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_click_handler(single_click_handler)
     button_controller.add_multi_click_handler(multi_click_handler)
     button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + 10
+
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+
+
     runner.run(callback)

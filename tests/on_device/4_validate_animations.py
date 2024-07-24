@@ -32,9 +32,6 @@ if are_pins_available():
     PIXELS_PIN = board.GP28
 
 if __name__ == '__main__':
-    # Allow the application to only run for a defined number of seconds.
-    start = time.monotonic()
-    finish = start + 10
 
     set_log_level(INFO)
 
@@ -48,7 +45,7 @@ if __name__ == '__main__':
     green_animation = Pulse(green, speed=0.1, color=WHITE, period=2)
 
     yellow_animations = [
-        Flicker(yellow, speed=0.1, color=WHITE, spacing=1),
+        Flicker(yellow, speed=0.1, color=WHITE),
         Pulse(yellow, speed=0.1, color=WHITE, period=1),
         Blink(yellow, speed=0.5, color=WHITE),
     ]
@@ -78,7 +75,7 @@ if __name__ == '__main__':
         Sparkle(pixels, speed=0.05, color=GOLD, num_sparkles=3),
         Rainbow(pixels, speed=0.1, period=2),
         RainbowComet(pixels, speed=0.1, tail_length=7, bounce=True),
-        RainbowChase(pixels, speed=0.1, size=5, spacing=3),
+        RainbowChase(pixels, speed=0.1, size=5),
         RainbowSparkle(pixels, speed=0.1, num_sparkles=3),
     ]
     animation = AnimationSequence(*animations, advance_interval=5)
@@ -91,26 +88,6 @@ if __name__ == '__main__':
 
 
     runner.add_loop_task(animate_pixels)
-
-
-    async def callback() -> None:
-        global start, finish
-        runner.cancel = time.monotonic() > finish
-        if runner.cancel:
-            yellow_animation.freeze()
-            green_animation.freeze()
-            red_animation.freeze()
-
-            yellow.off()
-            green.off()
-            red.off()
-            yellow.show()
-            green.show()
-            red.show()
-
-            animation.freeze()
-            pixels.fill(BLACK)
-            pixels.write()
 
 
     async def single_click_handler() -> None:
@@ -134,5 +111,28 @@ if __name__ == '__main__':
     button_controller.add_multi_click_handler(multi_click_handler)
     button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + 10
+
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+        if runner.cancel:
+            yellow_animation.freeze()
+            green_animation.freeze()
+            red_animation.freeze()
+
+            yellow.off()
+            green.off()
+            red.off()
+            yellow.show()
+            green.show()
+            red.show()
+
+            animation.freeze()
+            pixels.fill(BLACK)
+            pixels.write()
+
 
     runner.run(callback)
