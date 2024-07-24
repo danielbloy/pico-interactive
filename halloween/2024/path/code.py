@@ -4,7 +4,7 @@ from interactive.animation import Flicker
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO
-from interactive.polyfills.animation import AMBER, BLACK
+from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
 
 PRIMARY = True
@@ -13,7 +13,7 @@ BUZZER_PIN = None
 BUZZER_VOLUME = 0.1
 SKULL_BRIGHTNESS = 1.0
 SKULL_SPEED = 0.1
-SKULL_COLOUR = AMBER
+SKULL_COLOUR = ORANGE
 SKULL_PINS = [None, None, None, None, None, None]
 
 # Default settings
