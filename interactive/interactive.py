@@ -12,6 +12,9 @@ if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
 
 
+# TODO: When the ultrasonic sensor support is added, it should automatically do the
+#       distance measurements and trigger events based on distance.
+
 class Interactive:
     """
     Interactive is the entry point class and sets up a running environment based on the

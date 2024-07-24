@@ -43,6 +43,19 @@ three projects that serve as inspiration) are provided under a permissive licens
 to allow this code to be used in a range of educational and personal settings. See
 the end of this readme for more information about the license.
 
+## List of projects to convert to framework
+
+* [x] Recreate originals/christmas in demo
+* [ ] Recreate originals/light_jars in demo
+* [ ] Recreate originals/halloween
+  * [ ] Migrate code from path node
+  * [ ] Implement spider node
+  * [ ] Implement thunder node
+  * [ ] Implement coordinator node that runs on the laptop
+  * [ ] Implement node communications
+  * [ ] Migrate Witch node
+  * [ ] Implement Pixie node
+
 ## List of outstanding tasks for the basic framework
 
 * [x] Setup project outline.
@@ -73,15 +86,9 @@ the end of this readme for more information about the license.
 * [ ] Add Ultrasonic sensor support
   * [ ] Works on CircuitPython
   * [ ] Works with Blinka
-* [ ] Add UART support
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
 * [ ] Add AudioBoard support
   * [ ] Works on CircuitPython
   * [ ] Works with Blinka-
-* [ ] Add OLED Display support, including cycling through screen pages
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
 * [ ] Add Wi-Fi support
   * [ ] Works on CircuitPython
   * [ ] Works with Blinka
@@ -91,6 +98,12 @@ the end of this readme for more information about the license.
 * [ ] Add support for network node information page
 * [ ] Add support for network discovery via coordinator node (PC/Raspberry Pi)
 * [ ] Add support for network messaging via coordinator node (PC/Raspberry Pi)
+* [ ] Add UART support
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
+* [ ] Add OLED Display support, including cycling through screen pages
+  * [ ] Works on CircuitPython
+  * [ ] Works with Blinka
 * [ ] OLED display pages available for:
   * [ ] NeoPixels
   * [ ] LEDs
@@ -99,14 +112,6 @@ the end of this readme for more information about the license.
   * [ ] UART
   * [ ] Wi-Fi
   * [ ] Messaging/discovery/coordination
-* [x] Recreate originals/christmas in demo
-* [ ] Recreate originals/light_jars in demo
-* [ ] Recreate originals/halloween
-  * [ ] Migrate code from path node
-  * [ ] Implement spider node
-  * [ ] Implement thunder node
-  * [ ] Implement coordinator node that runs on the laptop
-  * [ ] Implement node communications
 
 ## Setting up the development environment
 
