@@ -1,5 +1,3 @@
-import textwrap
-
 from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
 from interactive.environment import is_running_on_desktop
@@ -36,9 +34,7 @@ class Interactive:
             self.buzzer_volume = 1.0
 
         def __str__(self):
-            return textwrap.dedent(f"""\
-            Button: {self.button_pin}
-            Buzzer: {self.buzzer_pin}; volume: {self.buzzer_volume}""")
+            return f"""  Button: {self.button_pin}\n  Buzzer: {self.buzzer_pin}; volume: {self.buzzer_volume}"""
 
         def log(self, level):
             for s in self.__str__().split('\n'):
