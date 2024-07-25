@@ -1,3 +1,7 @@
+# Support for HC-SR04 ultrasonic sensor in CircuitPython:
+#   * https://learn.adafruit.com/ultrasonic-sonar-distance-sensors/python-circuitpython
+#   * https://github.com/adafruit/Adafruit_CircuitPython_HCSR04
+
 from interactive.environment import are_pins_available
 
 if are_pins_available():
