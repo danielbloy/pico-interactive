@@ -4,6 +4,7 @@ from interactive.environment import is_running_on_desktop
 from interactive.log import info, INFO, debug
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
+from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 
 if is_running_on_desktop():
@@ -75,6 +76,13 @@ class Interactive:
             self.buzzer.volume = self.config.buzzer_volume
             self.buzzer_controller = BuzzerController(self.buzzer)
             self.buzzer_controller.register(self.runner)
+
+        self.ultrasonic = None
+        self.ultrasonic_controller = None
+
+        if self.config.ultrasonic_trigger is not None and self.config.ultrasonic_echo is not None:
+            self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger, self.config.ultrasonic_echo)
+            # TODO: setup controller
 
     @property
     def cancel(self) -> bool:
