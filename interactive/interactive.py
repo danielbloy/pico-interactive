@@ -32,9 +32,20 @@ class Interactive:
             self.button_pin = None
             self.buzzer_pin = None
             self.buzzer_volume = 1.0
+            self.ultrasonic_trigger = None
+            self.ultrasonic_echo = None
 
         def __str__(self):
-            return f"""  Button: {self.button_pin}\n  Buzzer: {self.buzzer_pin}; volume: {self.buzzer_volume}"""
+            return f"""  
+              Button: 
+                Pin ......... : {self.button_pin}
+              Buzzer: 
+                Pin ......... : {self.buzzer_pin}
+                Volume ...... : {self.buzzer_volume}
+              Ultrasonic Sensor:
+                Trigger ..... : {self.ultrasonic_trigger}
+                Echo ........ : {self.ultrasonic_echo}
+              """
 
         def log(self, level):
             for s in self.__str__().split('\n'):
