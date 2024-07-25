@@ -283,10 +283,17 @@ Once Blinka is setup and you are running your CircuitPython code from PyCharm, y
 add the appropriate libraries into your `venv`. In the project covered here it includes:
 
 ```shell
-adafruit-circuitpython-led-animation
-adafruit-circuitpython-neopixel
+adafruit-circuitpython-busdevice
+adafruit-circuitpython-connectionmanager
 adafruit-circuitpython-debouncer
+adafruit-circuitpython-hcsr04
+adafruit-circuitpython-led-animation
 adafruit-circuitpython-logging
+adafruit-circuitpython-neopixel
+adafruit-circuitpython-pixelbuf
+adafruit-circuitpython-requests
+adafruit-circuitpython-ticks
+adafruit-circuitpython-typing
 ```
 
 ## License
