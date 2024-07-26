@@ -4,7 +4,7 @@ import pytest
 
 from interactive.polyfills.ultrasonic import Ultrasonic
 from interactive.runner import Runner
-from interactive.ultrasonic import UltrasonicController
+from interactive.ultrasonic import UltrasonicTrigger
 
 
 class TestUltrasonic(Ultrasonic):
@@ -19,32 +19,32 @@ class TestUltrasonic(Ultrasonic):
         return self.dist
 
 
-class TestUltrasonicController:
+class TestUltrasonicTrigger:
 
     def test_creating_with_none_ultrasonic_errors(self) -> None:
         """
-        Validates that a UltrasonicController cannot be constructed with
+        Validates that a UltrasonicTrigger cannot be constructed with
         a None value.
         """
         with pytest.raises(ValueError):
             # noinspection PyTypeChecker
-            UltrasonicController(None)
+            UltrasonicTrigger(None)
 
     def test_creating_with_string_errors(self) -> None:
         """
-        Validates that a UltrasonicController cannot be constructed with
+        Validates that a UltrasonicTrigger cannot be constructed with
         a value that is not a Ultrasonic.
         """
         with pytest.raises(ValueError):
             # noinspection PyTypeChecker
-            UltrasonicController("")
+            UltrasonicTrigger("")
 
     # TODO: Test adding and removing trigger events
     # TODO: Check decay
 
     def test_registering_with_runner(self) -> None:
         """
-        Validates the UltrasonicController registers with the Runner.
+        Validates the UltrasonicTrigger registers with the Runner.
         """
         add_task_count: int = 0
 
@@ -55,7 +55,7 @@ class TestUltrasonicController:
 
         runner = TestRunner()
         ultrasonic = TestUltrasonic()
-        controller = UltrasonicController(ultrasonic)
+        trigger = UltrasonicTrigger(ultrasonic)
         assert add_task_count == 0
-        controller.register(runner)
+        trigger.register(runner)
         assert add_task_count == 1

@@ -5,7 +5,13 @@ from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 
 # TODO: Include trigger class based on ultrasonic.
 
-class UltrasonicController:
+class UltrasonicTrigger:
+    """
+    UltrasonicTrigger triggers events based on the distances returned from an
+    Ultrasonic sensor. The user can
+
+    Instances of this class will need to register() with a Runner in order to work.
+    """
 
     def __init__(self, ultrasonic: Ultrasonic):
         if ultrasonic is None:
