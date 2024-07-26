@@ -6,8 +6,28 @@ from interactive.environment import are_pins_available
 
 if are_pins_available():
 
-    from adafruit_hcsr04 import HCSR04 as Ultrasonic
+    from adafruit_hcsr04 import HCSR04
     from microcontroller import Pin
+
+
+    class Ultrasonic(HCSR04):
+
+        @property
+        def distance(self) -> float:
+            """Return the distance measured by the sensor in cm or 600 cm
+            if nothing is detected. If the distance detected is less than
+            10 cm, 600 cm is returned.
+
+            :return: Distance in centimeters.
+            :rtype: float
+            """
+            try:
+                distance = self._dist_two_wire()
+                if distance < 10:
+                    distance = 600
+                return distance
+            except RuntimeError:
+                return 600
 
 
     def __new_ultrasonic(trigger: Pin, echo: Pin) -> Ultrasonic:

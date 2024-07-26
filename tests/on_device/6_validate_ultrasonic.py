@@ -17,8 +17,8 @@ if are_pins_available():
     import board
 
     BUTTON_PIN = board.GP27
-    ULTRASONIC_TRIGGER_PIN = board.GP27
-    ULTRASONIC_ECHO_PIN = board.GP27
+    ULTRASONIC_TRIGGER_PIN = board.GP7
+    ULTRASONIC_ECHO_PIN = board.GP6
 
 if __name__ == '__main__':
     set_log_level(INFO)
@@ -27,8 +27,13 @@ if __name__ == '__main__':
 
     ultrasonic = new_ultrasonic(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN)
 
+
+    async def trigger_handler(distance: float, actual: float) -> None:
+        info(f"Distance {distance} handler triggered: {actual}")
+
+
     trigger = UltrasonicTrigger(ultrasonic)
-    # TODO: Register distance events.
+    trigger.add_trigger(20, trigger_handler, 5)
     trigger.register(runner)
 
 
@@ -42,7 +47,7 @@ if __name__ == '__main__':
     button_controller.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 10
+    finish = time.monotonic() + 60
 
 
     async def callback() -> None:
