@@ -4,6 +4,7 @@ from interactive.environment import is_running_on_desktop
 from interactive.log import info, INFO, debug
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
+from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 
 if is_running_on_desktop():
@@ -32,9 +33,20 @@ class Interactive:
             self.button_pin = None
             self.buzzer_pin = None
             self.buzzer_volume = 1.0
+            self.ultrasonic_trigger = None
+            self.ultrasonic_echo = None
 
         def __str__(self):
-            return f"""  Button: {self.button_pin}\n  Buzzer: {self.buzzer_pin}; volume: {self.buzzer_volume}"""
+            return f"""  
+              Button: 
+                Pin ......... : {self.button_pin}
+              Buzzer: 
+                Pin ......... : {self.buzzer_pin}
+                Volume ...... : {self.buzzer_volume}
+              Ultrasonic Sensor:
+                Trigger ..... : {self.ultrasonic_trigger}
+                Echo ........ : {self.ultrasonic_echo}
+              """
 
         def log(self, level):
             for s in self.__str__().split('\n'):
@@ -64,6 +76,13 @@ class Interactive:
             self.buzzer.volume = self.config.buzzer_volume
             self.buzzer_controller = BuzzerController(self.buzzer)
             self.buzzer_controller.register(self.runner)
+
+        self.ultrasonic = None
+        self.ultrasonic_controller = None
+
+        if self.config.ultrasonic_trigger is not None and self.config.ultrasonic_echo is not None:
+            self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger, self.config.ultrasonic_echo)
+            # TODO: setup controller
 
     @property
     def cancel(self) -> bool:

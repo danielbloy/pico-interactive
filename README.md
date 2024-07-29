@@ -83,9 +83,9 @@ the end of this readme for more information about the license.
 * [x] Add LED support
   * [x] Works on CircuitPython
   * [x] Works with Blinka
-* [ ] Add Ultrasonic sensor support
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
+* [x] Add Ultrasonic sensor support
+  * [x] Works on CircuitPython
+  * [ ] ~~Works with Blinka~~
 * [ ] Add AudioBoard support
   * [ ] Works on CircuitPython
   * [ ] Works with Blinka-
@@ -283,11 +283,36 @@ Once Blinka is setup and you are running your CircuitPython code from PyCharm, y
 add the appropriate libraries into your `venv`. In the project covered here it includes:
 
 ```shell
-adafruit-circuitpython-led-animation
-adafruit-circuitpython-neopixel
+adafruit-circuitpython-busdevice
+adafruit-circuitpython-connectionmanager
 adafruit-circuitpython-debouncer
+adafruit-circuitpython-hcsr04
+adafruit-circuitpython-led-animation
 adafruit-circuitpython-logging
+adafruit-circuitpython-neopixel
+adafruit-circuitpython-pixelbuf
+adafruit-circuitpython-requests
+adafruit-circuitpython-ticks
+adafruit-circuitpython-typing
 ```
+
+Beware that there are some limitations with Blinka that means it cannot be used to test
+everything. All of your application code will still need to be tested on the device that
+you want to run on to make sure it works in that environment. So far, the main issues
+that I have found with Blinka are:
+
+* It is significantly slower that running on the device itself. This is not because your
+computer is slow, it's because of the overhead of calculating and transferring data to
+and from the device. Running your application code on the device is always much faster.
+* More than one strand of Neopixels will not work properly. If you are running a single
+strand of Neopixels then Blnka works absolutely fine (although it is slower to update than
+running on the device). If however you run multiple strands from different pins then What
+seems to happen is they get combined and output on a single strand. Running your code
+on the device will work fine though (this was infuriating when building the skull path
+nodes).
+* Ultrasonic sensors do not give good results. This is possibly related to the speed issue
+but when tsting Ultrasonic sensors, I did not get anything like sensible or consistent
+values. Running on the device worked fine though.
 
 ## License
 
