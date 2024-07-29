@@ -2,7 +2,7 @@ from collections.abc import Callable, Awaitable
 
 import pytest
 
-from interactive.polyfills.ultrasonic import Ultrasonic
+from interactive.polyfills.ultrasonic import Ultrasonic, ULTRASONIC_MAX_DISTANCE
 from interactive.runner import Runner
 from interactive.ultrasonic import UltrasonicTrigger
 
@@ -45,29 +45,81 @@ class TestUltrasonicTrigger:
         to the default max distance and does not invoke the Ultrasonic distance
         sensor to calculate distance even when called.
         """
+        ultrasonic = TestUltrasonic()
+        trigger = UltrasonicTrigger(ultrasonic)
 
-        assert False
+        ultrasonic.dist = 123.456
+        assert trigger.distance == ULTRASONIC_MAX_DISTANCE
+        assert ultrasonic.dist_called_count == 0
 
-    def test_distance_returns_last_sensor_Value(self) -> None:
+    def test_distance_returns_last_sensor_value(self) -> None:
         """
         Validates that the distance property returns the last distance value
-        returned from the Ultrasonic sensor and does not sample it when
-        called.
+        returned from the Ultrasonic sensor and does not sample it when called.
+        This is a relatively complex test as it has to setup a full Runner and
+        iteration of the runner loop that calls the Ultrasonic sensor.
         """
+        called_count: int = 0
 
-        assert False
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 2
+
+        ultrasonic = TestUltrasonic()
+        trigger = UltrasonicTrigger(ultrasonic)
+
+        # Check that the initial value is correct.
+        ultrasonic.dist = 123.456
+        assert trigger.distance == ULTRASONIC_MAX_DISTANCE
+        assert ultrasonic.dist_called_count == 0
+
+        trigger_called_count = 0
+        distance_value = -1.0
+        actual_value = -1.0
+
+        # A handler that will be triggered needs to be registered; we
+        # also store the values it is called with.
+        async def trigger_handler(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count, distance_value, actual_value
+            trigger_called_count += 1
+            distance_value = distance
+            actual_value = actual
+
+        trigger.add_trigger(500, trigger_handler, 5)
+
+        # Run the runner for a single iteration; this will call the ultrasonic
+        # sensor during that first iterations.
+        runner = Runner()
+        trigger.register(runner)
+        runner.run(callback)
+
+        # Validate the Ultrasonic sensor only got called once and the trigger also
+        # only got called once.
+        assert ultrasonic.dist_called_count == 1
+        assert trigger_called_count == 1
+        assert distance_value == 500
+        assert actual_value == 123.456
+
+        # Change the recorded Ultrasonic value and validate it does not get called
+        # a second time.
+        ultrasonic.dist = 654.321
+        assert trigger.distance == 123.456
+        assert ultrasonic.dist_called_count == 1
 
     def test_adding_single_distance_handler(self) -> None:
         """
         Validates that a handler for a specific distance can be added
         as well as removed without raising an error.
         """
+        ultrasonic = TestUltrasonic()
+        trigger = UltrasonicTrigger(ultrasonic)
         assert False
 
     def test_adding_multiple_distance_handlers(self) -> None:
         """
         Validates that handles for different distances can be added
-        and specifiec ones removed without raising an error or removing
+        and specific ones removed without raising an error or removing
         the other distance handlers.
         """
         assert False

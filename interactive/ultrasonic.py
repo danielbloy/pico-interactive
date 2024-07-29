@@ -10,7 +10,8 @@ from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
 
-DEFAULT_SAMPLE_FREQUENCY = 2
+DEFAULT_SAMPLE_FREQUENCY = 2  # 2 times for second
+DEFAULT_RESET_INTERVAL = 60.0  # 60 seconds
 
 
 class UltrasonicTrigger:
@@ -69,7 +70,7 @@ class UltrasonicTrigger:
         return self.__last_distance
 
     def add_trigger(self, distance: int, handler: Callable[[float, float], Awaitable[None]] = None,
-                    reset_interval: float = 60.0):
+                    reset_interval: float = DEFAULT_RESET_INTERVAL):
         """
         Adds a trigger to fire when the distance sensor returns a distance under
         the trigger distance. If the specified handler is None, it removes all
