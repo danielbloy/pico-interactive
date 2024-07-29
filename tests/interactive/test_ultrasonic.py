@@ -1,3 +1,4 @@
+import time
 from collections.abc import Callable, Awaitable
 
 import pytest
@@ -273,7 +274,123 @@ class TestUltrasonicTrigger:
         """
         Validates that only handlers for the distances exceeded get called.
         """
-        assert False
+        end_time: 0.0
+
+        async def callback():
+            nonlocal ultrasonic
+            runner.cancel = time.time() >= end_time
+
+        ultrasonic = TestUltrasonic()
+        ultrasonic.dist = 345.678
+
+        trigger = UltrasonicTrigger(ultrasonic, 10)
+
+        trigger_called_count_500 = 0
+        distance_value_500 = -1.0
+        actual_value_500 = -1.0
+
+        async def trigger_handler_500(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count_500, distance_value_500, actual_value_500
+            trigger_called_count_500 += 1
+            distance_value_500 = distance
+            actual_value_500 = actual
+
+        trigger.add_trigger(500, trigger_handler_500, 0)
+
+        trigger_called_count_400 = 0
+        distance_value_400 = -1.0
+        actual_value_400 = -1.0
+
+        async def trigger_handler_400(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count_400, distance_value_400, actual_value_400
+            trigger_called_count_400 += 1
+            distance_value_400 = distance
+            actual_value_400 = actual
+
+            nonlocal ultrasonic
+            ultrasonic.dist = 456.789
+
+        trigger.add_trigger(400, trigger_handler_400, 0)
+
+        trigger_called_count_300 = 0
+        distance_value_300 = -1.0
+        actual_value_300 = -1.0
+
+        async def trigger_handler_300(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count_300, distance_value_300, actual_value_300
+            trigger_called_count_300 += 1
+            distance_value_300 = distance
+            actual_value_300 = actual
+
+        trigger.add_trigger(300, trigger_handler_300, 0)
+
+        # Run the runner for a single iteration; this will call the ultrasonic
+        # sensor during that first iterations.
+        runner = Runner()
+        trigger.register(runner)
+        end_time = time.time() + 0.11
+        runner.run(callback)
+
+        assert trigger_called_count_500 == 2
+        assert distance_value_500 == 500
+        assert actual_value_500 == 456.789
+
+        assert trigger_called_count_400 == 1
+        assert distance_value_400 == 400
+        assert actual_value_400 == 345.678
+
+        assert trigger_called_count_300 == 0
+        assert distance_value_300 == -1.0
+        assert actual_value_300 == -1.0
+
+    def test_trigger_is_only_called_after_decay_time(self) -> None:
+        """
+        Validates that a handler is called a second time but only after the
+        decay time has passed.
+        """
+        end_time: 0.0
+
+        async def callback():
+            nonlocal ultrasonic
+            runner.cancel = time.time() >= end_time
+
+        ultrasonic = TestUltrasonic()
+        ultrasonic.dist = 123.456
+
+        trigger = UltrasonicTrigger(ultrasonic, 10)
+
+        trigger_called_count = 0
+        distance_value = -1.0
+        actual_value = -1.0
+
+        async def trigger_handler(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count, distance_value, actual_value
+            trigger_called_count += 1
+            distance_value = distance
+            actual_value = actual
+
+        trigger.add_trigger(500, trigger_handler, 1)
+
+        # Run the runner for a single iteration; this will call the ultrasonic
+        # sensor during that first iterations.
+        runner = Runner()
+        trigger.register(runner)
+        end_time = time.time() + 0.9
+        runner.run(callback)
+
+        assert ultrasonic.dist_called_count == 1
+        assert trigger_called_count == 1
+        assert distance_value == 500
+        assert actual_value == 123.456
+
+        # run it a second time but allow the decay to be exceeded.
+        end_time = time.time() + 1.1
+        runner.run(callback)
+
+        assert ultrasonic.dist_called_count == 3
+        assert trigger_called_count == 3
+        assert distance_value == 500
+        assert actual_value == 123.456
 
     def test_registering_with_runner(self) -> None:
         """
@@ -292,3 +409,42 @@ class TestUltrasonicTrigger:
         assert add_task_count == 0
         trigger.register(runner)
         assert add_task_count == 1
+
+    def test_trigger_called_at_correct_rate(self) -> None:
+        """
+        Validates that a triggered handler is called at the desired rate
+        """
+        end_time: 0.0
+
+        async def callback():
+            nonlocal ultrasonic
+            runner.cancel = time.time() >= end_time
+
+        ultrasonic = TestUltrasonic()
+        ultrasonic.dist = 123.456
+
+        trigger = UltrasonicTrigger(ultrasonic, 10)
+
+        trigger_called_count = 0
+        distance_value = -1.0
+        actual_value = -1.0
+
+        async def trigger_handler(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count, distance_value, actual_value
+            trigger_called_count += 1
+            distance_value = distance
+            actual_value = actual
+
+        trigger.add_trigger(500, trigger_handler, 1)
+
+        # Run the runner for a single iteration; this will call the ultrasonic
+        # sensor during that first iterations.
+        runner = Runner()
+        trigger.register(runner)
+        end_time = time.time() + 1.0
+        runner.run(callback)
+
+        assert ultrasonic.dist_called_count == 10
+        assert trigger_called_count == 10
+        assert distance_value == 500
+        assert actual_value == 123.456
