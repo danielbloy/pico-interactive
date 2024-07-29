@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     trigger = UltrasonicTrigger(ultrasonic)
-    trigger.add_trigger(20, trigger_handler, 5)
+    trigger.add_trigger(100, trigger_handler, 5)
     trigger.register(runner)
 
 

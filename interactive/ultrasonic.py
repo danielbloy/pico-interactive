@@ -2,13 +2,15 @@ import time
 
 from interactive.environment import is_running_on_desktop
 from interactive.log import debug, info
-from interactive.polyfills.ultrasonic import Ultrasonic
+from interactive.polyfills.ultrasonic import Ultrasonic, ULTRASONIC_MAX_DISTANCE
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
+
+DEFAULT_SAMPLE_FREQUENCY = 2
 
 
 class UltrasonicTrigger:
@@ -36,7 +38,16 @@ class UltrasonicTrigger:
             self.triggered_time = 0.0
             self.expiry_time = 0.0
 
-    def __init__(self, ultrasonic: Ultrasonic):
+    def __init__(self, ultrasonic: Ultrasonic, sample_frequency: int = DEFAULT_SAMPLE_FREQUENCY):
+        """
+        Constructs and instance of UltrasonicTrigger that will sample the distance from the
+        supplied Ultrasonic sensor at the specified frequency. Because of the time taken to
+        sample a distance, it is recommended that the sample frequency does not exceed 6 and
+        a sample frequency of 2 is adequate for the majority of situations.
+
+        :param ultrasonic:       The Ultrasonic sensor to sample the distance from.
+        :param sample_frequency: The frequency to sample the distance from the Ultrasonic sensor.
+        """
         if ultrasonic is None:
             raise ValueError("ultrasonic cannot be None")
 
@@ -45,7 +56,17 @@ class UltrasonicTrigger:
 
         self.__runner = None
         self.__ultrasonic = ultrasonic
+        self.__sample_frequency = sample_frequency
+        self.__last_distance = ULTRASONIC_MAX_DISTANCE
         self.__triggers = []
+
+    @property
+    def distance(self) -> float:
+        """
+        Return the last distance measured by the sensor in cm. This property does
+        NOT sample the distance from the Ultrasonic sensor.
+        """
+        return self.__last_distance
 
     def add_trigger(self, distance: int, handler: Callable[[float, float], Awaitable[None]] = None,
                     reset_interval: float = 60.0):
@@ -93,15 +114,18 @@ class UltrasonicTrigger:
                     debug(f"No triggers are available for triggering, skipping.")
                     return
 
-                distance = self.__ultrasonic.distance
-                info(f"Distance from sensor {distance}.")
+                self.__last_distance = self.__ultrasonic.distance
+                info(f"Distance from sensor {self.__last_distance}.")
                 for trigger in self.__triggers:
-                    if now >= trigger.expiry_time and distance < trigger.distance:
+                    if now >= trigger.expiry_time and self.__last_distance < trigger.distance:
                         trigger.triggered_time = now
                         trigger.expiry_time = now + trigger.reset_interval
-                        await trigger.handler(trigger.distance, distance)
+                        await trigger.handler(trigger.distance, self.__last_distance)
 
         self.__runner = runner
-        # TODO: Make the frequency configurable
-        scheduled_task = new_scheduled_task(handler, terminate_on_cancel(self.__runner), 2)
+        scheduled_task = (
+            new_scheduled_task(
+                handler,
+                terminate_on_cancel(self.__runner),
+                self.__sample_frequency))
         runner.add_loop_task(scheduled_task)

@@ -39,6 +39,9 @@ class TestUltrasonicTrigger:
             # noinspection PyTypeChecker
             UltrasonicTrigger("")
 
+    # TODO: Check that distance does not sample.
+    ## TODO: Check that distance has a max default.
+
     # TODO: Test adding and removing trigger events
     # TODO: Check decay
 

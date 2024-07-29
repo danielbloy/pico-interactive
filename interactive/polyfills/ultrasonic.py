@@ -4,6 +4,9 @@
 
 from interactive.environment import are_pins_available
 
+ULTRASONIC_MIN_DISTANCE = 10
+ULTRASONIC_MAX_DISTANCE = 600
+
 if are_pins_available():
 
     from adafruit_hcsr04 import HCSR04
@@ -14,20 +17,20 @@ if are_pins_available():
 
         @property
         def distance(self) -> float:
-            """Return the distance measured by the sensor in cm or 600 cm
-            if nothing is detected. If the distance detected is less than
-            10 cm, 600 cm is returned.
+            """Return the distance measured by the sensor in cm or the maximum
+            distance (600 cm) if nothing is detected. If the distance detected
+            is less than the minimum amount then the minimum amount is returned.
 
             :return: Distance in centimeters.
             :rtype: float
             """
             try:
                 distance = self._dist_two_wire()
-                if distance < 10:
-                    distance = 600
+                if distance < ULTRASONIC_MIN_DISTANCE:
+                    distance = ULTRASONIC_MIN_DISTANCE
                 return distance
             except RuntimeError:
-                return 600
+                return ULTRASONIC_MAX_DISTANCE
 
 
     def __new_ultrasonic(trigger: Pin, echo: Pin) -> Ultrasonic:
