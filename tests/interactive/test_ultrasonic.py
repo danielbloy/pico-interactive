@@ -98,6 +98,7 @@ class TestUltrasonicTrigger:
         # Validate the Ultrasonic sensor only got called once and the trigger also
         # only got called once.
         assert ultrasonic.dist_called_count == 1
+
         assert trigger_called_count == 1
         assert distance_value == 500
         assert actual_value == 123.456
@@ -143,6 +144,7 @@ class TestUltrasonicTrigger:
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
+
         assert trigger_called_count == 1
         assert distance_value == 500
         assert actual_value == 123.456
@@ -184,6 +186,7 @@ class TestUltrasonicTrigger:
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 0
+
         assert trigger_called_count == 0
         assert distance_value == -1.0
         assert actual_value == -1.0
@@ -251,6 +254,7 @@ class TestUltrasonicTrigger:
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
+
         assert trigger_called_count_500 == 1
         assert distance_value_500 == 500
         assert actual_value_500 == 123.456
@@ -268,7 +272,56 @@ class TestUltrasonicTrigger:
         Validates that multiple handlers for a specific distance can be added
         and all will be removed with a single action without raising an error.
         """
-        assert False
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 2
+
+        ultrasonic = TestUltrasonic()
+        ultrasonic.dist = 123.456
+
+        trigger = UltrasonicTrigger(ultrasonic)
+
+        trigger_called_count_1 = 0
+        distance_value_1 = -1.0
+        actual_value_1 = -1.0
+
+        async def trigger_handler_1(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count_1, distance_value_1, actual_value_1
+            trigger_called_count_1 += 1
+            distance_value_1 = distance
+            actual_value_1 = actual
+
+        trigger_called_count_2 = 0
+        distance_value_2 = -1.0
+        actual_value_2 = -1.0
+
+        async def trigger_handler_2(distance: float, actual: float) -> None:
+            nonlocal trigger_called_count_2, distance_value_2, actual_value_2
+            trigger_called_count_2 += 1
+            distance_value_2 = distance
+            actual_value_2 = actual
+
+        trigger.add_trigger(500, trigger_handler_1, 5)
+        trigger.add_trigger(500, trigger_handler_2, 5)
+
+        # Run the runner for a single iteration; this will call the ultrasonic
+        # sensor during that first iterations.
+        runner = Runner()
+        trigger.register(runner)
+        runner.run(callback)
+
+        assert ultrasonic.dist_called_count == 1
+
+        assert trigger_called_count_1 == 1
+        assert distance_value_1 == 500
+        assert actual_value_1 == 123.456
+
+        assert trigger_called_count_2 == 1
+        assert distance_value_2 == 500
+        assert actual_value_2 == 123.456
 
     def test_only_handlers_for_correct_distance_called(self) -> None:
         """
