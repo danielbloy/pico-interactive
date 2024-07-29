@@ -39,11 +39,45 @@ class TestUltrasonicTrigger:
             # noinspection PyTypeChecker
             UltrasonicTrigger("")
 
-    # TODO: Check that distance does not sample.
-    ## TODO: Check that distance has a max default.
+    def test_distance_does_not_call_sensor(self) -> None:
+        """
+        Validates that a new UltrasonicTrigger initialises the distance property
+        to the default max distance and does not invoke the Ultrasonic distance
+        sensor to calculate distance even when called.
+        """
 
-    # TODO: Test adding and removing trigger events
-    # TODO: Check decay
+        assert False
+
+    def test_distance_returns_last_sensor_Value(self) -> None:
+        """
+        Validates that the distance property returns the last distance value
+        returned from the Ultrasonic sensor and does not sample it when
+        called.
+        """
+
+        assert False
+
+    def test_adding_single_distance_handler(self) -> None:
+        """
+        Validates that a handler for a specific distance can be added
+        as well as removed without raising an error.
+        """
+        assert False
+
+    def test_adding_multiple_distance_handlers(self) -> None:
+        """
+        Validates that handles for different distances can be added
+        and specifiec ones removed without raising an error or removing
+        the other distance handlers.
+        """
+        assert False
+
+    def test_adding_multiple_distance_handlers_for_same_distance(self) -> None:
+        """
+        Validates that multiple handlers for a specific distance can be added
+        and all will be removed with a single action without raising an error.
+        """
+        assert False
 
     def test_registering_with_runner(self) -> None:
         """

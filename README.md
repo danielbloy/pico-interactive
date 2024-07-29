@@ -296,6 +296,24 @@ adafruit-circuitpython-ticks
 adafruit-circuitpython-typing
 ```
 
+Beware that there are some limitations with Blinka that means it cannot be used to test
+everything. All of your application code will still need to be tested on the device that
+you want to run on to make sure it works in that environment. So far, the main issues
+that I have found with Blinka are:
+
+* It is significantly slower that running on the device itself. This is not because your
+computer is slow, it's because of the overhead of calculating and transferring data to
+and from the device. Running your application code on the device is always much faster.
+* More than one strand of Neopixels will not work properly. If you are running a single
+strand of Neopixels then Blnka works absolutely fine (although it is slower to update than
+running on the device). If however you run multiple strands from different pins then What
+seems to happen is they get combined and output on a single strand. Running your code
+on the device will work fine though (this was infuriating when building the skull path
+nodes).
+* Ultrasonic sensors do not give good results. This is possibly related to the speed issue
+but when tsting Ultrasonic sensors, I did not get anything like sensible or consistent
+values. Running on the device worked fine though.
+
 ## License
 
 All materials provided in this project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0
