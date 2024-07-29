@@ -84,8 +84,8 @@ the end of this readme for more information about the license.
   * [x] Works on CircuitPython
   * [x] Works with Blinka
 * [x] Add Ultrasonic sensor support
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
+  * [x] Works on CircuitPython
+  * [ ] ~~Works with Blinka~~
 * [ ] Add AudioBoard support
   * [ ] Works on CircuitPython
   * [ ] Works with Blinka-

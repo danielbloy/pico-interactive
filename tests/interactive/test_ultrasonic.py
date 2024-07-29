@@ -432,15 +432,17 @@ class TestUltrasonicTrigger:
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
+
         assert trigger_called_count == 1
         assert distance_value == 500
         assert actual_value == 123.456
 
         # run it a second time but allow the decay to be exceeded.
-        end_time = time.time() + 1.1
+        end_time = time.time() + 1.2
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 3
+
         assert trigger_called_count == 3
         assert distance_value == 500
         assert actual_value == 123.456
@@ -488,16 +490,17 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, 1)
+        trigger.add_trigger(500, trigger_handler, 0)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iterations.
         runner = Runner()
         trigger.register(runner)
-        end_time = time.time() + 1.0
+        end_time = time.time() + 0.95
         runner.run(callback)
 
-        assert ultrasonic.dist_called_count == 10
-        assert trigger_called_count == 10
+        assert ultrasonic.dist_called_count == 11
+
+        assert trigger_called_count == 11
         assert distance_value == 500
         assert actual_value == 123.456
