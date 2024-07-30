@@ -42,13 +42,13 @@ class Runner:
     self.restart_on_exception = True. This will override self.cancel_on_exception.
     """
 
-    def __init__(self):
+    def __init__(self, callback_frequency=RUNNER_DEFAULT_CALLBACK_FREQUENCY):
         self.__running = False
         self.cancel = False
         self.cancel_on_exception = True
         self.restart_on_exception = False
         self.restart_on_completion = False
-        self.callback_frequency = RUNNER_DEFAULT_CALLBACK_FREQUENCY
+        self.callback_frequency = callback_frequency
         self.__tasks_to_run: list[Callable[[], Awaitable[None]]] = []
         self.__internal_loop_sleep_interval = 0.0
 

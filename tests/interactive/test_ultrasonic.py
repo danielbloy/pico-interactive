@@ -327,6 +327,13 @@ class TestUltrasonicTrigger:
         """
         Validates that only handlers for the distances exceeded get called.
         """
+        # We need to make sure that the callback is called at a high enough rate
+        # to validate the sampling of the Ultrasonic sensor
+        SAMPLE_FREQUENCY = 10
+        SAMPLE_INTERVAL = 1 / SAMPLE_FREQUENCY
+        DELTA = 0.05
+        CALLBACK_FREQUENCY = 30
+
         end_time: 0.0
 
         async def callback():
@@ -336,7 +343,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 345.678
 
-        trigger = UltrasonicTrigger(ultrasonic, 10)
+        trigger = UltrasonicTrigger(ultrasonic, SAMPLE_FREQUENCY)
 
         trigger_called_count_500 = 0
         distance_value_500 = -1.0
@@ -378,10 +385,11 @@ class TestUltrasonicTrigger:
         trigger.add_trigger(300, trigger_handler_300, 0)
 
         # Run the runner for a single iteration; this will call the ultrasonic
-        # sensor during that first iterations.
-        runner = Runner()
+        # sensor during that first iteration and then enough time is allowed for
+        # a second invocation.
+        runner = Runner(CALLBACK_FREQUENCY)
         trigger.register(runner)
-        end_time = time.time() + 0.11
+        end_time = time.time() + SAMPLE_INTERVAL + DELTA
         runner.run(callback)
 
         assert trigger_called_count_500 == 2
@@ -401,6 +409,14 @@ class TestUltrasonicTrigger:
         Validates that a handler is called a second time but only after the
         decay time has passed.
         """
+        # We need to make sure that the callback is called at a high enough rate
+        # to validate the sampling of the Ultrasonic sensor
+        SAMPLE_FREQUENCY = 10
+        SAMPLE_INTERVAL = 1 / SAMPLE_FREQUENCY
+        DELTA = 0.05
+        RESET_INTERVAL = 1
+        CALLBACK_FREQUENCY = 30
+
         end_time: 0.0
 
         async def callback():
@@ -410,7 +426,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic, 10)
+        trigger = UltrasonicTrigger(ultrasonic, SAMPLE_FREQUENCY)
 
         trigger_called_count = 0
         distance_value = -1.0
@@ -422,13 +438,14 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, 1)
+        trigger.add_trigger(500, trigger_handler, RESET_INTERVAL)
 
         # Run the runner for a single iteration; this will call the ultrasonic
-        # sensor during that first iterations.
-        runner = Runner()
+        # sensor during that first iteration but not enough time is given in
+        # the callback to get a second invocation.
+        runner = Runner(CALLBACK_FREQUENCY)
         trigger.register(runner)
-        end_time = time.time() + 0.9
+        end_time = time.time() + (RESET_INTERVAL - SAMPLE_INTERVAL - DELTA)
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
@@ -437,8 +454,11 @@ class TestUltrasonicTrigger:
         assert distance_value == 500
         assert actual_value == 123.456
 
-        # run it a second time but allow the decay to be exceeded.
-        end_time = time.time() + 1.2
+        # Run it a second time but allow the RESET_TIME to be exceeded resulting in
+        # a second invocation. We remove and re-add the trigger here to reset the internal counters:
+        trigger.add_trigger(500)
+        trigger.add_trigger(500, trigger_handler, RESET_INTERVAL)
+        end_time = time.time() + RESET_INTERVAL + SAMPLE_INTERVAL + DELTA
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 3
@@ -469,6 +489,11 @@ class TestUltrasonicTrigger:
         """
         Validates that a triggered handler is called at the desired rate
         """
+        SAMPLE_FREQUENCY = 10
+        SAMPLE_INTERVAL = 1 / SAMPLE_FREQUENCY
+        DELTA = 0.05
+        CALLBACK_FREQUENCY = 30
+
         end_time: 0.0
 
         async def callback():
@@ -478,7 +503,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic, 10)
+        trigger = UltrasonicTrigger(ultrasonic, SAMPLE_FREQUENCY)
 
         trigger_called_count = 0
         distance_value = -1.0
@@ -493,14 +518,15 @@ class TestUltrasonicTrigger:
         trigger.add_trigger(500, trigger_handler, 0)
 
         # Run the runner for a single iteration; this will call the ultrasonic
-        # sensor during that first iterations.
-        runner = Runner()
+        # sensor during that first iteration. We will run it for (just over)
+        # 1 second so the expected count will be the SAMPLE_FREQUENCY + 1
+        runner = Runner(CALLBACK_FREQUENCY)
         trigger.register(runner)
-        end_time = time.time() + 0.95
+        end_time = time.time() + 1 + DELTA
         runner.run(callback)
 
-        assert ultrasonic.dist_called_count == 11
+        assert ultrasonic.dist_called_count == SAMPLE_FREQUENCY + 1
 
-        assert trigger_called_count == 11
+        assert trigger_called_count == SAMPLE_FREQUENCY + 1
         assert distance_value == 500
         assert actual_value == 123.456
