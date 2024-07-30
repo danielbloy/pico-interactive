@@ -163,7 +163,7 @@ class TestScheduler:
         assert called <= 20
         assert cancellable.cancel
 
-    def test_run_invokes_scheduled_taskcallback_with_sensible_frequency(self) -> None:
+    def test_run_invokes_scheduled_task_callback_with_sensible_frequency(self) -> None:
         """
         This test allows the callback to be called the same number of times
         as the default callback frequency and validates that we are within
@@ -226,7 +226,7 @@ class TestScheduler:
 
     def test_run_invokes_loop_task_callback_with_custom_frequency(self) -> None:
         """
-        This test is similar to the scheudled_task frequency tests above but the
+        This test is similar to the scheduled_task frequency tests above but the
         loop task will execute many more times.
         """
         called_count: int = 0

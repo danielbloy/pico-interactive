@@ -6,6 +6,7 @@ from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
+from interactive.ultrasonic import UltrasonicTrigger
 
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
@@ -33,19 +34,19 @@ class Interactive:
             self.button_pin = None
             self.buzzer_pin = None
             self.buzzer_volume = 1.0
-            self.ultrasonic_trigger = None
-            self.ultrasonic_echo = None
+            self.ultrasonic_trigger_pin = None
+            self.ultrasonic_echo_pin = None
 
         def __str__(self):
             return f"""  
               Button: 
-                Pin ......... : {self.button_pin}
+                Pin ............... : {self.button_pin}
               Buzzer: 
-                Pin ......... : {self.buzzer_pin}
-                Volume ...... : {self.buzzer_volume}
+                Pin ............... : {self.buzzer_pin}
+                Volume ............ : {self.buzzer_volume}
               Ultrasonic Sensor:
-                Trigger ..... : {self.ultrasonic_trigger}
-                Echo ........ : {self.ultrasonic_echo}
+                Trigger ........... : {self.ultrasonic_trigger_pin}
+                Echo .............. : {self.ultrasonic_echo_pin}
               """
 
         def log(self, level):
@@ -79,10 +80,12 @@ class Interactive:
 
         self.ultrasonic = None
         self.ultrasonic_controller = None
+        self.trigger = None
 
-        if self.config.ultrasonic_trigger is not None and self.config.ultrasonic_echo is not None:
-            self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger, self.config.ultrasonic_echo)
-            # TODO: setup controller
+        if self.config.ultrasonic_trigger_pin is not None and self.config.ultrasonic_echo_pin is not None:
+            self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger_pin, self.config.ultrasonic_echo_pin)
+            self.trigger = UltrasonicTrigger(self.ultrasonic)
+            self.trigger.register(self.runner)
 
     @property
     def cancel(self) -> bool:
