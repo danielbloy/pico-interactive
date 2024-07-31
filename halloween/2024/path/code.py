@@ -4,10 +4,10 @@ import asyncio
 
 import board
 
-from interactive import node
+from interactive import configuration
 from interactive.animation import Flicker
 from interactive.interactive import Interactive
-from interactive.log import set_log_level, info, INFO
+from interactive.log import info
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
 
@@ -66,9 +66,8 @@ async def test_task_2() -> None:
 
 
 if __name__ == '__main__':
-    set_log_level(INFO)
 
-    config = node.get_node_config()
+    config = configuration.get_node_config()
     config.trigger_start = start_display
     config.trigger_run = run_display
     config.trigger_stop = stop_display

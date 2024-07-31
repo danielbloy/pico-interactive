@@ -1,8 +1,11 @@
-# This function is used to setup the default configuration for a typical node.
-# Using it removes some boilerplate from the node code.
+# This file is used to setup the default configuration for a typical node.
+# Using it removes some boilerplate from the node code. It also sets up
+# the logging level.
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
-from interactive.log import info
+from interactive.log import set_log_level, INFO
+
+LOG_LEVEL = INFO
 
 BUTTON_PIN = None
 
@@ -25,18 +28,20 @@ if are_pins_available():
     ULTRASONIC_TRIGGER_PIN = board.GP7
     ULTRASONIC_ECHO_PIN = board.GP6
 
+# Try loading local device settings as overrides.
+try:
+    # noinspection PyPackageRequirements
+    from config import *
+
+    print("Config file loaded")
+
+except ImportError:
+    print("No config file was found")
+
+set_log_level(LOG_LEVEL)
+
 
 def get_node_config() -> Interactive.Config:
-    # Try loading local device settings as overrides.
-    try:
-        # noinspection PyPackageRequirements
-        from config import *
-
-        info("Config file loaded")
-
-    except ImportError:
-        info("No config file was found")
-
     config = Interactive.Config()
     config.buzzer_pin = BUZZER_PIN
     config.button_pin = BUTTON_PIN
