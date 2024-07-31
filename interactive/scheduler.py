@@ -85,8 +85,15 @@ def new_loop_task(
     return handler
 
 
+class Triggerable:
+    """Trivial implementation for a triggerable object."""
+
+    def __init__(self):
+        self.triggered = False
+
+
 def new_triggered_task(
-        activate_func: Callable[[], bool],
+        triggerable,
         duration: float,
         start: Callable[[], Awaitable[None]] = None,
         run: Callable[[], Awaitable[None]] = None,
@@ -99,12 +106,13 @@ def new_triggered_task(
     and stop will be called once when the trigger is deactivated; which will occurs as the
     specified number of seconds after the trigger has been activated.
 
-    At least one of start, stop and run must be provided but they need not all be specified.
+    At least one of start, stop and run must be provided, but they need not all be specified.
 
-    once a trigger is activated, it will not be activated again until after it has expired
-    and been deactivated
+    Once a trigger is activated, it will not be activated again until after it has expired
+    and been deactivated. The triggerable object is used to activate the trigger via a
+    "triggered" property.
 
-    :param activate_func: Function that returns whether to activate the trigger or not.
+    :param triggerable: Object that has a triggered property which will activate.
     :param duration: The duration that trigger lasts (i.e. the time between start and stop calls).
     :param start: This is called once when the trigger is activated
     :param run: This is called once every cycle when triggered.
@@ -121,7 +129,6 @@ def new_triggered_task(
     async def handler() -> None:
         nonlocal running, stop_time
 
-        triggered = activate_func()
         now = time.monotonic()
 
         if running and now >= stop_time:
@@ -129,15 +136,16 @@ def new_triggered_task(
             running = False
             await stop()
 
-        if triggered and not running:
+        if triggerable.triggered and not running:
             debug("Start running trigger event")
             stop_time = now + duration
             running = True
             await start()
 
-        activate_obj.triggered = False
+        triggerable.triggered = False
 
         if running:
+            debug("Sunning trigger event")
             await run()
 
     return new_loop_task(handler, cancel_func)

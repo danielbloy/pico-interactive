@@ -1,15 +1,9 @@
 # Entry point for a path node. This supports both path nodes that are on either
 # side of the path. One will be the primary node and the other the secondary.
-import asyncio
 
-from interactive.animation import Flicker
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO
-from interactive.polyfills.animation import ORANGE, BLACK
-from interactive.polyfills.pixel import new_pixels
-
-PRIMARY = True
 
 BUTTON_PIN = None
 
@@ -21,12 +15,6 @@ ULTRASONIC_ECHO_PIN = None
 
 TRIGGER_DISTANCE = 100
 TRIGGER_DURATION = 60
-
-SKULL_BRIGHTNESS = 1.0
-SKULL_OFF = 0.0
-SKULL_SPEED = 0.1
-SKULL_COLOUR = ORANGE
-SKULL_PINS = [None, None, None, None, None, None]
 
 # Default settings
 if are_pins_available():
@@ -41,44 +29,6 @@ if are_pins_available():
     ULTRASONIC_ECHO_PIN = board.GP6
 
     SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
-
-pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS if pin is not None]
-animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
-
-
-async def stop_display() -> None:
-    for pixel in pixels:
-        pixel.brightness = SKULL_OFF
-        pixel.show()
-
-
-async def start_display() -> None:
-    for pixel in pixels:
-        pixel.brightness = SKULL_BRIGHTNESS
-
-    t1 = asyncio.create_task(test_task_1())
-    t2 = asyncio.create_task(test_task_2())
-
-
-async def run_display() -> None:
-    for animation in animations:
-        animation.animate()
-
-
-async def test_task_1() -> None:
-    info("Start test task 1")
-    await asyncio.sleep(2)
-    for pixel in pixels:
-        pixel.brightness = SKULL_OFF
-        pixel.show()
-    info("End test task 1")
-
-
-async def test_task_2() -> None:
-    info("Start test task 2")
-    await asyncio.sleep(1)
-    info("End test task 2")
-
 
 if __name__ == '__main__':
 
@@ -100,33 +50,18 @@ if __name__ == '__main__':
     config.buzzer_volume = BUZZER_VOLUME
     config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
     config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
-
-    # TODO: Move this to Interactive as a built in.
-    triggered = False
-
-
-    async def trigger_handler(distance: float, actual: float) -> None:
-        info(f"Distance {distance} handler triggered: {actual}")
-        global triggered
-        triggered = True
-
+    config.trigger_distance = TRIGGER_DISTANCE
+    config.trigger_duration = TRIGGER_DURATION
+    config.trigger_start = start_display
+    config.trigger_run = run_display
+    config.trigger_stop = stop_display
 
     interactive = Interactive(config)
-    interactive.trigger.add_trigger(TRIGGER_DISTANCE, trigger_handler, TRIGGER_DURATION)
-    trigger_loop = new_triggered_task(
-        lambda: triggered
-    )
-    interactive.runner.add_loop_task(trigger_loop)
 
 
     async def callback() -> None:
         if interactive.cancel:
-            for animation in animations:
-                animation.freeze()
-
-            for pixel in pixels:
-                pixel.fill(BLACK)
-                pixel.write()
+            await cancel()
 
 
     interactive.run(callback)
