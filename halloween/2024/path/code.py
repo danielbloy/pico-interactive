@@ -4,9 +4,7 @@ import asyncio
 
 import board
 
-from interactive import configuration
 from interactive.animation import Flicker
-from interactive.interactive import Interactive
 from interactive.log import info
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
@@ -16,6 +14,9 @@ SKULL_OFF = 0.0
 SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
 SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
+
+# Perform import of configuration here to allow for overrides from the config file.
+from interactive.configuration import *
 
 pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS if pin is not None]
 animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
@@ -65,19 +66,17 @@ async def test_task_2() -> None:
     info("End test task 2")
 
 
-if __name__ == '__main__':
+config = get_node_config()
+config.trigger_start = start_display
+config.trigger_run = run_display
+config.trigger_stop = stop_display
 
-    config = configuration.get_node_config()
-    config.trigger_start = start_display
-    config.trigger_run = run_display
-    config.trigger_stop = stop_display
-
-    interactive = Interactive(config)
+interactive = Interactive(config)
 
 
-    async def callback() -> None:
-        if interactive.cancel:
-            await cancel()
+async def callback() -> None:
+    if interactive.cancel:
+        await cancel()
 
 
-    interactive.run(callback)
+interactive.run(callback)
