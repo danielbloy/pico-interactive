@@ -1,7 +1,6 @@
 # Entry point for a path node. This supports both path nodes that are on either
 # side of the path. One will be the primary node and the other the secondary.
 import asyncio
-import time
 
 from interactive.animation import Flicker
 from interactive.environment import are_pins_available
@@ -102,9 +101,8 @@ if __name__ == '__main__':
     config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
     config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
 
+    # TODO: Move this to Interactive as a built in.
     triggered = False
-    running = False
-    stop_time = 0
 
 
     async def trigger_handler(distance: float, actual: float) -> None:
@@ -113,31 +111,12 @@ if __name__ == '__main__':
         triggered = True
 
 
-    async def trigger_events() -> None:
-        global triggered, running, stop_time
-
-        # Check for stop display
-        if running and time.time() >= stop_time:
-            info("Stop running trigger event")
-            running = False
-            await stop_display()
-
-        # Check for start display
-        if triggered and not running:
-            info("Start running trigger event")
-            stop_time = time.time() + TRIGGER_DURATION
-            running = True
-            await start_display()
-
-        triggered = False
-
-        if running:
-            await run_display()
-
-
     interactive = Interactive(config)
     interactive.trigger.add_trigger(TRIGGER_DISTANCE, trigger_handler, TRIGGER_DURATION)
-    interactive.runner.add_loop_task(trigger_events)
+    trigger_loop = new_triggered_task(
+        lambda: triggered
+    )
+    interactive.runner.add_loop_task(trigger_loop)
 
 
     async def callback() -> None:

@@ -249,3 +249,11 @@ class TestScheduler:
         assert (end - start) < (seconds_to_run * 1.05)
         assert (end - start) > (seconds_to_run * 0.95)
         assert called_count >= 50
+
+    # TODO: Test errors when no start, stop run
+    # TODO: Test start is called
+    # TODO: Test run is called
+    # TODO: Test stop is called
+    # TODO: Test all three are called and in correct order
+    # TODO: Test only activates once when overlapping
+    # TODO: Test activates a second time when expired

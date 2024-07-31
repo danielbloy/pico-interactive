@@ -83,3 +83,61 @@ def new_loop_task(
             await task()
 
     return handler
+
+
+def new_triggered_task(
+        activate_func: Callable[[], bool],
+        duration: float,
+        start: Callable[[], Awaitable[None]] = None,
+        run: Callable[[], Awaitable[None]] = None,
+        stop: Callable[[], Awaitable[None]] = None,
+        cancel_func: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
+    """
+    Returns an async task that will only invoke the functions start, stop and run if the
+    trigger has been activated. The start function will be called once when the trigger
+    is activated, run will be called as a normal loop task whilst the trigger is activated
+    and stop will be called once when the trigger is deactivated; which will occurs as the
+    specified number of seconds after the trigger has been activated.
+
+    At least one of start, stop and run must be provided but they need not all be specified.
+
+    once a trigger is activated, it will not be activated again until after it has expired
+    and been deactivated
+
+    :param activate_func: Function that returns whether to activate the trigger or not.
+    :param duration: The duration that trigger lasts (i.e. the time between start and stop calls).
+    :param start: This is called once when the trigger is activated
+    :param run: This is called once every cycle when triggered.
+    :param stop: This is called once when the trigger expires.
+    :param cancel_func: A function that returns whether to cancel the task or not.
+    """
+
+    if start is None and run is None and stop is None:
+        raise ValueError("at least one of start, run or stop must be specified")
+
+    running = False
+    stop_time = 0
+
+    async def handler() -> None:
+        nonlocal running, stop_time
+
+        triggered = activate_func()
+        now = time.monotonic()
+
+        if running and now >= stop_time:
+            debug("Stop running trigger event")
+            running = False
+            await stop()
+
+        if triggered and not running:
+            debug("Start running trigger event")
+            stop_time = now + duration
+            running = True
+            await start()
+
+        activate_obj.triggered = False
+
+        if running:
+            await run()
+
+    return new_loop_task(handler, cancel_func)
