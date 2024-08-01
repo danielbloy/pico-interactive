@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from interactive.control import SCHEDULER_DEFAULT_FREQUENCY
+from interactive.control import SCHEDULER_DEFAULT_FREQUENCY, ASYNC_LOOP_SLEEP_INTERVAL
 from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task, \
     new_triggered_task, Triggerable
 
@@ -211,7 +211,7 @@ class TestScheduler:
         async def task():
             nonlocal called_count
             called_count += 1
-            await asyncio.sleep(0.001)
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
 
         cancellable = CancellableDuration(seconds_to_run)
         cancel_fn = terminate_on_cancel(cancellable)
@@ -229,13 +229,6 @@ class TestScheduler:
         assert called_count >= expected_called_count - 1
         assert called_count <= expected_called_count + 1
 
-    def test_run_invokes_triggered_task_callback_with_sensible_frequency(self) -> None:
-        """
-        Same as test_run_invokes_scheduled_task_callback_with_sensible_frequency() but
-        for a triggered_task.
-        """
-        assert False
-
     def test_run_invokes_scheduled_task_callback_with_custom_frequency(self) -> None:
         """
         This test is the same as test_scheduled_task_invokes_callback_with_sensible_frequency()
@@ -248,7 +241,7 @@ class TestScheduler:
         async def task():
             nonlocal called_count
             called_count += 1
-            await asyncio.sleep(0.001)
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
 
         cancellable = CancellableDuration(seconds_to_run)
         cancel_fn = terminate_on_cancel(cancellable)
@@ -292,6 +285,35 @@ class TestScheduler:
         assert (end - start) > (seconds_to_run * 0.95)
         assert called_count >= 50
 
+    def test_run_invokes_triggered_task_callback_with_sensible_frequency(self) -> None:
+        """
+        Same as test_run_invokes_loop_task_callback_with_custom_frequency() but
+        for the run callback of a triggered_task.
+        """
+        called_count: int = 0
+        seconds_to_run: int = 2
+
+        async def task():
+            nonlocal called_count
+            called_count += 1
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=seconds_to_run, run=task, cancel_func=cancel_fn)
+
+        start = time.time()
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        end = time.time()
+
+        assert (end - start) < (seconds_to_run * 1.05)
+        assert (end - start) > (seconds_to_run * 0.95)
+        assert called_count >= 50
+        
     def test_triggered_task_errors_with_no_callback(self) -> None:
         """
         Validates an error is raised when new_triggered_task() is invoked
