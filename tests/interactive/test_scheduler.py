@@ -98,6 +98,13 @@ class TestScheduler:
         asyncio.run(loop_task())
         assert not called
 
+        triggerable = Triggerable()
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert not called
+
     def test_task_stops(self) -> None:
         """
         Validates that the returned task terminates
@@ -127,6 +134,18 @@ class TestScheduler:
 
         # noinspection PyTypeChecker
         asyncio.run(loop_task())
+        assert called == 1
+        assert cancellable.cancel
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task)
+
+        called = 0
+        cancellable.reset(2)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
         assert called == 1
         assert cancellable.cancel
 
@@ -166,6 +185,19 @@ class TestScheduler:
         assert called <= 20
         assert cancellable.cancel
 
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task)
+
+        called = 0
+        cancellable.reset(20)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert called > 2
+        assert called <= 20
+        assert cancellable.cancel
+
     def test_run_invokes_scheduled_task_callback_with_sensible_frequency(self) -> None:
         """
         This test allows the callback to be called the same number of times
@@ -196,6 +228,13 @@ class TestScheduler:
         expected_called_count = seconds_to_run * SCHEDULER_DEFAULT_FREQUENCY
         assert called_count >= expected_called_count - 1
         assert called_count <= expected_called_count + 1
+
+    def test_run_invokes_triggered_task_callback_with_sensible_frequency(self) -> None:
+        """
+        Same as test_run_invokes_scheduled_task_callback_with_sensible_frequency() but
+        for a triggered_task.
+        """
+        assert False
 
     def test_run_invokes_scheduled_task_callback_with_custom_frequency(self) -> None:
         """
