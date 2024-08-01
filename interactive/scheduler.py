@@ -133,12 +133,6 @@ def new_triggered_task(
 
         now = time.monotonic()
 
-        if running and now >= stop_time:
-            debug("Stop running trigger event")
-            running = False
-            if stop is not None:
-                await stop()
-
         if triggerable.triggered and not running:
             debug("Start running trigger event")
             stop_time = now + duration
@@ -147,6 +141,12 @@ def new_triggered_task(
                 await start()
 
         triggerable.triggered = False
+
+        if running and now >= stop_time:
+            debug("Stop running trigger event")
+            running = False
+            if stop is not None:
+                await stop()
 
         if running and run is not None:
             debug("Sunning trigger event")

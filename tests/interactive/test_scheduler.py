@@ -445,7 +445,38 @@ class TestScheduler:
         Validates that a second triggered task does not get invoked when it has
         already been triggered and is still running.
         """
-        assert False
+        seconds_to_run: int = 2
+
+        start_count = 0
+        stop_count = 0
+
+        async def start():
+            nonlocal start_count
+            start_count += 1
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        async def run():
+            triggerable.triggered = True
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        async def stop():
+            nonlocal stop_count
+            stop_count += 1
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, start=start, run=run, stop=stop,
+                                          cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+
+        assert start_count == 1
+        assert stop_count == 1
 
     def test_triggered_task_can_be_retriggered(self) -> None:
         """
