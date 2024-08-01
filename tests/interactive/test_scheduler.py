@@ -481,6 +481,29 @@ class TestScheduler:
     def test_triggered_task_can_be_retriggered(self) -> None:
         """
         Validates the task can be triggered a second time once the first trigger
-        has completed
+        has completed.
         """
-        assert False
+        seconds_to_run: int = 2
+
+        start_count = 0
+
+        async def restart():
+            await asyncio.sleep(1.2)
+            triggerable.triggered = True
+
+        async def start():
+            nonlocal start_count
+            start_count += 1
+            delayed_restart = asyncio.create_task(restart())
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, start=start, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+
+        assert start_count == 2
