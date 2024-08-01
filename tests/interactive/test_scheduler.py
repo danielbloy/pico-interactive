@@ -313,7 +313,7 @@ class TestScheduler:
         assert (end - start) < (seconds_to_run * 1.05)
         assert (end - start) > (seconds_to_run * 0.95)
         assert called_count >= 50
-        
+
     def test_triggered_task_errors_with_no_callback(self) -> None:
         """
         Validates an error is raised when new_triggered_task() is invoked
@@ -328,19 +328,73 @@ class TestScheduler:
         """
         Validates that the start callback is called when the task is triggered.
         """
-        assert False
+        called_count: int = 0
+        seconds_to_run: int = 2
+
+        async def task():
+            nonlocal called_count
+            called_count += 1
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, start=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+
+        assert called_count == 1
 
     def test_triggered_task_invokes_run_callback(self) -> None:
         """
         Validates that the run callback is called repeatedly when the task is triggered.
         """
-        assert False
+        called_count: int = 0
+        seconds_to_run: int = 2
+
+        async def task():
+            nonlocal called_count
+            called_count += 1
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+
+        assert called_count >= SCHEDULER_DEFAULT_FREQUENCY
 
     def test_triggered_task_invokes_stop_callback(self) -> None:
         """
         Validates that the stop callback is called when the triggered task expires.
         """
-        assert False
+        called_count: int = 0
+        seconds_to_run: int = 2
+
+        async def task():
+            nonlocal called_count
+            called_count += 1
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, stop=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+
+        assert called_count == 1
 
     def test_triggered_task_callbacks_invoked_in_correct_order(self) -> None:
         """
