@@ -99,7 +99,7 @@ class TestScheduler:
         assert not called
 
         triggerable = Triggerable()
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task)
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
 
         # noinspection PyTypeChecker
         asyncio.run(trigger_task())
@@ -139,7 +139,7 @@ class TestScheduler:
 
         triggerable = Triggerable()
         triggerable.triggered = True
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task)
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
 
         called = 0
         cancellable.reset(2)
@@ -187,7 +187,7 @@ class TestScheduler:
 
         triggerable = Triggerable()
         triggerable.triggered = True
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task)
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
 
         called = 0
         cancellable.reset(20)
