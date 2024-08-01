@@ -1,8 +1,11 @@
 import asyncio
 import time
 
+import pytest
+
 from interactive.control import SCHEDULER_DEFAULT_FREQUENCY
-from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task
+from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task, \
+    new_triggered_task, Triggerable
 
 
 class Cancellable:
@@ -255,7 +258,10 @@ class TestScheduler:
         Validates an error is raised when new_triggered_task() is invoked
         without a start, stop or run.
         """
-        assert False
+        triggerable = Triggerable()
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            new_triggered_task(triggerable, duration=0.1)
 
     def test_triggered_task_invokes_start_callback(self) -> None:
         """
