@@ -401,7 +401,44 @@ class TestScheduler:
         Validates that the start, run and stop callbacks are called in the correct
         order when the task is triggered.
         """
-        assert False
+        seconds_to_run: int = 2
+
+        start_time = 0
+        stop_time = 0
+        run_start_time = -1
+        run_stop_time = 0
+
+        async def start():
+            nonlocal start_time
+            start_time = time.time()
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        async def run():
+            nonlocal run_start_time, run_stop_time
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+            if run_start_time < 0:
+                run_start_time = time.time()
+            run_stop_time = time.time()
+
+        async def stop():
+            nonlocal stop_time
+            stop_time = time.time()
+            await asyncio.sleep(ASYNC_LOOP_SLEEP_INTERVAL)
+
+        cancellable = CancellableDuration(seconds_to_run)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, start=start, run=run, stop=stop,
+                                          cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+
+        assert start_time < run_start_time
+        assert run_start_time < run_stop_time
+        assert run_stop_time < stop_time
 
     def test_triggered_tasks_do_not_overlap(self) -> None:
         """
