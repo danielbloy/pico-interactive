@@ -136,17 +136,19 @@ def new_triggered_task(
         if running and now >= stop_time:
             debug("Stop running trigger event")
             running = False
-            await stop()
+            if stop is not None:
+                await stop()
 
         if triggerable.triggered and not running:
             debug("Start running trigger event")
             stop_time = now + duration
             running = True
-            await start()
+            if start is not None:
+                await start()
 
         triggerable.triggered = False
 
-        if running:
+        if running and run is not None:
             debug("Sunning trigger event")
             await run()
 
