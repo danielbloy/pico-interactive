@@ -1,75 +1,82 @@
 # Entry point for a path node. This supports both path nodes that are on either
 # side of the path. One will be the primary node and the other the secondary.
+import asyncio
+
+import board
+
 from interactive.animation import Flicker
-from interactive.environment import are_pins_available
-from interactive.interactive import Interactive
-from interactive.log import set_log_level, info, INFO
+from interactive.log import info
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
 
-PRIMARY = True
-BUTTON_PIN = None
-BUZZER_PIN = None
-BUZZER_VOLUME = 0.1
 SKULL_BRIGHTNESS = 1.0
+SKULL_OFF = 0.0
 SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
-SKULL_PINS = [None, None, None, None, None, None]
+SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
 
-# Default settings
-if are_pins_available():
-    # noinspection PyPackageRequirements
-    import board
+# Perform import of configuration here to allow for overrides from the config file.
+from interactive.configuration import *
 
-    BUTTON_PIN = board.GP27
-    BUZZER_PIN = board.GP2
-
-    SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
-
-if __name__ == '__main__':
-
-    set_log_level(INFO)
-
-    # Try loading local device settings as overrides.
-    try:
-        # noinspection PyPackageRequirements
-        from config import *
-
-        info("Config file loaded")
-
-    except ImportError:
-        info("No config file was found")
-
-    config = Interactive.Config()
-    config.buzzer_pin = BUZZER_PIN
-    config.button_pin = BUTTON_PIN
-    config.buzzer_volume = BUZZER_VOLUME
-
-    interactive = Interactive(config)
-
-    # Construct the pixels and animate them.
-    pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS if pin is not None]
-    animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
+pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS if pin is not None]
+animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
 
 
-    async def animate_skulls() -> None:
-        for animation in animations:
-            animation.animate()
+async def cancel() -> None:
+    # TODO: This could probable just call stop_display()
+    for animation in animations:
+        animation.freeze()
+
+    for pixel in pixels:
+        pixel.fill(BLACK)
+        pixel.write()
 
 
-    interactive.runner.add_loop_task(animate_skulls)
+async def stop_display() -> None:
+    for pixel in pixels:
+        pixel.brightness = SKULL_OFF
+        pixel.show()
 
 
-    # TODO: Control how the skulls are enabled/disabled.
+async def start_display() -> None:
+    for pixel in pixels:
+        pixel.brightness = SKULL_BRIGHTNESS
 
-    async def callback() -> None:
-        if interactive.cancel:
-            for animation in animations:
-                animation.freeze()
-
-            for pixel in pixels:
-                pixel.fill(BLACK)
-                pixel.write()
+    t1 = asyncio.create_task(test_task_1())
+    t2 = asyncio.create_task(test_task_2())
 
 
-    interactive.run(callback)
+async def run_display() -> None:
+    for animation in animations:
+        animation.animate()
+
+
+async def test_task_1() -> None:
+    info("Start test task 1")
+    await asyncio.sleep(2)
+    for pixel in pixels:
+        pixel.brightness = SKULL_OFF
+        pixel.show()
+    info("End test task 1")
+
+
+async def test_task_2() -> None:
+    info("Start test task 2")
+    await asyncio.sleep(1)
+    info("End test task 2")
+
+
+config = get_node_config()
+config.trigger_start = start_display
+config.trigger_run = run_display
+config.trigger_stop = stop_display
+
+interactive = Interactive(config)
+
+
+async def callback() -> None:
+    if interactive.cancel:
+        await cancel()
+
+
+interactive.run(callback)

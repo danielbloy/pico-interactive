@@ -490,7 +490,6 @@ class TestUltrasonicTrigger:
         Validates that a triggered handler is called at the desired rate
         """
         SAMPLE_FREQUENCY = 10
-        SAMPLE_INTERVAL = 1 / SAMPLE_FREQUENCY
         DELTA = 0.05
         CALLBACK_FREQUENCY = 30
 

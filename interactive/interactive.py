@@ -6,13 +6,12 @@ from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
+from interactive.scheduler import new_triggered_task, Triggerable
+from interactive.ultrasonic import UltrasonicTrigger
 
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
 
-
-# TODO: When the ultrasonic sensor support is added, it should automatically do the
-#       distance measurements and trigger events based on distance.
 
 class Interactive:
     """
@@ -33,19 +32,26 @@ class Interactive:
             self.button_pin = None
             self.buzzer_pin = None
             self.buzzer_volume = 1.0
-            self.ultrasonic_trigger = None
-            self.ultrasonic_echo = None
+            self.ultrasonic_trigger_pin = None
+            self.ultrasonic_echo_pin = None
+            self.trigger_distance = 9999
+            self.trigger_duration = 0
+            self.trigger_start = None
+            self.trigger_run = None
+            self.trigger_stop = None
 
         def __str__(self):
             return f"""  
               Button: 
-                Pin ......... : {self.button_pin}
+                Pin ............... : {self.button_pin}
               Buzzer: 
-                Pin ......... : {self.buzzer_pin}
-                Volume ...... : {self.buzzer_volume}
+                Pin ............... : {self.buzzer_pin}
+                Volume ............ : {self.buzzer_volume}
               Ultrasonic Sensor:
-                Trigger ..... : {self.ultrasonic_trigger}
-                Echo ........ : {self.ultrasonic_echo}
+                Trigger ........... : {self.ultrasonic_trigger_pin}
+                Echo .............. : {self.ultrasonic_echo_pin}
+                Distance .......... : {self.trigger_distance} cm
+                Duration .......... : {self.trigger_duration} seconds
               """
 
         def log(self, level):
@@ -79,10 +85,22 @@ class Interactive:
 
         self.ultrasonic = None
         self.ultrasonic_controller = None
+        self.trigger = None
+        self.triggerable = Triggerable()
 
-        if self.config.ultrasonic_trigger is not None and self.config.ultrasonic_echo is not None:
-            self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger, self.config.ultrasonic_echo)
-            # TODO: setup controller
+        if self.config.ultrasonic_trigger_pin is not None and self.config.ultrasonic_echo_pin is not None:
+            self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger_pin, self.config.ultrasonic_echo_pin)
+            self.trigger = UltrasonicTrigger(self.ultrasonic)
+            self.trigger.register(self.runner)
+            self.trigger.add_trigger(self.config.trigger_distance, self.__trigger_handler, self.config.trigger_duration)
+
+            trigger_loop = new_triggered_task(
+                self.triggerable,
+                duration=self.config.trigger_duration,
+                start=self.config.trigger_start,
+                run=self.config.trigger_run,
+                stop=self.config.trigger_stop)
+            self.runner.add_loop_task(trigger_loop)
 
     @property
     def cancel(self) -> bool:
@@ -119,3 +137,7 @@ class Interactive:
         if not self.runner.cancel and self.buzzer_controller:
             # TODO: This needs to be a proper action
             self.buzzer_controller.beeps(5)
+
+    async def __trigger_handler(self, distance: float, actual: float) -> None:
+        info(f"Distance {distance} handler triggered: {actual}")
+        self.triggerable.triggered = True
