@@ -112,6 +112,8 @@ def new_triggered_task(
     and been deactivated. The triggerable object is used to activate the trigger via a
     "triggered" property.
 
+    The returned task can be added to a Runner so it is called when triggered.
+
     :param triggerable: Object that has a triggered property which will activate.
     :param duration: The duration that trigger lasts (i.e. the time between start and stop calls).
     :param start: This is called once when the trigger is activated

@@ -250,10 +250,48 @@ class TestScheduler:
         assert (end - start) > (seconds_to_run * 0.95)
         assert called_count >= 50
 
-    # TODO: Test errors when no start, stop run
-    # TODO: Test start is called
-    # TODO: Test run is called
-    # TODO: Test stop is called
-    # TODO: Test all three are called and in correct order
-    # TODO: Test only activates once when overlapping
-    # TODO: Test activates a second time when expired
+    def test_triggered_task_errors_with_no_callback(self) -> None:
+        """
+        Validates an error is raised when new_triggered_task() is invoked
+        without a start, stop or run.
+        """
+        assert False
+
+    def test_triggered_task_invokes_start_callback(self) -> None:
+        """
+        Validates that the start callback is called when the task is triggered.
+        """
+        assert False
+
+    def test_triggered_task_invokes_run_callback(self) -> None:
+        """
+        Validates that the run callback is called repeatedly when the task is triggered.
+        """
+        assert False
+
+    def test_triggered_task_invokes_stop_callback(self) -> None:
+        """
+        Validates that the stop callback is called when the triggered task expires.
+        """
+        assert False
+
+    def test_triggered_task_callbacks_invoked_in_correct_order(self) -> None:
+        """
+        Validates that the start, run and stop callbacks are called in the correct
+        order when the task is triggered.
+        """
+        assert False
+
+    def test_triggered_tasks_do_not_overlap(self) -> None:
+        """
+        Validates that a second triggered task does not get invoked when it has
+        already been triggered and is still running.
+        """
+        assert False
+
+    def test_triggered_task_can_be_retriggered(self) -> None:
+        """
+        Validates the task can be triggered a second time once the first trigger
+        has completed
+        """
+        assert False
