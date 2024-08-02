@@ -5,7 +5,7 @@ import pytest
 
 from interactive.polyfills.ultrasonic import Ultrasonic, ULTRASONIC_MAX_DISTANCE
 from interactive.runner import Runner
-from interactive.ultrasonic import UltrasonicTrigger
+from interactive.ultrasonic import UltrasonicController
 
 
 class TestUltrasonic(Ultrasonic):
@@ -20,37 +20,37 @@ class TestUltrasonic(Ultrasonic):
         return self.dist
 
 
-class TestUltrasonicTrigger:
+class TestUltrasonicController:
 
     def test_creating_with_none_ultrasonic_errors(self) -> None:
         """
-        Validates that a UltrasonicTrigger cannot be constructed with
+        Validates that a UltrasonicController cannot be constructed with
         a None value.
         """
         with pytest.raises(ValueError):
             # noinspection PyTypeChecker
-            UltrasonicTrigger(None)
+            UltrasonicController(None)
 
     def test_creating_with_string_errors(self) -> None:
         """
-        Validates that a UltrasonicTrigger cannot be constructed with
+        Validates that a UltrasonicController cannot be constructed with
         a value that is not a Ultrasonic.
         """
         with pytest.raises(ValueError):
             # noinspection PyTypeChecker
-            UltrasonicTrigger("")
+            UltrasonicController("")
 
     def test_distance_does_not_call_sensor(self) -> None:
         """
-        Validates that a new UltrasonicTrigger initialises the distance property
+        Validates that a new UltrasonicController initialises the distance property
         to the default max distance and does not invoke the Ultrasonic distance
         sensor to calculate distance even when called.
         """
         ultrasonic = TestUltrasonic()
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
 
         ultrasonic.dist = 123.456
-        assert trigger.distance == ULTRASONIC_MAX_DISTANCE
+        assert controller.distance == ULTRASONIC_MAX_DISTANCE
         assert ultrasonic.dist_called_count == 0
 
     def test_distance_returns_last_sensor_value(self) -> None:
@@ -68,11 +68,11 @@ class TestUltrasonicTrigger:
             runner.cancel = called_count >= 2
 
         ultrasonic = TestUltrasonic()
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
 
         # Check that the initial value is correct.
         ultrasonic.dist = 123.456
-        assert trigger.distance == ULTRASONIC_MAX_DISTANCE
+        assert controller.distance == ULTRASONIC_MAX_DISTANCE
         assert ultrasonic.dist_called_count == 0
 
         trigger_called_count = 0
@@ -87,12 +87,12 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, 5)
+        controller.add_trigger(500, trigger_handler, 5)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iterations.
         runner = Runner()
-        trigger.register(runner)
+        controller.register(runner)
         runner.run(callback)
 
         # Validate the Ultrasonic sensor only got called once and the trigger also
@@ -106,7 +106,7 @@ class TestUltrasonicTrigger:
         # Change the recorded Ultrasonic value and validate it does not get called
         # a second time.
         ultrasonic.dist = 654.321
-        assert trigger.distance == 123.456
+        assert controller.distance == 123.456
         assert ultrasonic.dist_called_count == 1
 
     def test_adding_single_distance_handler(self) -> None:
@@ -123,7 +123,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
 
         trigger_called_count = 0
         distance_value = -1.0
@@ -135,12 +135,12 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, 5)
+        controller.add_trigger(500, trigger_handler, 5)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iterations.
         runner = Runner()
-        trigger.register(runner)
+        controller.register(runner)
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
@@ -163,7 +163,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
 
         trigger_called_count = 0
         distance_value = -1.0
@@ -175,14 +175,14 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, 5)
+        controller.add_trigger(500, trigger_handler, 5)
         # this second call removes the handler
-        trigger.add_trigger(500)
+        controller.add_trigger(500)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iterations.
         runner = Runner()
-        trigger.register(runner)
+        controller.register(runner)
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 0
@@ -207,7 +207,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
 
         trigger_called_count_500 = 0
         distance_value_500 = -1.0
@@ -219,7 +219,7 @@ class TestUltrasonicTrigger:
             distance_value_500 = distance
             actual_value_500 = actual
 
-        trigger.add_trigger(500, trigger_handler_500, 5)
+        controller.add_trigger(500, trigger_handler_500, 5)
 
         trigger_called_count_400 = 0
         distance_value_400 = -1.0
@@ -231,9 +231,9 @@ class TestUltrasonicTrigger:
             distance_value_400 = distance
             actual_value_400 = actual
 
-        trigger.add_trigger(400, trigger_handler_400, 5)
+        controller.add_trigger(400, trigger_handler_400, 5)
         # This removes it.
-        trigger.add_trigger(400)
+        controller.add_trigger(400)
 
         trigger_called_count_300 = 0
         distance_value_300 = -1.0
@@ -245,12 +245,12 @@ class TestUltrasonicTrigger:
             distance_value_300 = distance
             actual_value_300 = actual
 
-        trigger.add_trigger(300, trigger_handler_300, 5)
+        controller.add_trigger(300, trigger_handler_300, 5)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iterations.
         runner = Runner()
-        trigger.register(runner)
+        controller.register(runner)
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
@@ -282,7 +282,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
 
         trigger_called_count_1 = 0
         distance_value_1 = -1.0
@@ -304,13 +304,13 @@ class TestUltrasonicTrigger:
             distance_value_2 = distance
             actual_value_2 = actual
 
-        trigger.add_trigger(500, trigger_handler_1, 5)
-        trigger.add_trigger(500, trigger_handler_2, 5)
+        controller.add_trigger(500, trigger_handler_1, 5)
+        controller.add_trigger(500, trigger_handler_2, 5)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iterations.
         runner = Runner()
-        trigger.register(runner)
+        controller.register(runner)
         runner.run(callback)
 
         assert ultrasonic.dist_called_count == 1
@@ -343,7 +343,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 345.678
 
-        trigger = UltrasonicTrigger(ultrasonic, SAMPLE_FREQUENCY)
+        controller = UltrasonicController(ultrasonic, SAMPLE_FREQUENCY)
 
         trigger_called_count_500 = 0
         distance_value_500 = -1.0
@@ -355,7 +355,7 @@ class TestUltrasonicTrigger:
             distance_value_500 = distance
             actual_value_500 = actual
 
-        trigger.add_trigger(500, trigger_handler_500, 0)
+        controller.add_trigger(500, trigger_handler_500, 0)
 
         trigger_called_count_400 = 0
         distance_value_400 = -1.0
@@ -370,7 +370,7 @@ class TestUltrasonicTrigger:
             nonlocal ultrasonic
             ultrasonic.dist = 456.789
 
-        trigger.add_trigger(400, trigger_handler_400, 0)
+        controller.add_trigger(400, trigger_handler_400, 0)
 
         trigger_called_count_300 = 0
         distance_value_300 = -1.0
@@ -382,13 +382,13 @@ class TestUltrasonicTrigger:
             distance_value_300 = distance
             actual_value_300 = actual
 
-        trigger.add_trigger(300, trigger_handler_300, 0)
+        controller.add_trigger(300, trigger_handler_300, 0)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iteration and then enough time is allowed for
         # a second invocation.
         runner = Runner(CALLBACK_FREQUENCY)
-        trigger.register(runner)
+        controller.register(runner)
         end_time = time.time() + SAMPLE_INTERVAL + DELTA
         runner.run(callback)
 
@@ -426,7 +426,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic, SAMPLE_FREQUENCY)
+        controller = UltrasonicController(ultrasonic, SAMPLE_FREQUENCY)
 
         trigger_called_count = 0
         distance_value = -1.0
@@ -438,13 +438,13 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, RESET_INTERVAL)
+        controller.add_trigger(500, trigger_handler, RESET_INTERVAL)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iteration but not enough time is given in
         # the callback to get a second invocation.
         runner = Runner(CALLBACK_FREQUENCY)
-        trigger.register(runner)
+        controller.register(runner)
         end_time = time.time() + (RESET_INTERVAL - SAMPLE_INTERVAL - DELTA)
         runner.run(callback)
 
@@ -456,8 +456,8 @@ class TestUltrasonicTrigger:
 
         # Run it a second time but allow the RESET_TIME to be exceeded resulting in
         # a second invocation. We remove and re-add the trigger here to reset the internal counters:
-        trigger.add_trigger(500)
-        trigger.add_trigger(500, trigger_handler, RESET_INTERVAL)
+        controller.add_trigger(500)
+        controller.add_trigger(500, trigger_handler, RESET_INTERVAL)
         end_time = time.time() + RESET_INTERVAL + SAMPLE_INTERVAL + DELTA
         runner.run(callback)
 
@@ -469,7 +469,7 @@ class TestUltrasonicTrigger:
 
     def test_registering_with_runner(self) -> None:
         """
-        Validates the UltrasonicTrigger registers with the Runner.
+        Validates the UltrasonicController registers with the Runner.
         """
         add_task_count: int = 0
 
@@ -480,9 +480,9 @@ class TestUltrasonicTrigger:
 
         runner = TestRunner()
         ultrasonic = TestUltrasonic()
-        trigger = UltrasonicTrigger(ultrasonic)
+        controller = UltrasonicController(ultrasonic)
         assert add_task_count == 0
-        trigger.register(runner)
+        controller.register(runner)
         assert add_task_count == 1
 
     def test_trigger_called_at_correct_rate(self) -> None:
@@ -502,7 +502,7 @@ class TestUltrasonicTrigger:
         ultrasonic = TestUltrasonic()
         ultrasonic.dist = 123.456
 
-        trigger = UltrasonicTrigger(ultrasonic, SAMPLE_FREQUENCY)
+        controller = UltrasonicController(ultrasonic, SAMPLE_FREQUENCY)
 
         trigger_called_count = 0
         distance_value = -1.0
@@ -514,13 +514,13 @@ class TestUltrasonicTrigger:
             distance_value = distance
             actual_value = actual
 
-        trigger.add_trigger(500, trigger_handler, 0)
+        controller.add_trigger(500, trigger_handler, 0)
 
         # Run the runner for a single iteration; this will call the ultrasonic
         # sensor during that first iteration. We will run it for (just over)
         # 1 second so the expected count will be the SAMPLE_FREQUENCY + 1
         runner = Runner(CALLBACK_FREQUENCY)
-        trigger.register(runner)
+        controller.register(runner)
         end_time = time.time() + 1 + DELTA
         runner.run(callback)
 

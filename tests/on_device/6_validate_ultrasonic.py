@@ -6,7 +6,7 @@ from interactive.log import set_log_level, INFO, info
 from interactive.polyfills.button import new_button
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
-from interactive.ultrasonic import UltrasonicTrigger
+from interactive.ultrasonic import UltrasonicController
 
 BUTTON_PIN = None
 ULTRASONIC_TRIGGER_PIN = None
@@ -32,9 +32,9 @@ if __name__ == '__main__':
         info(f"Distance {distance} handler triggered: {actual}")
 
 
-    trigger = UltrasonicTrigger(ultrasonic)
-    trigger.add_trigger(100, trigger_handler, 5)
-    trigger.register(runner)
+    controller = UltrasonicController(ultrasonic)
+    controller.add_trigger(100, trigger_handler, 5)
+    controller.register(runner)
 
 
     async def single_click_handler() -> None:

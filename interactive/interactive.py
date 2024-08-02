@@ -7,7 +7,7 @@ from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable
-from interactive.ultrasonic import UltrasonicTrigger
+from interactive.ultrasonic import UltrasonicController
 
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
@@ -50,6 +50,7 @@ class Interactive:
               Ultrasonic Sensor:
                 Trigger ........... : {self.ultrasonic_trigger_pin}
                 Echo .............. : {self.ultrasonic_echo_pin}
+              Trigger:
                 Distance .......... : {self.trigger_distance} cm
                 Duration .......... : {self.trigger_duration} seconds
               """
@@ -85,14 +86,14 @@ class Interactive:
 
         self.ultrasonic = None
         self.ultrasonic_controller = None
-        self.trigger = None
         self.triggerable = Triggerable()
 
         if self.config.ultrasonic_trigger_pin is not None and self.config.ultrasonic_echo_pin is not None:
             self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger_pin, self.config.ultrasonic_echo_pin)
-            self.trigger = UltrasonicTrigger(self.ultrasonic)
-            self.trigger.register(self.runner)
-            self.trigger.add_trigger(self.config.trigger_distance, self.__trigger_handler, self.config.trigger_duration)
+            self.ultrasonic_controller = UltrasonicController(self.ultrasonic)
+            self.ultrasonic_controller.register(self.runner)
+            self.ultrasonic_controller.add_trigger(
+                self.config.trigger_distance, self.__trigger_handler, self.config.trigger_duration)
 
             trigger_loop = new_triggered_task(
                 self.triggerable,

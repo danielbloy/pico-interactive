@@ -14,9 +14,9 @@ DEFAULT_SAMPLE_FREQUENCY = 2  # 2 times for second
 DEFAULT_RESET_INTERVAL = 60.0  # 60 seconds
 
 
-class UltrasonicTrigger:
+class UltrasonicController:
     """
-    UltrasonicTrigger triggers events based on the distances returned from an
+    UltrasonicController triggers events based on the distances returned from an
     Ultrasonic sensor. The user can specify what distances they want to get
     trigger notifications for. These events are triggered when the distance is
     less than the specified trigger distance. Events can be set to be triggered
@@ -41,7 +41,7 @@ class UltrasonicTrigger:
 
     def __init__(self, ultrasonic: Ultrasonic, sample_frequency: int = DEFAULT_SAMPLE_FREQUENCY):
         """
-        Constructs and instance of UltrasonicTrigger that will sample the distance from the
+        Constructs and instance of UltrasonicController that will sample the distance from the
         supplied Ultrasonic sensor at the specified frequency. Because of the time taken to
         sample a distance, it is recommended that the sample frequency does not exceed 6 and
         a sample frequency of 2 is adequate for the majority of situations.
