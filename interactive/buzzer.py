@@ -60,7 +60,7 @@ class BuzzerController:
 
     def register(self, runner: Runner) -> None:
         """
-        Registers this Buzzer instance as a task with the provided Runner.
+        Registers this Buzzercontroller instance as a task with the provided Runner.
 
         :param runner: the runner to register with.
         """
