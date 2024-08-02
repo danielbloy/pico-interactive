@@ -2,8 +2,6 @@ from interactive.environment import are_pins_available
 
 if are_pins_available():
 
-    import board
-
     from audiomp3 import MP3Decoder
     from microcontroller import Pin
 
@@ -15,21 +13,36 @@ if are_pins_available():
         except ImportError:
             pass  # not always supported by every board!
 
-        audio = AudioOut(board.A0)
 
+    class Audio:
 
-    class Audio(AudioOut):
-
-        def __init__(self, decoder: AudioSample):
-            super().__init__()
+        def __init__(self, pin: Pin, decoder):
+            self.audio = AudioOut(pin)
             self.decoder = decoder
 
         def play(self, filename: str):
-            if len(filename) <= 0:
+            if filename is None or len(filename) <= 0:
                 raise ValueError("filename must be specified")
 
             self.decoder.file = open(filename, "rb")
-            super().play(self.decoder)
+            self.audio.play(self.decoder)
+
+        @property
+        def playing(self) -> bool:
+            return self.audio.playing
+
+        @property
+        def paused(self) -> bool:
+            return self.audio.paused
+
+        def pause(self):
+            return self.audio.pause()
+
+        def resume(self):
+            return self.audio.resume()
+
+        def stop(self):
+            return self.audio.stop()
 
 
     def __new_mp3_decoder(file: str) -> MP3Decoder:
@@ -38,7 +51,7 @@ if are_pins_available():
         return decoder
 
 
-    def __new_audio(pin: Pin, decoder: AudioSample) -> Audio:
+    def __new_audio(pin: Pin, decoder) -> Audio:
         return Audio(pin, decoder)
 
 else:

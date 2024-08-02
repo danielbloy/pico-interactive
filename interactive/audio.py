@@ -1,3 +1,4 @@
+from interactive.polyfills.audio import Audio
 from interactive.runner import Runner
 
 
@@ -83,7 +84,9 @@ class AudioController:
         The internal loop checks for songs in the queue and plays them if
         nothing is playing.
         """
-        if not self.__runner.cancel:
+        if self.__runner.cancel:
+            self.__audio.stop()
+        else:
             if not self.__audio.playing and len(self.__queue) > 0:
                 song = self.__queue.pop(0)
                 self.__audio.play(song)
