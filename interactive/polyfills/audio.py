@@ -19,17 +19,26 @@ if are_pins_available():
 
 
     class Audio(AudioOut):
-        pass
+
+        def __init__(self, decoder: AudioSample):
+            super().__init__()
+            self.decoder = decoder
+
+        def play(self, filename: str):
+            if len(filename) <= 0:
+                raise ValueError("filename must be specified")
+
+            self.decoder.file = open(filename, "rb")
+            super().play(self.decoder)
 
 
     def __new_mp3_decoder(file: str) -> MP3Decoder:
         # You have to specify some mp3 file when creating the decoder
-        mp3 = open(file, "rb")
-        decoder = MP3Decoder(mp3)
+        decoder = MP3Decoder(open(file, "rb"))
         return decoder
 
 
-    def __new_audio(pin: Pin, decoder: Decoder) -> Audio:
+    def __new_audio(pin: Pin, decoder: AudioSample) -> Audio:
         return Audio(pin, decoder)
 
 else:
@@ -40,7 +49,29 @@ else:
 
 
     class Audio:
-        pass
+
+        def __init__(self, decoder):
+            self.decoder = decoder
+            self.filename = None
+            self.playing = False
+            self.paused = False
+
+        def play(self, filename: str):
+            self.filename = filename
+            self.playing = True
+            self.paused = False
+
+        def pause(self):
+            self.playing = False
+            self.paused = True
+
+        def resume(self):
+            self.playing = True
+            self.paused = False
+
+        def stop(self):
+            self.playing = False
+            self.paused = False
 
 
     def __new_mp3_decoder(file: str) -> MP3Decoder:

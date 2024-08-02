@@ -48,70 +48,70 @@ the end of this readme for more information about the license.
 * [x] Recreate originals/christmas in demo
 * [ ] Recreate originals/light_jars in demo
 * [ ] Recreate originals/halloween
-  * [ ] Migrate code from path node
-  * [ ] Implement spider node
-  * [ ] Implement thunder node
-  * [ ] Implement coordinator node that runs on the laptop
-  * [ ] Implement node communications
-  * [ ] Migrate Witch node
-  * [ ] Implement Pixie node
+    * [ ] Migrate code from path node
+    * [ ] Implement spider node
+    * [ ] Implement thunder node
+    * [ ] Implement coordinator node that runs on the laptop
+    * [ ] Implement node communications
+    * [ ] Migrate Witch node
+    * [ ] Implement Pixie node
 
 ## List of outstanding tasks for the basic framework
 
 * [x] Setup project outline.
 * [x] Add generic task runner that handles both completion and exceptions and support restarts.
-  * [x] Works on CircuitPython
-  * [x] Works with Blinka
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [x] Add support for logging in both Desktop and Pico environments.
-  * [x] Works on CircuitPython
-  * [x] Works with Blinka
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [x] Add button support for single, double and long-presses.
-  * [x] Works on CircuitPython
-  * [x] Works with Blinka
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [x] Add buzzer support for playing tones.
-  * [x] Works on CircuitPython
-  * [x] Works with Blinka
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [x] Migrate music.py/Song from originals/christmas to buzzer.py as Melody
-  * [ ] Write tests
+    * [ ] Write tests
 * [x] Migrate music.py/SongSequence from originals/christmas to buzzer.py as MelodySequence
-  * [ ] Write tests
+    * [ ] Write tests
 * [x] Add NeoPixel support
-  * [x] Works on CircuitPython
-  * [x] Works with Blinka
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
-  * [ ] Add tests for Flicker
+    * [ ] Add tests for Flicker
 * [x] Add LED support
-  * [x] Works on CircuitPython
-  * [x] Works with Blinka
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [x] Add Ultrasonic sensor support
-  * [x] Works on CircuitPython
-  * [ ] ~~Works with Blinka~~
-* [ ] Add AudioBoard support
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka-
+    * [x] Works on CircuitPython
+    * [ ] ~~Works with Blinka~~
+* [x] Add Audio support
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka-
 * [ ] Add Wi-Fi support
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
 * [ ] Add current time of day support via Wi-Fi
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
 * [ ] Add support for network node information page
 * [ ] Add support for network discovery via coordinator node (PC/Raspberry Pi)
 * [ ] Add support for network messaging via coordinator node (PC/Raspberry Pi)
 * [ ] Add UART support
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
 * [ ] Add OLED Display support, including cycling through screen pages
-  * [ ] Works on CircuitPython
-  * [ ] Works with Blinka
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
 * [ ] OLED display pages available for:
-  * [ ] NeoPixels
-  * [ ] LEDs
-  * [ ] Ultrasonic
-  * [ ] AudioBoard
-  * [ ] UART
-  * [ ] Wi-Fi
-  * [ ] Messaging/discovery/coordination
+    * [ ] NeoPixels
+    * [ ] LEDs
+    * [ ] Ultrasonic
+    * [ ] AudioBoard
+    * [ ] UART
+    * [ ] Wi-Fi
+    * [ ] Messaging/discovery/coordination
 
 ## Setting up the development environment
 
@@ -302,17 +302,17 @@ you want to run on to make sure it works in that environment. So far, the main i
 that I have found with Blinka are:
 
 * It is significantly slower that running on the device itself. This is not because your
-computer is slow, it's because of the overhead of calculating and transferring data to
-and from the device. Running your application code on the device is always much faster.
+  computer is slow, it's because of the overhead of calculating and transferring data to
+  and from the device. Running your application code on the device is always much faster.
 * More than one strand of Neopixels will not work properly. If you are running a single
-strand of Neopixels then Blnka works absolutely fine (although it is slower to update than
-running on the device). If however you run multiple strands from different pins then What
-seems to happen is they get combined and output on a single strand. Running your code
-on the device will work fine though (this was infuriating when building the skull path
-nodes).
+  strand of Neopixels then Blnka works absolutely fine (although it is slower to update than
+  running on the device). If however you run multiple strands from different pins then What
+  seems to happen is they get combined and output on a single strand. Running your code
+  on the device will work fine though (this was infuriating when building the skull path
+  nodes).
 * Ultrasonic sensors do not give good results. This is possibly related to the speed issue
-but when tsting Ultrasonic sensors, I did not get anything like sensible or consistent
-values. Running on the device worked fine though.
+  but when tsting Ultrasonic sensors, I did not get anything like sensible or consistent
+  values. Running on the device worked fine though.
 
 ## License
 
