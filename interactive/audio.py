@@ -12,7 +12,6 @@ class AudioController:
     """
 
     def __init__(self, audio: Audio):
-
         if audio is None:
             raise ValueError("audio cannot be None")
 

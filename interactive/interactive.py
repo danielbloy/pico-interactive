@@ -1,7 +1,9 @@
+from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
 from interactive.environment import is_running_on_desktop
-from interactive.log import info, INFO, debug
+from interactive.log import info, INFO, debug, log
+from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.ultrasonic import new_ultrasonic
@@ -32,6 +34,7 @@ class Interactive:
             self.button_pin = None
             self.buzzer_pin = None
             self.buzzer_volume = 1.0
+            self.audio_pin = None
             self.ultrasonic_trigger_pin = None
             self.ultrasonic_echo_pin = None
             self.trigger_distance = 9999
@@ -47,6 +50,8 @@ class Interactive:
               Buzzer: 
                 Pin ............... : {self.buzzer_pin}
                 Volume ............ : {self.buzzer_volume}
+              Audio:
+                Pin ............... : {self.audio_pin}:
               Ultrasonic Sensor:
                 Trigger ........... : {self.ultrasonic_trigger_pin}
                 Echo .............. : {self.ultrasonic_echo_pin}
@@ -57,12 +62,12 @@ class Interactive:
 
         def log(self, level):
             for s in self.__str__().split('\n'):
-                info(s)
+                log(level, s)
 
     def __init__(self, config: Config):
         self.config = config
         self.runner = Runner()
-        self.runner.add_loop_task(self.__cancel_buzzer)
+        self.runner.add_loop_task(self.__cancel_operations)
 
         self.button = None
         self.button_controller = None
@@ -83,6 +88,14 @@ class Interactive:
             self.buzzer.volume = self.config.buzzer_volume
             self.buzzer_controller = BuzzerController(self.buzzer)
             self.buzzer_controller.register(self.runner)
+
+        self.audio = None
+        self.audio_controller = None
+
+        if self.config.audio_pin:
+            self.audio = new_mp3_player(self.config.audio_pin, "dummy.mp3")
+            self.audio_controller = AudioController(self.audio)
+            self.audio_controller.register(self.runner)
 
         self.ultrasonic = None
         self.ultrasonic_controller = None
@@ -116,13 +129,18 @@ class Interactive:
         self.config.log(INFO)
         self.runner.run(callback)
 
-    async def __cancel_buzzer(self) -> None:
+    async def __cancel_operations(self) -> None:
         """
-        Ensures the buzzer is turned off when the system is ready to terminate.
+        Ensures everything is turned off when the system is ready to terminate.
         """
-        if self.runner.cancel and self.buzzer_controller:
-            debug('Turning off the buzzer')
-            self.buzzer_controller.off()
+        if self.runner.cancel:
+            if self.buzzer_controller:
+                debug('Turning off the buzzer')
+                self.buzzer_controller.off()
+
+            if self.audio_controller:
+                debug('Turning off the audio')
+                self.audio_controller.cancel()
 
     async def __single_click_handler(self) -> None:
         if not self.runner.cancel and self.buzzer_controller:

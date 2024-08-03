@@ -23,7 +23,7 @@ animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in
 
 
 async def cancel() -> None:
-    # TODO: This could probable just call stop_display()
+    # TODO: This could probably just call stop_display()
     for animation in animations:
         animation.freeze()
 
