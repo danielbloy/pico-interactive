@@ -23,6 +23,14 @@ class AudioController:
         self.__audio = audio
         self.__queue = []
 
+    def queue(self, filename: str):
+        """
+        Adds an MP3 file to the queue to be picked up and played.
+
+        :param filename: The MP3 file to add to the queue.
+        """
+        self.__queue.append(filename)
+
     @property
     def playing(self) -> bool:
         """
@@ -36,14 +44,6 @@ class AudioController:
         Returns whether the audio is paused or not.
         """
         return self.__audio.paused
-
-    def queue(self, filename: str):
-        """
-        Adds an MP3 file to the queue to be picked up and played.
-
-        :param filename: The MP3 file to add to the queue.
-        """
-        self.__queue.append(filename)
 
     def pause(self):
         """
