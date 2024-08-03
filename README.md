@@ -305,14 +305,18 @@ that I have found with Blinka are:
   computer is slow, it's because of the overhead of calculating and transferring data to
   and from the device. Running your application code on the device is always much faster.
 * More than one strand of Neopixels will not work properly. If you are running a single
-  strand of Neopixels then Blnka works absolutely fine (although it is slower to update than
+  strand of Neopixels then Blinka works absolutely fine (although it is slower to update than
   running on the device). If however you run multiple strands from different pins then What
   seems to happen is they get combined and output on a single strand. Running your code
   on the device will work fine though (this was infuriating when building the skull path
   nodes).
 * Ultrasonic sensors do not give good results. This is possibly related to the speed issue
-  but when tsting Ultrasonic sensors, I did not get anything like sensible or consistent
+  but when testing Ultrasonic sensors, I did not get anything like sensible or consistent
   values. Running on the device worked fine though.
+* Audio support seems to be unavailable as I was unable to find the appropriate library to
+  add to the virtual environment. I did not invest much time into solving this issue as
+  the audio is largely handled by CircuitPython and the pico-interactive code is little
+  more than a thin layer around it.
 
 ## License
 

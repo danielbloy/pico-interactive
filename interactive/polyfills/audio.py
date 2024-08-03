@@ -57,13 +57,14 @@ if are_pins_available():
 else:
 
     class MP3Decoder:
-        def __init__(self):
-            self.file = ""
+        def __init__(self, file):
+            self.file = file
 
 
     class Audio:
 
-        def __init__(self, decoder):
+        def __init__(self, pin, decoder):
+            self.pin = pin
             self.decoder = decoder
             self.filename = None
             self.playing = False
@@ -88,7 +89,7 @@ else:
 
 
     def __new_mp3_decoder(file: str) -> MP3Decoder:
-        return MP3Decoder()
+        return MP3Decoder(file)
 
 
     def __new_audio(pin, decoder) -> Audio:
