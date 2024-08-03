@@ -12,15 +12,22 @@ class TestAudio(Audio):
         super().__init__(None, None)
         self.playing_count = 0
         self.filename = ""
+        self.files = []
 
     def play(self, filename: str):
+        assert not self.playing
+        self.files.append(filename)
         self.filename = filename
-        self.playing_count += 5
+        self.playing_count += 10
 
     @property
     def playing(self) -> bool:
         self.playing_count -= 1
         return self.playing_count > 0
+
+    @playing.setter
+    def playing(self, value):
+        pass
 
 
 class TestAudioController:
@@ -82,8 +89,37 @@ class TestAudioController:
 
         runner.run(callback)
         assert audio.filename == "track-1.mp3"
+        assert len(audio.files) == 1
         assert audio.playing_count <= 0
 
-    # TODO: Test that items are added to the queue
-    # TODO: Test that items are pulled off the queue o be played.
+    def test_adding_multiple_items_to_the_queue_get_picked_up(self) -> None:
+        """
+        Validates the AudioController picks up multiple queued songs and
+        plays them in order.
+        """
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 10
+
+        runner = Runner()
+        audio = TestAudio()
+        controller = AudioController(audio)
+        controller.register(runner)
+
+        # queue a single song.
+        controller.queue("track-1.mp3")
+        controller.queue("track-2.mp3")
+        controller.queue("track-3.mp3")
+
+        runner.run(callback)
+        assert audio.filename == "track-3.mp3"
+        assert len(audio.files) == 3
+        assert audio.files[0] == "track-1.mp3"
+        assert audio.files[1] == "track-2.mp3"
+        assert audio.files[2] == "track-3.mp3"
+        assert audio.playing_count <= 0
+
     # TODO: Add to path code.py
