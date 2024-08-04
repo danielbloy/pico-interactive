@@ -56,7 +56,7 @@ class ButtonController:
 
     def register(self, runner: Runner) -> None:
         """
-        Registers this Button instance as a task with the provided Runner.
+        Registers this ButtonController instance as a task with the provided Runner.
 
         :param runner: the runner to register with.
         """
