@@ -51,7 +51,7 @@ class Interactive:
                 Pin ............... : {self.buzzer_pin}
                 Volume ............ : {self.buzzer_volume}
               Audio:
-                Pin ............... : {self.audio_pin}:
+                Pin ............... : {self.audio_pin}
               Ultrasonic Sensor:
                 Trigger ........... : {self.ultrasonic_trigger_pin}
                 Echo .............. : {self.ultrasonic_echo_pin}
@@ -93,7 +93,9 @@ class Interactive:
         self.audio_controller = None
 
         if self.config.audio_pin:
-            self.audio = new_mp3_player(self.config.audio_pin, "dummy.mp3")
+            # we need a valid tiny file to load otherwise it will error. I got this file from:
+            #    https://github.com/mathiasbynens/small
+            self.audio = new_mp3_player(self.config.audio_pin, "interactive/mp3.mp3")
             self.audio_controller = AudioController(self.audio)
             self.audio_controller.register(self.runner)
 

@@ -12,6 +12,8 @@ BUTTON_PIN = None
 BUZZER_PIN = None
 BUZZER_VOLUME = 0.1
 
+AUDIO_PIN = None
+
 ULTRASONIC_TRIGGER_PIN = None
 ULTRASONIC_ECHO_PIN = None
 
@@ -25,6 +27,7 @@ if are_pins_available():
     # Default settings
     BUTTON_PIN = board.GP27
     BUZZER_PIN = board.GP2
+    AUDIO_PIN = board.GP12
     ULTRASONIC_TRIGGER_PIN = board.GP7
     ULTRASONIC_ECHO_PIN = board.GP6
 
@@ -46,6 +49,7 @@ def get_node_config() -> Interactive.Config:
     config.buzzer_pin = BUZZER_PIN
     config.button_pin = BUTTON_PIN
     config.buzzer_volume = BUZZER_VOLUME
+    config.audio_pin = AUDIO_PIN
     config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
     config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
     config.trigger_distance = TRIGGER_DISTANCE
