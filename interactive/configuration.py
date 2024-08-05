@@ -44,10 +44,10 @@ except ImportError:
 set_log_level(LOG_LEVEL)
 
 
-def get_node_config() -> Interactive.Config:
+def get_node_config(buzzer=True, button=True, audio=True, ultrasonic=True) -> Interactive.Config:
     config = Interactive.Config()
-    config.buzzer_pin = BUZZER_PIN
     config.button_pin = BUTTON_PIN
+    config.buzzer_pin = BUZZER_PIN
     config.buzzer_volume = BUZZER_VOLUME
     config.audio_pin = AUDIO_PIN
     config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
