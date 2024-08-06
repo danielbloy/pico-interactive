@@ -13,7 +13,9 @@ SKULL_BRIGHTNESS = 1.0
 SKULL_OFF = 0.0
 SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
-SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
+# SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
+# GP12 eliminated to test audio
+SKULL_PINS = [board.GP10, board.GP11, board.GP13, board.GP14, board.GP15]
 
 # Perform import of configuration here to allow for overrides from the config file.
 from interactive.configuration import *
@@ -39,6 +41,7 @@ async def stop_display() -> None:
 
 
 async def start_display() -> None:
+    interactive.audio_controller.queue("lion.mp3")
     for pixel in pixels:
         pixel.brightness = SKULL_BRIGHTNESS
 

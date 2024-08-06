@@ -5,6 +5,7 @@ from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.led import Led
 from interactive.log import set_log_level, INFO
+from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.animation import AMBER, BLACK, WHITE, JADE, PINK, OLD_LACE, AnimationSequence
 from interactive.polyfills.animation import AQUA, RED, GOLD, YELLOW, ORANGE, GREEN
 from interactive.polyfills.animation import BLUE, CYAN, PURPLE, MAGENTA, TEAL
@@ -14,6 +15,8 @@ from interactive.polyfills.button import new_button
 from interactive.polyfills.led import new_led_pin
 from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
+
+REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
 LED_YELLOW = None
@@ -34,6 +37,9 @@ if are_pins_available():
 if __name__ == '__main__':
 
     set_log_level(INFO)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before creating Objects")
 
     runner = Runner()
 
@@ -135,4 +141,10 @@ if __name__ == '__main__':
             pixels.write()
 
 
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
     runner.run(callback)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After running Runner")
