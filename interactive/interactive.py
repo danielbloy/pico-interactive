@@ -1,8 +1,12 @@
+import gc
+
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
+from interactive.configuration import REPORT_RAM
 from interactive.environment import is_running_on_desktop
 from interactive.log import info, INFO, debug, log
+from interactive.memory import report_memory_usage
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
@@ -65,6 +69,9 @@ class Interactive:
                 log(level, s)
 
     def __init__(self, config: Config):
+        if REPORT_RAM:
+            report_memory_usage("Interactive constructor() start")
+
         self.config = config
         self.runner = Runner()
         self.runner.add_loop_task(self.__cancel_operations)
@@ -117,6 +124,11 @@ class Interactive:
                 run=self.config.trigger_run,
                 stop=self.config.trigger_stop)
             self.runner.add_loop_task(trigger_loop)
+
+        gc.collect()
+
+        if REPORT_RAM:
+            report_memory_usage("Interactive constructor() finish")
 
     @property
     def cancel(self) -> bool:

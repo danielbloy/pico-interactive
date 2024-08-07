@@ -4,6 +4,9 @@
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, INFO
+from interactive.memory import report_memory_usage
+
+REPORT_RAM = False
 
 LOG_LEVEL = INFO
 
@@ -45,6 +48,9 @@ set_log_level(LOG_LEVEL)
 
 
 def get_node_config(button=True, buzzer=True, audio=True, ultrasonic=True) -> Interactive.Config:
+    if REPORT_RAM:
+        report_memory_usage("get_node_config")
+
     config = Interactive.Config()
     if button:
         config.button_pin = BUTTON_PIN

@@ -20,6 +20,13 @@ def report_memory_usage_and_free(msg: str):
     gc.collect()
     report_memory_usage(f"{msg} after gc")
 
+#
+# Memory optimisation:
+# * TODO: Delete large variables using: del <large_variable>
+# * TODO: Examine where lists and dictionaries are used as they can grow slowly
+# * TODO: Examine all uses of strings
+# * TODO: Repeat all tests below with 60 second run time
+
 # Memory usage results after running each of the on_device validate scripts:
 #
 # 1 - Framework:
@@ -73,7 +80,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 41968 bytes, Free: 83408 bytes
 #
-# 4 - Animations:
+# 4 - Animations (LEDs not NeoPixels):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -90,7 +97,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 89728 bytes, Free: 34400 bytes
 #
-# 5 - Interactive: (the only test to use Interactive)
+# 5 - Interactive (the only test to use Interactive):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -156,9 +163,3 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 72048 bytes, Free: 52080 bytes
 #
-
-#
-# Memory optimisation:  
-# * TODO: Delete large variables using: del <large_variable>
-# * TODO: Examine where lists and dictionaries are used as they can grow slowly
-# * TODO: Examine all uses of strings

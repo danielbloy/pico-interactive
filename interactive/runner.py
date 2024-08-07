@@ -1,8 +1,10 @@
 import asyncio
 
+from interactive.configuration import REPORT_RAM
 from interactive.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
 from interactive.environment import is_running_on_desktop
 from interactive.log import debug, info, warn, error, stacktrace
+from interactive.memory import report_memory_usage
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel, new_loop_task
 
 # collections.abc is not available in CircuitPython.
@@ -15,6 +17,10 @@ async def empty_callback() -> None:
     A simple empty callback that does nothing and is used if no user callback is provided.
     """
     pass
+
+
+async def report_memory() -> None:
+    report_memory_usage("Runner run()")
 
 
 class Runner:
@@ -106,6 +112,10 @@ class Runner:
 
         tasks: list[asyncio.Task] = [
             asyncio.create_task(self.__new_task_handler(task)()) for task in self.__tasks_to_run]
+
+        if REPORT_RAM:
+            tasks.append(
+                new_scheduled_task(report_memory, terminate_on_cancel(self), 1 / 5)())
 
         try:
             await asyncio.gather(
