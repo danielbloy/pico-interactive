@@ -92,6 +92,18 @@ class Triggerable:
         self.triggered = False
 
 
+class TriggerableAlwaysOn:
+    """Trivial implementation for a triggerable object that is always triggered."""
+
+    @property
+    def triggered(self):
+        return True
+
+    @triggered.setter
+    def triggered(self, value):
+        pass
+
+
 def new_triggered_task(
         triggerable,
         duration: float,
@@ -112,7 +124,8 @@ def new_triggered_task(
     and been deactivated. The triggerable object is used to activate the trigger via a
     "triggered" property.
 
-    The returned task can be added to a Runner so it is called when triggered.
+    The returned task can be added to a Runner so it is called when triggered. The returned
+    callback is itself wrapped in a loop_task so can be added to the Runner with add_task().
 
     :param triggerable: Object that has a triggered property which will activate.
     :param duration: The duration that trigger lasts (i.e. the time between start and stop calls).

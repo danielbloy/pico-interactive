@@ -1,14 +1,18 @@
+import gc
+
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
+from interactive.configuration import Config
 from interactive.environment import is_running_on_desktop
-from interactive.log import info, INFO, debug, log
+from interactive.log import critical, info, debug, CRITICAL
+from interactive.memory import report_memory_usage, report_memory_usage_and_free
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
-from interactive.scheduler import new_triggered_task, Triggerable
+from interactive.scheduler import new_triggered_task, Triggerable, TriggerableAlwaysOn, terminate_on_cancel
 from interactive.ultrasonic import UltrasonicController
 
 if is_running_on_desktop():
@@ -24,47 +28,11 @@ class Interactive:
     valid properties are provided. This allows a large range of boards to be supported.
     """
 
-    class Config:
-        """
-        Holds the configuration settings required for constructing an instance of
-        Interactive.
-        """
-
-        def __init__(self):
-            self.button_pin = None
-            self.buzzer_pin = None
-            self.buzzer_volume = 1.0
-            self.audio_pin = None
-            self.ultrasonic_trigger_pin = None
-            self.ultrasonic_echo_pin = None
-            self.trigger_distance = 9999
-            self.trigger_duration = 0
-            self.trigger_start = None
-            self.trigger_run = None
-            self.trigger_stop = None
-
-        def __str__(self):
-            return f"""  
-              Button: 
-                Pin ............... : {self.button_pin}
-              Buzzer: 
-                Pin ............... : {self.buzzer_pin}
-                Volume ............ : {self.buzzer_volume}
-              Audio:
-                Pin ............... : {self.audio_pin}:
-              Ultrasonic Sensor:
-                Trigger ........... : {self.ultrasonic_trigger_pin}
-                Echo .............. : {self.ultrasonic_echo_pin}
-              Trigger:
-                Distance .......... : {self.trigger_distance} cm
-                Duration .......... : {self.trigger_duration} seconds
-              """
-
-        def log(self, level):
-            for s in self.__str__().split('\n'):
-                log(level, s)
-
     def __init__(self, config: Config):
+
+        if config.report_ram:
+            report_memory_usage("Interactive.__init__() start")
+
         self.config = config
         self.runner = Runner()
         self.runner.add_loop_task(self.__cancel_operations)
@@ -93,7 +61,9 @@ class Interactive:
         self.audio_controller = None
 
         if self.config.audio_pin:
-            self.audio = new_mp3_player(self.config.audio_pin, "dummy.mp3")
+            # we need a valid tiny file to load otherwise it will error. I got this file from:
+            #    https://github.com/mathiasbynens/small
+            self.audio = new_mp3_player(self.config.audio_pin, "interactive/mp3.mp3")
             self.audio_controller = AudioController(self.audio)
             self.audio_controller.register(self.runner)
 
@@ -116,6 +86,33 @@ class Interactive:
                 stop=self.config.trigger_stop)
             self.runner.add_loop_task(trigger_loop)
 
+        if self.config.report_ram:
+            async def report_memory() -> None:
+                report_memory_usage("Interactive.report_memory()")
+
+            triggerable = TriggerableAlwaysOn()
+            report_memory_task = (
+                new_triggered_task(
+                    triggerable, self.config.report_ram_period, start=report_memory,
+                    cancel_func=terminate_on_cancel(self)))
+            self.runner.add_task(report_memory_task)
+
+        if self.config.garbage_collect:
+            async def garbage_collect() -> None:
+                report_memory_usage_and_free("Interactive.garbage_collect()")
+
+            triggerable = TriggerableAlwaysOn()
+            garbage_collect_task = (
+                new_triggered_task(
+                    triggerable, self.config.garbage_collect_period, stop=garbage_collect,
+                    cancel_func=terminate_on_cancel(self)))
+            self.runner.add_task(garbage_collect_task)
+
+        gc.collect()
+
+        if self.config.report_ram:
+            report_memory_usage("Interactive.__init__() start")
+
     @property
     def cancel(self) -> bool:
         return self.runner.cancel
@@ -125,8 +122,8 @@ class Interactive:
         self.runner.cancel = cancel
 
     def run(self, callback: Callable[[], Awaitable[None]] = None) -> None:
-        info('Running with config:')
-        self.config.log(INFO)
+        critical('Running with config:')
+        self.config.log(CRITICAL)
         self.runner.run(callback)
 
     async def __cancel_operations(self) -> None:

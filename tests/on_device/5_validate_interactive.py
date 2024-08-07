@@ -1,8 +1,12 @@
 import time
 
+from interactive.configuration import Config
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO
+from interactive.memory import report_memory_usage_and_free
+
+REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
 BUZZER_PIN = None
@@ -20,6 +24,9 @@ if __name__ == '__main__':
 
     set_log_level(INFO)
 
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before creating Objects")
+
     # Try loading local device settings as overrides.
     try:
         # noinspection PyPackageRequirements
@@ -30,7 +37,7 @@ if __name__ == '__main__':
     except ImportError:
         info("No config file was found")
 
-    config = Interactive.Config()
+    config = Config()
     config.buzzer_pin = BUZZER_PIN
     config.button_pin = BUTTON_PIN
     config.buzzer_volume = BUZZER_VOLUME
@@ -45,4 +52,10 @@ if __name__ == '__main__':
         interactive.cancel = time.monotonic() > finish
 
 
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
     interactive.run(callback)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After running Runner")

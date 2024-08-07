@@ -112,6 +112,8 @@ the end of this readme for more information about the license.
     * [ ] UART
     * [ ] Wi-Fi
     * [ ] Messaging/discovery/coordination
+* [ ] Make a pico-interactive release (see [Creating and sharing a CircuitPython library](https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library?view=all#mpy-2982472-11)):
+    * [ ] Compile to`.mpy` files
 
 ## Setting up the development environment
 

@@ -103,7 +103,6 @@ class Runner:
 
         :param callback: This is called once every cycle based on the callback frequency.
         """
-
         tasks: list[asyncio.Task] = [
             asyncio.create_task(self.__new_task_handler(task)()) for task in self.__tasks_to_run]
 

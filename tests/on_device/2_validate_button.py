@@ -3,8 +3,11 @@ import time
 from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.log import set_log_level, info, INFO
+from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.button import new_button
 from interactive.runner import Runner
+
+REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
 
@@ -15,7 +18,11 @@ if are_pins_available():
     BUTTON_PIN = board.GP27
 
 if __name__ == '__main__':
+
     set_log_level(INFO)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before creating Objects")
 
 
     async def single_click_handler() -> None:
@@ -47,4 +54,10 @@ if __name__ == '__main__':
         runner.cancel = time.monotonic() > finish
 
 
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
     runner.run(callback)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After running Runner")

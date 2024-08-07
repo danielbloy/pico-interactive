@@ -3,10 +3,13 @@ import time
 from interactive.button import ButtonController
 from interactive.environment import are_pins_available
 from interactive.log import set_log_level, INFO, info
+from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.button import new_button
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 from interactive.ultrasonic import UltrasonicController
+
+REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
 ULTRASONIC_TRIGGER_PIN = None
@@ -21,7 +24,11 @@ if are_pins_available():
     ULTRASONIC_ECHO_PIN = board.GP6
 
 if __name__ == '__main__':
+
     set_log_level(INFO)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before creating Objects")
 
     runner = Runner()
 
@@ -54,4 +61,10 @@ if __name__ == '__main__':
         runner.cancel = time.monotonic() > finish
 
 
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
     runner.run(callback)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After running Runner")

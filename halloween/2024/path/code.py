@@ -5,6 +5,7 @@ import asyncio
 import board
 
 from interactive.animation import Flicker
+from interactive.interactive import Interactive
 from interactive.log import info
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
@@ -39,6 +40,7 @@ async def stop_display() -> None:
 
 
 async def start_display() -> None:
+    interactive.audio_controller.queue("lion.mp3")
     for pixel in pixels:
         pixel.brightness = SKULL_BRIGHTNESS
 
@@ -66,11 +68,7 @@ async def test_task_2() -> None:
     info("End test task 2")
 
 
-config = get_node_config()
-config.trigger_start = start_display
-config.trigger_run = run_display
-config.trigger_stop = stop_display
-
+config = get_node_config(button=False, buzzer=False, ultrasonic=False)
 interactive = Interactive(config)
 
 

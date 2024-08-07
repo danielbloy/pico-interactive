@@ -5,9 +5,12 @@ from interactive.buzzer import BuzzerController
 from interactive.environment import are_pins_available
 from interactive.log import set_log_level, INFO
 from interactive.melody import Melody, MelodySequence, decode_melody
+from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.runner import Runner
+
+REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
 BUZZER_PIN = None
@@ -22,6 +25,9 @@ if are_pins_available():
 if __name__ == '__main__':
 
     set_log_level(INFO)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before creating Objects")
 
     notes = [
         "C4:1", "D:1", "E:1", "F:1", "G:1", "A:1", "B:1", "C5:1",
@@ -76,4 +82,10 @@ if __name__ == '__main__':
             buzzer_controller.off()
 
 
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
     runner.run(callback)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After running Runner")
