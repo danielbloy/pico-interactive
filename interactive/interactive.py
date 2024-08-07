@@ -70,7 +70,7 @@ class Interactive:
 
     def __init__(self, config: Config):
         if REPORT_RAM:
-            report_memory_usage("Interactive constructor() start")
+            report_memory_usage("Interactive.__init__() start")
 
         self.config = config
         self.runner = Runner()
@@ -128,7 +128,7 @@ class Interactive:
         gc.collect()
 
         if REPORT_RAM:
-            report_memory_usage("Interactive constructor() finish")
+            report_memory_usage("Interactive.__init__() finish")
 
     @property
     def cancel(self) -> bool:

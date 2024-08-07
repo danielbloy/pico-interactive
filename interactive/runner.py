@@ -1,11 +1,12 @@
 import asyncio
 
-from interactive.configuration import REPORT_RAM
+from interactive.configuration import REPORT_RAM, REPORT_RAM_PERIOD
 from interactive.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY, SCHEDULER_INTERNAL_LOOP_RATIO
 from interactive.environment import is_running_on_desktop
 from interactive.log import debug, info, warn, error, stacktrace
 from interactive.memory import report_memory_usage
-from interactive.scheduler import new_scheduled_task, terminate_on_cancel, new_loop_task
+from interactive.scheduler import new_scheduled_task, terminate_on_cancel, new_loop_task, new_triggered_task, \
+    TriggerableAlwaysOn
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
@@ -20,7 +21,7 @@ async def empty_callback() -> None:
 
 
 async def report_memory() -> None:
-    report_memory_usage("Runner run()")
+    report_memory_usage("Runner.run()")
 
 
 class Runner:
@@ -109,13 +110,15 @@ class Runner:
 
         :param callback: This is called once every cycle based on the callback frequency.
         """
-
         tasks: list[asyncio.Task] = [
             asyncio.create_task(self.__new_task_handler(task)()) for task in self.__tasks_to_run]
 
         if REPORT_RAM:
-            tasks.append(
-                new_scheduled_task(report_memory, terminate_on_cancel(self), 1 / 5)())
+            triggerable = TriggerableAlwaysOn()
+            report_ram_task = (
+                new_triggered_task(triggerable, REPORT_RAM_PERIOD, start=report_memory,
+                                   cancel_func=terminate_on_cancel(self)))
+            tasks.append(asyncio.create_task(report_ram_task()))
 
         try:
             await asyncio.gather(

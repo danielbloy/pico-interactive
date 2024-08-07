@@ -1,4 +1,5 @@
-# This file contains common control values.
+# This file contains common control values that are "hard-coded" and not expected
+# to be changed by configuration.
 
 NS_PER_SECOND = 1_000_000_000
 

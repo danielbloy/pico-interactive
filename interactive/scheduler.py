@@ -92,6 +92,18 @@ class Triggerable:
         self.triggered = False
 
 
+class TriggerableAlwaysOn:
+    """Trivial implementation for a triggerable object that is always triggered."""
+
+    @property
+    def triggered(self):
+        return True
+
+    @triggered.setter
+    def triggered(self, value):
+        pass
+
+
 def new_triggered_task(
         triggerable,
         duration: float,

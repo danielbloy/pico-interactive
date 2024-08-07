@@ -1,12 +1,17 @@
 # This file is used to setup the default configuration for a typical node.
 # Using it removes some boilerplate from the node code. It also sets up
-# the logging level.
+# the logging level. The values in here are expected can be overridden
+# through settings in a config.py file.
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, INFO
 from interactive.memory import report_memory_usage
 
 REPORT_RAM = False
+REPORT_RAM_PERIOD = 5  # This is the period in seconds between each report.
+
+GARBAGE_COLLECT = False
+GARBAGE_COLLECT_PERIOD = 10  # This is the period in seconds between each forced execution of the garbage collector.
 
 LOG_LEVEL = INFO
 

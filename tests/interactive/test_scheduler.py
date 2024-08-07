@@ -5,7 +5,7 @@ import pytest
 
 from interactive.control import SCHEDULER_DEFAULT_FREQUENCY, ASYNC_LOOP_SLEEP_INTERVAL
 from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task, \
-    new_triggered_task, Triggerable
+    new_triggered_task, Triggerable, TriggerableAlwaysOn
 
 
 class Cancellable:
@@ -69,6 +69,20 @@ class TestScheduler:
 
         cancellable.cancel = True
         assert fn()
+
+    def test_triggerable_always_on_always_returns_true(self) -> None:
+        """
+        Validates that the TriggerableAlwaysOn class always returns True
+        for triggered.
+        """
+        triggerable = TriggerableAlwaysOn()
+        assert triggerable.triggered
+
+        triggerable.triggered = True
+        assert triggerable.triggered
+
+        triggerable.triggered = False
+        assert triggerable.triggered
 
     def test_task_never_called(self) -> None:
         """
