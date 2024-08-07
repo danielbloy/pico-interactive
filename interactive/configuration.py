@@ -34,7 +34,7 @@ if are_pins_available():
     # Default settings
     BUTTON_PIN = board.GP27
     BUZZER_PIN = board.GP2
-    AUDIO_PIN = board.GP12
+    AUDIO_PIN = board.GP26
     ULTRASONIC_TRIGGER_PIN = board.GP7
     ULTRASONIC_ECHO_PIN = board.GP6
 

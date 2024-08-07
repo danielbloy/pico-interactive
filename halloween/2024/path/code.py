@@ -5,6 +5,7 @@ import asyncio
 import board
 
 from interactive.animation import Flicker
+from interactive.interactive import Interactive
 from interactive.log import info
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
@@ -13,9 +14,7 @@ SKULL_BRIGHTNESS = 1.0
 SKULL_OFF = 0.0
 SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
-# SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
-# GP12 eliminated to test audio
-SKULL_PINS = [board.GP10, board.GP11, board.GP13, board.GP14, board.GP15]
+SKULL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
 
 # Perform import of configuration here to allow for overrides from the config file.
 from interactive.configuration import *
@@ -69,11 +68,7 @@ async def test_task_2() -> None:
     info("End test task 2")
 
 
-config = get_node_config()
-config.trigger_start = start_display
-config.trigger_run = run_display
-config.trigger_stop = stop_display
-
+config = get_node_config(button=False, buzzer=False, ultrasonic=False)
 interactive = Interactive(config)
 
 

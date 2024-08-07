@@ -27,7 +27,7 @@ def report_memory_usage_and_free(msg: str):
 # * TODO: Delete large variables using: del <large_variable>
 # * TODO: Examine where lists and dictionaries are used as they can grow slowly
 # * TODO: Examine all uses of strings
-# * TODO: Repeat all tests below with 60 second run time
+# * TODO: Repeat tests with actual nodes to check they fit within memory bounds.
 
 # Memory usage results after running each of the on_device validate scripts:
 #
@@ -130,21 +130,6 @@ def report_memory_usage_and_free(msg: str):
 #    HEAP: Allocated: 35824 bytes, Free: 89552 bytes
 #    MEMORY USAGE: After running Runner before gc
 #    HEAP: Allocated: 39712 bytes, Free: 85664 bytes
-#    MEMORY USAGE: After running Runner after gc
-#    HEAP: Allocated: 38928 bytes, Free: 86448 bytes
-#
-#    60 second run:
-#    Running on a microcontroller. Pins are available.
-#    MEMORY USAGE: Before creating Objects before gc
-#    HEAP: Allocated: 34528 bytes, Free: 90848 bytes
-#    MEMORY USAGE: Before creating Objects after gc
-#    HEAP: Allocated: 34512 bytes, Free: 90864 bytes
-#    MEMORY USAGE: Before running Runner before gc
-#    HEAP: Allocated: 36240 bytes, Free: 89136 bytes
-#    MEMORY USAGE: Before running Runner after gc
-#    HEAP: Allocated: 35824 bytes, Free: 89552 bytes
-#    MEMORY USAGE: After running Runner before gc
-#    HEAP: Allocated: 62544 bytes, Free: 62832 bytes
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 38928 bytes, Free: 86448 bytes
 #

@@ -5,7 +5,7 @@ from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
 from interactive.configuration import Config
 from interactive.environment import is_running_on_desktop
-from interactive.log import info, INFO, debug
+from interactive.log import critical, info, debug, CRITICAL
 from interactive.memory import report_memory_usage, report_memory_usage_and_free
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
@@ -122,8 +122,8 @@ class Interactive:
         self.runner.cancel = cancel
 
     def run(self, callback: Callable[[], Awaitable[None]] = None) -> None:
-        info('Running with config:')
-        self.config.log(INFO)
+        critical('Running with config:')
+        self.config.log(CRITICAL)
         self.runner.run(callback)
 
     async def __cancel_operations(self) -> None:

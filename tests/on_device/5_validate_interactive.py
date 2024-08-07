@@ -1,5 +1,6 @@
 import time
 
+from interactive.configuration import Config
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     except ImportError:
         info("No config file was found")
 
-    config = Interactive.Config()
+    config = Config()
     config.buzzer_pin = BUZZER_PIN
     config.button_pin = BUTTON_PIN
     config.buzzer_volume = BUZZER_VOLUME
