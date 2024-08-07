@@ -3,9 +3,9 @@ import gc
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
-from interactive.configuration import REPORT_RAM, REPORT_RAM_PERIOD, GARBAGE_COLLECT, GARBAGE_COLLECT_PERIOD
+from interactive.configuration import Config
 from interactive.environment import is_running_on_desktop
-from interactive.log import info, INFO, debug, log
+from interactive.log import info, INFO, debug
 from interactive.memory import report_memory_usage, report_memory_usage_and_free
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
@@ -28,48 +28,9 @@ class Interactive:
     valid properties are provided. This allows a large range of boards to be supported.
     """
 
-    class Config:
-        """
-        Holds the configuration settings required for constructing an instance of
-        Interactive.
-        """
-
-        def __init__(self):
-            self.button_pin = None
-            self.buzzer_pin = None
-            self.buzzer_volume = 1.0
-            self.audio_pin = None
-            self.ultrasonic_trigger_pin = None
-            self.ultrasonic_echo_pin = None
-            self.trigger_distance = 9999
-            self.trigger_duration = 0
-            self.trigger_start = None
-            self.trigger_run = None
-            self.trigger_stop = None
-
-        def __str__(self):
-            return f"""  
-              Button: 
-                Pin ............... : {self.button_pin}
-              Buzzer: 
-                Pin ............... : {self.buzzer_pin}
-                Volume ............ : {self.buzzer_volume}
-              Audio:
-                Pin ............... : {self.audio_pin}
-              Ultrasonic Sensor:
-                Trigger ........... : {self.ultrasonic_trigger_pin}
-                Echo .............. : {self.ultrasonic_echo_pin}
-              Trigger:
-                Distance .......... : {self.trigger_distance} cm
-                Duration .......... : {self.trigger_duration} seconds
-              """
-
-        def log(self, level):
-            for s in self.__str__().split('\n'):
-                log(level, s)
-
     def __init__(self, config: Config):
-        if REPORT_RAM:
+
+        if config.report_ram:
             report_memory_usage("Interactive.__init__() start")
 
         self.config = config
@@ -125,30 +86,32 @@ class Interactive:
                 stop=self.config.trigger_stop)
             self.runner.add_loop_task(trigger_loop)
 
-        if REPORT_RAM:
+        if self.config.report_ram:
             async def report_memory() -> None:
                 report_memory_usage("Interactive.report_memory()")
 
             triggerable = TriggerableAlwaysOn()
             report_memory_task = (
                 new_triggered_task(
-                    triggerable, REPORT_RAM_PERIOD, start=report_memory, cancel_func=terminate_on_cancel(self)))
+                    triggerable, self.config.report_ram_period, start=report_memory,
+                    cancel_func=terminate_on_cancel(self)))
             self.runner.add_task(report_memory_task)
 
-        if GARBAGE_COLLECT:
+        if self.config.garbage_collect:
             async def garbage_collect() -> None:
                 report_memory_usage_and_free("Interactive.garbage_collect()")
 
             triggerable = TriggerableAlwaysOn()
             garbage_collect_task = (
                 new_triggered_task(
-                    triggerable, GARBAGE_COLLECT_PERIOD, stop=garbage_collect, cancel_func=terminate_on_cancel(self)))
+                    triggerable, self.config.garbage_collect_period, stop=garbage_collect,
+                    cancel_func=terminate_on_cancel(self)))
             self.runner.add_task(garbage_collect_task)
 
         gc.collect()
 
-        if REPORT_RAM:
-            report_memory_usage("Interactive.__init__() finish")
+        if self.config.report_ram:
+            report_memory_usage("Interactive.__init__() start")
 
     @property
     def cancel(self) -> bool:

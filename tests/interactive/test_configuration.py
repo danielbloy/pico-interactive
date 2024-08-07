@@ -1,5 +1,5 @@
 from interactive import configuration
-from interactive.interactive import Interactive
+from interactive.configuration import Config
 
 
 class TestNode:
@@ -36,7 +36,7 @@ class TestNode:
         configuration.TRIGGER_DURATION = "trigger_duration"
 
         try:
-            defaults = Interactive.Config()
+            defaults = Config()
 
             config = configuration.get_node_config(button=False)
             assert config.button_pin == defaults.button_pin
