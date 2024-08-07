@@ -3,16 +3,16 @@ import gc
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.buzzer import BuzzerController
-from interactive.configuration import REPORT_RAM
+from interactive.configuration import REPORT_RAM, REPORT_RAM_PERIOD, GARBAGE_COLLECT, GARBAGE_COLLECT_PERIOD
 from interactive.environment import is_running_on_desktop
 from interactive.log import info, INFO, debug, log
-from interactive.memory import report_memory_usage
+from interactive.memory import report_memory_usage, report_memory_usage_and_free
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
-from interactive.scheduler import new_triggered_task, Triggerable
+from interactive.scheduler import new_triggered_task, Triggerable, TriggerableAlwaysOn, terminate_on_cancel
 from interactive.ultrasonic import UltrasonicController
 
 if is_running_on_desktop():
@@ -124,6 +124,26 @@ class Interactive:
                 run=self.config.trigger_run,
                 stop=self.config.trigger_stop)
             self.runner.add_loop_task(trigger_loop)
+
+        if REPORT_RAM:
+            async def report_memory() -> None:
+                report_memory_usage("Interactive.report_memory()")
+
+            triggerable = TriggerableAlwaysOn()
+            report_memory_task = (
+                new_triggered_task(
+                    triggerable, REPORT_RAM_PERIOD, start=report_memory, cancel_func=terminate_on_cancel(self)))
+            self.runner.add_task(report_memory_task)
+
+        if GARBAGE_COLLECT:
+            async def garbage_collect() -> None:
+                report_memory_usage_and_free("Interactive.garbage_collect()")
+
+            triggerable = TriggerableAlwaysOn()
+            garbage_collect_task = (
+                new_triggered_task(
+                    triggerable, GARBAGE_COLLECT_PERIOD, stop=garbage_collect, cancel_func=terminate_on_cancel(self)))
+            self.runner.add_task(garbage_collect_task)
 
         gc.collect()
 
