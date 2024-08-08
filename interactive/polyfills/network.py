@@ -10,8 +10,11 @@ if are_pins_available():
 
     # Connect to the WiFi and setup requests
     wifi.radio.connect(os.getenv('CIRCUITPY_WIFI_SSID'), os.getenv('CIRCUITPY_WIFI_PASSWORD'))
+    print("Connected to WiFi")
 
     pool = socketpool.SocketPool(wifi.radio)
+    print("IP address: ", wifi.radio.ipv4_address)
+
     requests = adafruit_requests.Session(pool, ssl.create_default_context())
 else:
     import requests
