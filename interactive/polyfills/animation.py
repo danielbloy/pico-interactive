@@ -75,6 +75,20 @@ if are_pins_available():
         rainbowComet: RainbowComet
         rainbowSparkle: RainbowSparkle
         sparkle: Sparkle
+        del animation
+        del animateOnce
+        del animationSequence
+        del blink
+        del chase
+        del colorCycle
+        del comet
+        del pulse
+        del rainbow
+        del rainbowChase
+        del rainbowComet
+        del rainbowSparkle
+        del sparkle
+
 
 
 else:
