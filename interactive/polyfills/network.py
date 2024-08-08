@@ -3,6 +3,10 @@ import ssl
 
 from interactive.environment import are_pins_available
 
+# TODO: From this example: https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
+# Look to support setting of IP Address.
+
+
 if are_pins_available():
     import wifi
     import socketpool
