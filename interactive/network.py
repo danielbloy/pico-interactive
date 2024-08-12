@@ -19,12 +19,10 @@ class NetworkController:
     def __init__(self, server):
         pass
         # TODO: Setup standard handlers for built-in messages.
-        # TODO: Connect to network
+        # Connect to network: This is done automatically by polyfills/network.py
         # TODO: Setup a server
         # TODO: Register with coordinator.
         ## TODO: Register with coordinator here or later?
-
-        server = Server(pool, "/static", debug=True)
 
     def send_message(self, node=None):
         """
