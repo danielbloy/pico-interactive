@@ -3,6 +3,7 @@ import ssl
 
 from interactive.environment import are_pins_available
 
+# TODO: See here: https://docs.circuitpython.org/projects/httpserver/en/latest/index.html
 # TODO: From this example: https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
 # Look to support setting of IP Address.
 # https://learn.adafruit.com/pico-w-wifi-with-circuitpython/pico-w-json-feed-openweathermap
