@@ -62,6 +62,7 @@ class Config:
         self.report_ram_period = 9999
         self.garbage_collect = False
         self.garbage_collect_period = 9999
+        self.network = False
         self.button_pin = None
         self.buzzer_pin = None
         self.buzzer_volume = 1.0
@@ -81,7 +82,9 @@ class Config:
             Period ............ : {self.report_ram_period} seconds
           Garbage Collection:
             Force ............. : {self.garbage_collect}
-            Period ............ : {self.garbage_collect_period} seconds  
+            Period ............ : {self.garbage_collect_period} seconds
+          Network:
+            Enabled ........... : {self.network}
           Button: 
             Pin ............... : {self.button_pin}
           Buzzer: 
