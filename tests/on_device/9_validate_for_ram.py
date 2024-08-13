@@ -10,8 +10,13 @@ REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
 
+BUZZER_PIN = None
+
 AUDIO_PIN = None
 AUDIO_FILE = "dragon.mp3"
+
+ULTRASONIC_TRIGGER_PIN = None
+ULTRASONIC_ECHO_PIN = None
 
 # Default settings
 if are_pins_available():
@@ -20,7 +25,12 @@ if are_pins_available():
 
     BUTTON_PIN = board.GP27
 
+    BUZZER_PIN = board.GP2
+
     AUDIO_PIN = board.GP3
+
+    ULTRASONIC_TRIGGER_PIN = board.GP7
+    ULTRASONIC_ECHO_PIN = board.GP6
 
 if __name__ == '__main__':
 
@@ -42,7 +52,10 @@ if __name__ == '__main__':
     config = Config()
     config.network = True
     config.button_pin = BUTTON_PIN
+    config.buzzer_pin = BUZZER_PIN
     config.audio_pin = AUDIO_PIN
+    config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
+    config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
 
     interactive = Interactive(config)
 
