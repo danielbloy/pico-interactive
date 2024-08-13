@@ -1,6 +1,8 @@
 # TODO: Add network to Interactive
-from interactive.runner import Runner
+from adafruit_httpserver import Request, Response, Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT
 
+from interactive.log import error
+from interactive.runner import Runner
 
 # TODO: All messages as JSON
 # TODO: Receive<msg>: Handler for receiving message
@@ -10,6 +12,21 @@ from interactive.runner import Runner
 # TODO: Inspect/Status message
 # TODO: Reset and other standard messages.
 
+HEADER_SENDER = 'Sender'  # Address of sender sending the message.
+HEADER_HOST = 'Host'  # Address this message is being sent to (i.e. us).
+HEADER_NAME = 'Name'  # Name of the sender.
+HEADER_ROLE = 'Role'  # Role of the sender.
+HEADER_DATA = 'Data'  # Data from the sender.
+
+
+# @server.route("/")
+def base(request: Request):
+    """
+    Serve a default static plain text message.
+    """
+
+    return Response(request, "Hello from the CircuitPython HTTP Server!")
+
 
 class NetworkController:
     """
@@ -17,12 +34,37 @@ class NetworkController:
     """
 
     def __init__(self, server):
-        pass
+
+        if server is None:
+            raise ValueError("server cannot be None")
+
+        if not isinstance(server, Server):
+            raise ValueError("server must be of type Server")
+
+        self.__runner = None
+        self.server = server
+
         # TODO: Setup standard handlers for built-in messages.
-        # Connect to network: This is done automatically by polyfills/network.py
-        # TODO: Setup a server
+        server.headers = {
+            HEADER_SENDER: 'TODO',
+            HEADER_HOST: 'TODO',
+            HEADER_NAME: 'TODO',
+            HEADER_ROLE: 'TODO',
+            HEADER_DATA: 'TODO',
+        }
+
+        # TODO: Add more routes.
+        server.add_routes([
+            Route("/help", GET, base),
+        ])
+
+        # TODO: Make the host and port configurable.
+        server.socket_timeout = 1
+        if server.stopped:
+            server.start(host="127.0.0.1", port=5001)
+
         # TODO: Register with coordinator.
-        ## TODO: Register with coordinator here or later?
+        # TODO: Register with coordinator here or later?
 
     def send_message(self, node=None):
         """
@@ -55,7 +97,32 @@ class NetworkController:
 
     def register(self, runner: Runner) -> None:
         """
-        TODO
+        Registers this NetworkController instance as a task with the provided Runner.
+
+        :param runner: the runner to register with.
         """
         # TODO: Setup loop to periodically send a heartbeat message to the coordinator.
-        pass
+
+        self.__runner = runner
+        runner.add_loop_task(self.__loop)
+
+    async def __loop(self):
+        """
+        The internal loop checks for songs in the queue and plays them if
+        nothing is playing.
+        """
+        if self.__runner.cancel:
+            if not self.server.stopped:
+                self.server.stop()
+            return
+
+        try:
+            # Process any waiting requests
+            pool_result = self.server.poll()
+
+            if pool_result == REQUEST_HANDLED_RESPONSE_SENT:
+                # Do something only after handling a request
+                pass
+
+        except OSError as err:
+            error("BOO" + str(err))

@@ -1,25 +1,18 @@
-# TODO: See here: https://docs.circuitpython.org/projects/httpserver/en/latest/index.html
-# TODO: From this example: https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
-# Look to support setting of IP Address.
-# https://learn.adafruit.com/pico-w-wifi-with-circuitpython/pico-w-json-feed-openweathermap
+# HTTPServer Library documentation: https://docs.circuitpython.org/projects/httpserver/en/latest/index.html
+# API Documentation: https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
+#
+# Examples of using HTTPServer:
+#  * https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
+#  * https://learn.adafruit.com/pico-w-wifi-with-circuitpython/pico-w-json-feed-openweathermap
+#
+# TODO: Convert to an async HTTPServer: https://gist.github.com/anecdata/3fb29aec1279318727e1df9857a010d3
 
 import os
 import ssl
 
-from adafruit_httpserver import Server, Request, Response
+from adafruit_httpserver import Server
 
 from interactive.environment import are_pins_available
-
-
-def __hide() -> None:
-    """This is not expected to be needed but stops PyCharm removing the import"""
-    server: Server
-    request: Request
-    response: Response
-    del server
-    del request
-    del response
-
 
 if are_pins_available():
     import wifi
@@ -55,5 +48,5 @@ else:
     pool = socket
 
 
-def new_server() -> Server:
-    return Server(pool, "/static", debug=True)
+def new_server(debug: bool = False) -> Server:
+    return Server(pool, debug=debug)
