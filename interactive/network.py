@@ -1,6 +1,7 @@
 # TODO: Add network to Interactive
 from adafruit_httpserver import Request, Response, Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT
 
+from interactive.environment import is_running_on_microcontroller
 from interactive.log import error
 from interactive.runner import Runner
 
@@ -58,10 +59,13 @@ class NetworkController:
             Route("/help", GET, base),
         ])
 
-        # TODO: Make the host and port configurable.
         server.socket_timeout = 1
         if server.stopped:
-            server.start(host="127.0.0.1", port=5001)
+            if is_running_on_microcontroller():
+                server.start(port=80)
+            else:
+                # TODO: Make the host and port configurable on desktop
+                server.start(host="127.0.0.1", port=5001)
 
         # TODO: Register with coordinator.
         # TODO: Register with coordinator here or later?

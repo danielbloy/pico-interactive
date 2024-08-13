@@ -29,7 +29,7 @@ if are_pins_available():
     #  connect to your SSID
 
     # Connect to the WiFi and setup requests
-    wifi.radio.connect(os.getenv('CIRCUITPY_WIFI_SSID'), os.getenv('CIRCUITPY_WIFI_PASSWORD'))
+    wifi.radio.connect(os.getenv('WIFI_SSID'), os.getenv('WIFI_PASSWORD'))
     print("Connected to WiFi")
 
     pool = socketpool.SocketPool(wifi.radio)
