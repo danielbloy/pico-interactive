@@ -105,11 +105,13 @@ class Config:
             log(level, s)
 
 
-def get_node_config(button=True, buzzer=True, audio=True, ultrasonic=True) -> Config:
+def get_node_config(network=False, button=True, buzzer=True, audio=True, ultrasonic=True) -> Config:
     if REPORT_RAM:
         report_memory_usage("get_node_config")
 
     config = Config()
+
+    config.network = network
 
     if REPORT_RAM:
         config.report_ram = True
