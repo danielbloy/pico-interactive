@@ -29,6 +29,16 @@ def report_memory_usage_and_free(msg: str):
 # * TODO: Examine all uses of strings
 # * TODO: Repeat tests with actual nodes to check they fit within memory bounds.
 
+# Very, very rough results (from before running Runner, before gc):
+#  * Runner ....... : 24 Kb
+#  * Button ....... : 31 Kb, uses about 7kb
+#  * Buzzer ....... : 40 Kb, uses about 9kb
+#  * Animations ... : 92 Kb, uses about 31 Kb
+#  * Interactive .. : 42 Kb, uses about 2 Kb
+#  * Ultrasonic ... : 36 Kb, uses about 5 Kb
+#  * Audio ........ : 86 Kb, uses about 35 Kb
+#  * Network ...... : ??
+
 # Memory usage results after running each of the on_device validate scripts:
 #
 # 1 - Runner:

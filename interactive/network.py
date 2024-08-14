@@ -1,12 +1,13 @@
 # TODO: Add network to Interactive
 from urllib.request import Request
 
-from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse
+from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
+    POST
 
+import interactive.polyfills.cpu as cpu
 from interactive import configuration
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error
-from interactive.polyfills.cpu import cpu_info
 from interactive.runner import Runner
 
 # TODO: All messages as JSON
@@ -16,6 +17,8 @@ from interactive.runner import Runner
 # TODO: Blink messages
 # TODO: Inspect/Status message
 # TODO: Reset and other standard messages.
+
+YES = "YES"
 
 HEADER_SENDER = 'Sender'  # Address of sender sending the message.
 HEADER_NAME = 'Name'  # Name of the sender.
@@ -50,13 +53,18 @@ class NetworkController:
             # Route("/index.html", GET, index), TODO Test
             Route("/cpu-information", GET, cpu_information, append_slash=True),
             Route("/inspect", GET, inspect, append_slash=True),
-            Route("/register", GET, register, append_slash=True),
-            Route("/unregister", GET, unregister, append_slash=True),
+            Route("/register", GET, register_with_coordinator, append_slash=True),
+            Route("/unregister", GET, unregister_from_coordinator, append_slash=True),
+            Route("/register", POST, register, append_slash=True),
+            Route("/unregister", POST, unregister, append_slash=True),
             Route("/restart", GET, restart, append_slash=True),
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
             Route("/role", GET, role, append_slash=True),
+            # TODO: Heartbeat
+            # TODO: Lookup
             # TODO: Blink
+            # TODO: Led on and off
         ])
 
         server.socket_timeout = 1
@@ -144,34 +152,74 @@ def index(request: Request):
 
 def cpu_information(request: Request):
     """
-    Return the current CPU temperature, frequency, and voltage as JSON.
+    Return the current CPU temperature, frequency, voltage, RAM and various
+    other information items as JSON.
     """
-    return JSONResponse(request, cpu_info())
+    return JSONResponse(request, cpu.info())
 
 
 def inspect(request: Request):
     return Response(request, "TODO")
 
 
+def register_with_coordinator(request: Request):
+    """
+    Register this node with the coordinator.
+    """
+    return Response(request, "TODO")
+
+
+def unregister_from_coordinator(request: Request):
+    """
+    Unregister this node from the coordinator.
+    """
+    return Response(request, "TODO")
+
+
 def register(request: Request):
+    """
+    Another node wants to register with us.
+    """
     return Response(request, "TODO")
 
 
 def unregister(request: Request):
+    """
+    Another node wants to unregister from us.
+    """
     return Response(request, "TODO")
 
 
 def restart(request: Request):
-    return Response(request, "TODO")
+    """
+    Restarts the microcontroller.
+    """
+    import asyncio
+
+    async def restart_node(seconds):
+        await asyncio.sleep(seconds)
+        cpu.restart()
+
+    asyncio.create_task(restart_node(5))
+    return Response(request, YES)
 
 
 def alive(request: Request):
-    return Response(request, "Yes")
+    """
+    Simply returns YES in response to an alive message.
+    """
+    return Response(request, YES)
 
 
 def name(request: Request):
+    """
+    Returns the name of the node.
+    """
     return Response(request, configuration.NODE_NAME)
 
 
 def role(request: Request):
+    """
+    Returns the role of the node.
+    """
     return Response(request, configuration.NODE_ROLE)
