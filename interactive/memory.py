@@ -31,7 +31,7 @@ def report_memory_usage_and_free(msg: str):
 
 # Memory usage results after running each of the on_device validate scripts:
 #
-# 1 - Framework:
+# 1 - Runner:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -48,7 +48,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 27184 bytes, Free: 98192 bytes
 #
-# 2 - Button:
+# 2 - Runner + Button:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -65,7 +65,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 33600 bytes, Free: 91776 bytes
 #
-# 3 - Buzzer:
+# 3 - Runner + Button + Buzzer:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -82,7 +82,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 41968 bytes, Free: 83408 bytes
 #
-# 4 - Animations (LEDs not NeoPixels):
+# 4 - Runner + Button + Animations (on LEDs not NeoPixels):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -99,7 +99,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 89728 bytes, Free: 34400 bytes
 #
-# 5 - Interactive (the only test to use Interactive):
+# 5 - Interactive (Runner + Button + Buzzer):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -116,7 +116,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 45856 bytes, Free: 79520 bytes
 #
-# 6 - Ultrasonic:
+# 6 - Runner + Button + Ultrasonic:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -133,7 +133,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 38928 bytes, Free: 86448 bytes
 #
-# 7 - Audio:
+# 7 - Runner + Button + Audio:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
