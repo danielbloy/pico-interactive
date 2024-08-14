@@ -37,7 +37,7 @@ def report_memory_usage_and_free(msg: str):
 #  * Interactive .. : 42 Kb, uses about 2 Kb
 #  * Ultrasonic ... : 36 Kb, uses about 5 Kb
 #  * Audio ........ : 86 Kb, uses about 35 Kb
-#  * Network ...... : ??
+#  * Network ...... : 105 Kb, uses about 74 Kb
 
 # Memory usage results after running each of the on_device validate scripts:
 #
@@ -159,4 +159,29 @@ def report_memory_usage_and_free(msg: str):
 #    HEAP: Allocated: 79648 bytes, Free: 44480 bytes
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 72048 bytes, Free: 52080 bytes
+#
+# 8 - Runner + Button + Network:
+#
+#    10 second run:
+#    Running on a microcontroller. Pins are available.
+#    Config file loaded
+#    Connected to WiFi
+#    IP address:  192.168.1.245
+#    CRITICAL - MEMORY USAGE: Before creating Objects before gc
+#    CRITICAL - HEAP: Allocated: 94320 bytes, Free: 29808 bytes
+#    CRITICAL - MEMORY USAGE: Before creating Objects after gc
+#    CRITICAL - HEAP: Allocated: 94288 bytes, Free: 29840 bytes
+#    CRITICAL - MEMORY USAGE: Before running Runner before gc
+#    CRITICAL - HEAP: Allocated: 105024 bytes, Free: 19104 bytes
+#    CRITICAL - MEMORY USAGE: Before running Runner after gc
+#    CRITICAL - HEAP: Allocated: 98304 bytes, Free: 25824 bytes
+#    INFO - Cancelling 2 tasks:
+#    INFO -   <Task>
+#    INFO -   <Task>
+#    ERROR - Caught CancelledError exception for task <closure>
+#    ERROR - Caught CancelledError exception for task <closure>
+#    CRITICAL - MEMORY USAGE: After running Runner before gc
+#    CRITICAL - HEAP: Allocated: 122704 bytes, Free: 1424 bytes
+#    CRITICAL - MEMORY USAGE: After running Runner after gc
+#    CRITICAL - HEAP: Allocated: 101488 bytes, Free: 22640 bytes
 #

@@ -11,8 +11,8 @@ if is_running_on_microcontroller():
             "temperature": microcontroller.cpu.temperature,
             "frequency": microcontroller.cpu.frequency,
             "voltage": microcontroller.cpu.voltage,
-            "heap bytes free": gc.mem_alloc(),
-            "head bytes used": gc.mem_free(),
+            "heap bytes used": gc.mem_alloc(),
+            "head bytes free": gc.mem_free(),
         }
 
 

@@ -1,9 +1,5 @@
-# TODO: Add network to Interactive
-import os
-from urllib.request import Request
-
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT
+    POST, PUT, Request
 
 import interactive.polyfills.cpu as cpu
 from interactive import configuration
@@ -145,7 +141,7 @@ def index(request: Request):
     """
     Serves the file html/index.html.
     """
-    return FileResponse(request, "index.html", os.path.join(os.path.dirname(__file__), 'html'))
+    return FileResponse(request, "index.html", 'interactive/html')
 
 
 def cpu_information(request: Request):
