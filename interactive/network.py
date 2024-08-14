@@ -1,8 +1,12 @@
 # TODO: Add network to Interactive
-from adafruit_httpserver import Request, Response, Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT
+from urllib.request import Request
 
+from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse
+
+from interactive import configuration
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error
+from interactive.polyfills.cpu import cpu_info
 from interactive.runner import Runner
 
 # TODO: All messages as JSON
@@ -14,19 +18,8 @@ from interactive.runner import Runner
 # TODO: Reset and other standard messages.
 
 HEADER_SENDER = 'Sender'  # Address of sender sending the message.
-HEADER_HOST = 'Host'  # Address this message is being sent to (i.e. us).
 HEADER_NAME = 'Name'  # Name of the sender.
 HEADER_ROLE = 'Role'  # Role of the sender.
-HEADER_DATA = 'Data'  # Data from the sender.
-
-
-# @server.route("/")
-def base(request: Request):
-    """
-    Serve a default static plain text message.
-    """
-
-    return Response(request, "Hello from the CircuitPython HTTP Server!")
 
 
 class NetworkController:
@@ -47,16 +40,23 @@ class NetworkController:
 
         # TODO: Setup standard handlers for built-in messages.
         server.headers = {
-            HEADER_SENDER: 'TODO',
-            HEADER_HOST: 'TODO',
-            HEADER_NAME: 'TODO',
-            HEADER_ROLE: 'TODO',
-            HEADER_DATA: 'TODO',
+            HEADER_SENDER: 'TODO',  # TODO: This is probably not needed.
+            HEADER_NAME: configuration.NODE_NAME,
+            HEADER_ROLE: configuration.NODE_ROLE,
         }
 
-        # TODO: Add more routes.
         server.add_routes([
-            Route("/help", GET, base),
+            Route("/", GET, index),
+            # Route("/index.html", GET, index), TODO Test
+            Route("/cpu-information", GET, cpu_information, append_slash=True),
+            Route("/inspect", GET, inspect, append_slash=True),
+            Route("/register", GET, register, append_slash=True),
+            Route("/unregister", GET, unregister, append_slash=True),
+            Route("/restart", GET, restart, append_slash=True),
+            Route("/alive", GET, alive, append_slash=True),
+            Route("/name", GET, name, append_slash=True),
+            Route("/role", GET, role, append_slash=True),
+            # TODO: Blink
         ])
 
         server.socket_timeout = 1
@@ -129,4 +129,49 @@ class NetworkController:
                 pass
 
         except OSError as err:
-            error("BOO" + str(err))
+            error(str(err))
+
+
+####################################
+# ***** H T T P    R O U T E S *****
+####################################
+def index(request: Request):
+    """
+    Serves the file html/index.html.
+    """
+    return FileResponse(request, "index.html", "/html")
+
+
+def cpu_information(request: Request):
+    """
+    Return the current CPU temperature, frequency, and voltage as JSON.
+    """
+    return JSONResponse(request, cpu_info())
+
+
+def inspect(request: Request):
+    return Response(request, "TODO")
+
+
+def register(request: Request):
+    return Response(request, "TODO")
+
+
+def unregister(request: Request):
+    return Response(request, "TODO")
+
+
+def restart(request: Request):
+    return Response(request, "TODO")
+
+
+def alive(request: Request):
+    return Response(request, "Yes")
+
+
+def name(request: Request):
+    return Response(request, configuration.NODE_NAME)
+
+
+def role(request: Request):
+    return Response(request, configuration.NODE_ROLE)

@@ -6,6 +6,9 @@ from interactive.environment import are_pins_available
 from interactive.log import set_log_level, INFO, log
 from interactive.memory import report_memory_usage
 
+NODE_NAME = "<hostname>"
+NODE_ROLE = "<host role>"
+
 REPORT_RAM = False
 REPORT_RAM_PERIOD = 5  # This is the period in seconds between each report.
 
