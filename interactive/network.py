@@ -1,8 +1,9 @@
 # TODO: Add network to Interactive
+import os
 from urllib.request import Request
 
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST
+    POST, PUT
 
 import interactive.polyfills.cpu as cpu
 from interactive import configuration
@@ -41,22 +42,19 @@ class NetworkController:
         self.__runner = None
         self.server = server
 
-        # TODO: Setup standard handlers for built-in messages.
         server.headers = {
-            HEADER_SENDER: 'TODO',  # TODO: This is probably not needed.
             HEADER_NAME: configuration.NODE_NAME,
             HEADER_ROLE: configuration.NODE_ROLE,
         }
 
+        # Setup standard handlers for built-in messages.
         server.add_routes([
             Route("/", GET, index),
-            # Route("/index.html", GET, index), TODO Test
+            Route("/index.html", GET, index),
             Route("/cpu-information", GET, cpu_information, append_slash=True),
             Route("/inspect", GET, inspect, append_slash=True),
-            Route("/register", GET, register_with_coordinator, append_slash=True),
-            Route("/unregister", GET, unregister_from_coordinator, append_slash=True),
-            Route("/register", POST, register, append_slash=True),
-            Route("/unregister", POST, unregister, append_slash=True),
+            Route("/register", [GET, POST], register, append_slash=True),
+            Route("/unregister", [GET, POST], unregister, append_slash=True),
             Route("/restart", GET, restart, append_slash=True),
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
@@ -147,7 +145,7 @@ def index(request: Request):
     """
     Serves the file html/index.html.
     """
-    return FileResponse(request, "index.html", "/html")
+    return FileResponse(request, "index.html", os.path.join(os.path.dirname(__file__), 'html'))
 
 
 def cpu_information(request: Request):
@@ -159,35 +157,34 @@ def cpu_information(request: Request):
 
 
 def inspect(request: Request):
-    return Response(request, "TODO")
-
-
-def register_with_coordinator(request: Request):
     """
-    Register this node with the coordinator.
+    Return a web page of information about this node.
     """
-    return Response(request, "TODO")
-
-
-def unregister_from_coordinator(request: Request):
-    """
-    Unregister this node from the coordinator.
-    """
-    return Response(request, "TODO")
+    return Response(request, "TODO inspect")
 
 
 def register(request: Request):
     """
-    Another node wants to register with us.
+    GET: Register this node with the coordinator.
+    POST: Another node wants to register with us.
     """
-    return Response(request, "TODO")
+    if request.method == GET:
+        return Response(request, "TODO register self with coordinator")
+
+    if request.method in [POST, PUT]:
+        return Response(request, "TODO registered")
 
 
 def unregister(request: Request):
     """
-    Another node wants to unregister from us.
+    GET: Unregister this node from the coordinator.
+    POST: Another node wants to unregister from us.
     """
-    return Response(request, "TODO")
+    if request.method == GET:
+        return Response(request, "TODO unregister self from coordinator")
+
+    if request.method in [POST, PUT]:
+        return Response(request, "TODO unregistered")
 
 
 def restart(request: Request):

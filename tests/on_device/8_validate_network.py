@@ -1,5 +1,5 @@
 #
-# With debug=True, there will be lots of errors in Windows about a non-blocking operation.
+# With debug=True, there will be lots of errors in the Windows console about a non-blocking operation.
 # These are harmless but can be turned off by either disabling debug or changing:
 #   sock.setblocking(False)  # Non-blocking socket
 #
@@ -7,6 +7,22 @@
 #   sock.setblocking(True)  # Non-blocking socket
 #
 # On line 211 in adafruit_httpserver/server.py
+#
+# Sample commands to run (see this cheat sheet https://gist.github.com/subfuzion/08c5d85437d5d4f00e58):
+#  curl --verbose http://127.0.0.1:5001/
+#  curl --verbose http://127.0.0.1:5001/index.html
+#  curl --verbose http://127.0.0.1:5001/cpu-information
+#  curl --verbose http://127.0.0.1:5001/inspect
+#  curl --verbose http://127.0.0.1:5001/register
+#  curl --verbose http://127.0.0.1:5001/register -X POST -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/register -X PUT
+#  curl --verbose http://127.0.0.1:5001/unregister
+#  curl --verbose http://127.0.0.1:5001/unregister -X POST -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/unregister -X PUT
+#  curl --verbose http://127.0.0.1:5001/restart
+#  curl --verbose http://127.0.0.1:5001/alive
+#  curl --verbose http://127.0.0.1:5001/name
+#  curl --verbose http://127.0.0.1:5001/role
 #
 import time
 
