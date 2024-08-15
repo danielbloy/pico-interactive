@@ -46,6 +46,7 @@ if __name__ == '__main__':
 
     async def single_click_handler() -> None:
         critical('Single click!')
+        critical(f"Distance: {ultrasonic.distance}")
         # TODO: Send network message
 
 

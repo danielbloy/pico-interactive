@@ -6,7 +6,7 @@ from interactive.animation import Flicker
 from interactive.configuration import get_node_config
 from interactive.environment import are_pins_available
 from interactive.interactive import Interactive
-from interactive.log import set_log_level, info, INFO
+from interactive.log import set_log_level, info, INFO, critical
 from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
@@ -77,26 +77,26 @@ if __name__ == '__main__':
 
     async def start_trigger() -> None:
         interactive.audio_controller.queue(AUDIO_FILE)
-        for pixel in pixels:
-            pixel.brightness = PIXEL_BRIGHTNESS
-
-
-    async def run_trigger() -> None:
-        for animation in animations:
-            animation.animate()
+        critical("start_strigger() called")
 
 
     async def stop_trigger() -> None:
-        for pixel in pixels:
-            pixel.brightness = PIXEL_OFF
-            pixel.show()
+        critical("stop_strigger() called")
 
 
     config = get_node_config(network=True)
     config.trigger_start = start_trigger()
-    config.trigger_run = run_trigger()
     config.trigger_stop = stop_trigger()
     interactive = Interactive(config)
+
+
+    async def animate_pixels() -> None:
+        if not interactive.cancel:
+            for animation in animations:
+                animation.animate()
+
+
+    interactive.runner.add_loop_task(animate_pixels)
 
     # Allow the application to only run for a defined number of seconds.
     finish = time.monotonic() + 60

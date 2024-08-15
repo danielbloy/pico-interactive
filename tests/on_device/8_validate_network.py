@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     async def single_click_handler() -> None:
         info('Single click!')
-        # TODO: Send message
+        # TODO: Send message.
 
 
     runner = Runner()
