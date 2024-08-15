@@ -42,7 +42,7 @@ if are_pins_available():
 
     AUDIO_PIN = board.GP3
 
-    PIXELS_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
+    PIXEL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
 
 if __name__ == '__main__':
 

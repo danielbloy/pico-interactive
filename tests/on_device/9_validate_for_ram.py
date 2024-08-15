@@ -43,7 +43,7 @@ if are_pins_available():
     ULTRASONIC_TRIGGER_PIN = board.GP7
     ULTRASONIC_ECHO_PIN = board.GP6
 
-    PIXELS_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
+    PIXEL_PINS = [board.GP10, board.GP11, board.GP12, board.GP13, board.GP14, board.GP15]
 
 if __name__ == '__main__':
 
@@ -77,26 +77,33 @@ if __name__ == '__main__':
 
     async def start_trigger() -> None:
         interactive.audio_controller.queue(AUDIO_FILE)
+        for pixel in pixels:
+            pixel.brightness = PIXEL_BRIGHTNESS
+
+
+    async def run_trigger() -> None:
+        for animation in animations:
+            animation.animate()
         critical("start_strigger() called")
 
 
     async def stop_trigger() -> None:
+        for pixel in pixels:
+            pixel.brightness = PIXEL_OFF
+            pixel.show()
         critical("stop_strigger() called")
 
 
-    config = get_node_config(network=True)
-    config.trigger_start = start_trigger()
-    config.trigger_stop = stop_trigger()
+    config = get_node_config()
+    config.button_pin = BUTTON_PIN
+    config.buzzer_pin = BUZZER_PIN
+    config.audio_pin = AUDIO_PIN
+    config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
+    config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
+    config.trigger_start = start_trigger
+    config.trigger_run = run_trigger
+    config.trigger_stop = stop_trigger
     interactive = Interactive(config)
-
-
-    async def animate_pixels() -> None:
-        if not interactive.cancel:
-            for animation in animations:
-                animation.animate()
-
-
-    interactive.runner.add_loop_task(animate_pixels)
 
     # Allow the application to only run for a defined number of seconds.
     finish = time.monotonic() + 60
