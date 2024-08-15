@@ -14,7 +14,7 @@ REPORT_RAM = are_pins_available()
 BUTTON_PIN = None
 
 AUDIO_PIN = None
-AUDIO_FILE = "dragon.mp3"
+AUDIO_FILE = "lion.mp3"
 
 if are_pins_available():
     # noinspection PyPackageRequirements

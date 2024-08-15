@@ -1,19 +1,11 @@
 import gc
 
-from interactive.audio import AudioController
-from interactive.button import ButtonController
-from interactive.buzzer import BuzzerController
 from interactive.configuration import Config
 from interactive.environment import is_running_on_desktop
 from interactive.log import critical, info, debug, CRITICAL
 from interactive.memory import report_memory_usage, report_memory_usage_and_free
-from interactive.polyfills.audio import new_mp3_player
-from interactive.polyfills.button import new_button
-from interactive.polyfills.buzzer import new_buzzer
-from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable, TriggerableAlwaysOn, terminate_on_cancel
-from interactive.ultrasonic import UltrasonicController
 
 if is_running_on_desktop():
     from collections.abc import Callable, Awaitable
@@ -37,10 +29,23 @@ class Interactive:
         self.runner = Runner()
         self.runner.add_loop_task(self.__cancel_operations)
 
+        self.server = None
+        self.network_controller = None
+
+        if self.config.network:
+            from interactive.network import NetworkController
+            from interactive.polyfills.network import new_server
+            self.server = new_server()
+            self.network_controller = NetworkController(self.server)
+            self.network_controller.register(self.runner)
+
         self.button = None
         self.button_controller = None
 
         if self.config.button_pin:
+            from interactive.button import ButtonController
+            from interactive.polyfills.button import new_button
+
             self.button = new_button(self.config.button_pin)
             self.button_controller = ButtonController(self.button)
             self.button_controller.add_single_click_handler(self.__single_click_handler)
@@ -52,6 +57,8 @@ class Interactive:
         self.buzzer_controller = None
 
         if self.config.buzzer_pin:
+            from interactive.buzzer import BuzzerController
+            from interactive.polyfills.buzzer import new_buzzer
             self.buzzer = new_buzzer(self.config.buzzer_pin)
             self.buzzer.volume = self.config.buzzer_volume
             self.buzzer_controller = BuzzerController(self.buzzer)
@@ -61,6 +68,8 @@ class Interactive:
         self.audio_controller = None
 
         if self.config.audio_pin:
+            from interactive.audio import AudioController
+            from interactive.polyfills.audio import new_mp3_player
             # we need a valid tiny file to load otherwise it will error. I got this file from:
             #    https://github.com/mathiasbynens/small
             self.audio = new_mp3_player(self.config.audio_pin, "interactive/mp3.mp3")
@@ -72,6 +81,8 @@ class Interactive:
         self.triggerable = Triggerable()
 
         if self.config.ultrasonic_trigger_pin is not None and self.config.ultrasonic_echo_pin is not None:
+            from interactive.polyfills.ultrasonic import new_ultrasonic
+            from interactive.ultrasonic import UltrasonicController
             self.ultrasonic = new_ultrasonic(self.config.ultrasonic_trigger_pin, self.config.ultrasonic_echo_pin)
             self.ultrasonic_controller = UltrasonicController(self.ultrasonic)
             self.ultrasonic_controller.register(self.runner)

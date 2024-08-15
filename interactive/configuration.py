@@ -6,6 +6,9 @@ from interactive.environment import are_pins_available
 from interactive.log import set_log_level, INFO, log
 from interactive.memory import report_memory_usage
 
+NODE_NAME = "<hostname>"
+NODE_ROLE = "<host role>"
+
 REPORT_RAM = False
 REPORT_RAM_PERIOD = 5  # This is the period in seconds between each report.
 
@@ -62,6 +65,7 @@ class Config:
         self.report_ram_period = 9999
         self.garbage_collect = False
         self.garbage_collect_period = 9999
+        self.network = False
         self.button_pin = None
         self.buzzer_pin = None
         self.buzzer_volume = 1.0
@@ -81,7 +85,9 @@ class Config:
             Period ............ : {self.report_ram_period} seconds
           Garbage Collection:
             Force ............. : {self.garbage_collect}
-            Period ............ : {self.garbage_collect_period} seconds  
+            Period ............ : {self.garbage_collect_period} seconds
+          Network:
+            Enabled ........... : {self.network}
           Button: 
             Pin ............... : {self.button_pin}
           Buzzer: 
@@ -102,11 +108,13 @@ class Config:
             log(level, s)
 
 
-def get_node_config(button=True, buzzer=True, audio=True, ultrasonic=True) -> Config:
+def get_node_config(network=False, button=True, buzzer=True, audio=True, ultrasonic=True) -> Config:
     if REPORT_RAM:
         report_memory_usage("get_node_config")
 
     config = Config()
+
+    config.network = network
 
     if REPORT_RAM:
         config.report_ram = True

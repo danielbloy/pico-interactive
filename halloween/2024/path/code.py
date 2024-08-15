@@ -33,12 +33,6 @@ async def cancel() -> None:
         pixel.write()
 
 
-async def stop_display() -> None:
-    for pixel in pixels:
-        pixel.brightness = SKULL_OFF
-        pixel.show()
-
-
 async def start_display() -> None:
     interactive.audio_controller.queue("lion.mp3")
     for pixel in pixels:
@@ -51,6 +45,12 @@ async def start_display() -> None:
 async def run_display() -> None:
     for animation in animations:
         animation.animate()
+
+
+async def stop_display() -> None:
+    for pixel in pixels:
+        pixel.brightness = SKULL_OFF
+        pixel.show()
 
 
 async def test_task_1() -> None:
@@ -69,6 +69,10 @@ async def test_task_2() -> None:
 
 
 config = get_node_config(button=False, buzzer=False, ultrasonic=False)
+config.trigger_start = start_display()
+config.trigger_run = run_display()
+config.trigger_stop = stop_display()
+
 interactive = Interactive(config)
 
 

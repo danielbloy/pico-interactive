@@ -38,6 +38,10 @@ class TestNode:
         try:
             defaults = Config()
 
+            assert not defaults.network
+            config = configuration.get_node_config(network=True)
+            assert config.network
+
             config = configuration.get_node_config(button=False)
             assert config.button_pin == defaults.button_pin
 

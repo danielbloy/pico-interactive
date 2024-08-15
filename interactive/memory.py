@@ -29,9 +29,23 @@ def report_memory_usage_and_free(msg: str):
 # * TODO: Examine all uses of strings
 # * TODO: Repeat tests with actual nodes to check they fit within memory bounds.
 
+# Very, very rough results (from before running Runner, before gc):
+#  1 Runner ....... : 24 Kb
+#  2 Button ....... : 31 Kb, uses about 7kb
+#  3 Buzzer ....... : 40 Kb, uses about 9kb
+#  4 Animations ... : 92 Kb, uses about 31 Kb
+#  5 Interactive .. : 42 Kb, uses about 2 Kb
+#  6 Ultrasonic ... : 36 Kb, uses about 5 Kb
+#  7 Audio ........ : 86 Kb, uses about 35 Kb
+#  8 Network ...... : 105 Kb, uses about 74 Kb
+#
+# Combinations:
+#  a Runner + Button + Audio + Pixels ........ :
+#  b Runner + Button + Ultrasonic + Network .. :
+
 # Memory usage results after running each of the on_device validate scripts:
 #
-# 1 - Framework:
+# 1 - Runner:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -48,7 +62,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 27184 bytes, Free: 98192 bytes
 #
-# 2 - Button:
+# 2 - Runner + Button:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -65,7 +79,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 33600 bytes, Free: 91776 bytes
 #
-# 3 - Buzzer:
+# 3 - Runner + Button + Buzzer:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -82,7 +96,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 41968 bytes, Free: 83408 bytes
 #
-# 4 - Animations (LEDs not NeoPixels):
+# 4 - Runner + Button + Animations (on LEDs and NeoPixels):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -99,7 +113,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 89728 bytes, Free: 34400 bytes
 #
-# 5 - Interactive (the only test to use Interactive):
+# 5 - Interactive (Runner + Button + Buzzer):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -116,7 +130,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 45856 bytes, Free: 79520 bytes
 #
-# 6 - Ultrasonic:
+# 6 - Runner + Button + Ultrasonic:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -133,7 +147,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 38928 bytes, Free: 86448 bytes
 #
-# 7 - Audio:
+# 7 - Runner + Button + Audio:
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -149,4 +163,29 @@ def report_memory_usage_and_free(msg: str):
 #    HEAP: Allocated: 79648 bytes, Free: 44480 bytes
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 72048 bytes, Free: 52080 bytes
+#
+# 8 - Runner + Button + Network (full pico-interactive framework):
+#
+#    10 second run:
+#    Running on a microcontroller. Pins are available.
+#    Config file loaded
+#    Connected to WiFi
+#    IP address:  192.168.1.245
+#    CRITICAL - MEMORY USAGE: Before creating Objects before gc
+#    CRITICAL - HEAP: Allocated: 94320 bytes, Free: 29808 bytes
+#    CRITICAL - MEMORY USAGE: Before creating Objects after gc
+#    CRITICAL - HEAP: Allocated: 94288 bytes, Free: 29840 bytes
+#    CRITICAL - MEMORY USAGE: Before running Runner before gc
+#    CRITICAL - HEAP: Allocated: 105024 bytes, Free: 19104 bytes
+#    CRITICAL - MEMORY USAGE: Before running Runner after gc
+#    CRITICAL - HEAP: Allocated: 98304 bytes, Free: 25824 bytes
+#    INFO - Cancelling 2 tasks:
+#    INFO -   <Task>
+#    INFO -   <Task>
+#    ERROR - Caught CancelledError exception for task <closure>
+#    ERROR - Caught CancelledError exception for task <closure>
+#    CRITICAL - MEMORY USAGE: After running Runner before gc
+#    CRITICAL - HEAP: Allocated: 122704 bytes, Free: 1424 bytes
+#    CRITICAL - MEMORY USAGE: After running Runner after gc
+#    CRITICAL - HEAP: Allocated: 101488 bytes, Free: 22640 bytes
 #
