@@ -30,14 +30,18 @@ def report_memory_usage_and_free(msg: str):
 # * TODO: Repeat tests with actual nodes to check they fit within memory bounds.
 
 # Very, very rough results (from before running Runner, before gc):
-#  * Runner ....... : 24 Kb
-#  * Button ....... : 31 Kb, uses about 7kb
-#  * Buzzer ....... : 40 Kb, uses about 9kb
-#  * Animations ... : 92 Kb, uses about 31 Kb
-#  * Interactive .. : 42 Kb, uses about 2 Kb
-#  * Ultrasonic ... : 36 Kb, uses about 5 Kb
-#  * Audio ........ : 86 Kb, uses about 35 Kb
-#  * Network ...... : 105 Kb, uses about 74 Kb
+#  1 Runner ....... : 24 Kb
+#  2 Button ....... : 31 Kb, uses about 7kb
+#  3 Buzzer ....... : 40 Kb, uses about 9kb
+#  4 Animations ... : 92 Kb, uses about 31 Kb
+#  5 Interactive .. : 42 Kb, uses about 2 Kb
+#  6 Ultrasonic ... : 36 Kb, uses about 5 Kb
+#  7 Audio ........ : 86 Kb, uses about 35 Kb
+#  8 Network ...... : 105 Kb, uses about 74 Kb
+#
+# Combinations:
+#  a Runner + Button + Audio + Pixels ........ :
+#  b Runner + Button + Ultrasonic + Network .. :
 
 # Memory usage results after running each of the on_device validate scripts:
 #
@@ -92,7 +96,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 41968 bytes, Free: 83408 bytes
 #
-# 4 - Runner + Button + Animations (on LEDs not NeoPixels):
+# 4 - Runner + Button + Animations (on LEDs and NeoPixels):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.
@@ -160,7 +164,7 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 72048 bytes, Free: 52080 bytes
 #
-# 8 - Runner + Button + Network:
+# 8 - Runner + Button + Network (full pico-interactive framework):
 #
 #    10 second run:
 #    Running on a microcontroller. Pins are available.

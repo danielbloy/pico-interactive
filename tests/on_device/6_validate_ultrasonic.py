@@ -12,6 +12,7 @@ from interactive.ultrasonic import UltrasonicController
 REPORT_RAM = are_pins_available()
 
 BUTTON_PIN = None
+
 ULTRASONIC_TRIGGER_PIN = None
 ULTRASONIC_ECHO_PIN = None
 
@@ -20,6 +21,7 @@ if are_pins_available():
     import board
 
     BUTTON_PIN = board.GP27
+
     ULTRASONIC_TRIGGER_PIN = board.GP7
     ULTRASONIC_ECHO_PIN = board.GP6
 
