@@ -7,17 +7,19 @@ from interactive.environment import is_running_on_microcontroller
 from interactive.log import error
 from interactive.runner import Runner
 
-# TODO: All messages as JSON
-# TODO: Receive<msg>: Handler for receiving message
-# TODO: Send<msg>: Send message, if no node specified, send to coordinator
-# TODO: Heartbeat message
-# TODO: Blink messages
-# TODO: Inspect/Status message
-# TODO: Reset and other standard messages.
+# Passing params, json etc:
+#   https://teamcity.featurespace.net/buildConfiguration/AricV3_Components_AricUiClient/13633316?hideTestsFromDependencies=false
+#
+# URL parameters:
+#   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#url-parameters-and-wildcards
+#
+# Templating of results:
+#   https://teamcity.featurespace.net/buildConfiguration/AricV3_Components_AricUiClient/13633316?hideTestsFromDependencies=false
+#
+
 
 YES = "YES"
 
-HEADER_SENDER = 'Sender'  # Address of sender sending the message.
 HEADER_NAME = 'Name'  # Name of the sender.
 HEADER_ROLE = 'Role'  # Role of the sender.
 
@@ -55,10 +57,10 @@ class NetworkController:
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
             Route("/role", GET, role, append_slash=True),
-            # TODO: Heartbeat
-            # TODO: Lookup
             # TODO: Blink
-            # TODO: Led on and off
+            # TODO: Led on and off: Use URL parameters
+            # TODO: Heartbeat
+            # TODO: Lookup: Use query parameter?
         ])
 
         server.socket_timeout = 1

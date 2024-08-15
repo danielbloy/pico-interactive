@@ -89,15 +89,16 @@ the end of this readme for more information about the license.
 * [x] Add Audio support
     * [x] Works on CircuitPython
     * [ ] ~~Works with Blinka-~~
-* [ ] Add Wi-Fi support
-    * [ ] Works on CircuitPython
-    * [ ] Works with Blinka
+* [x] Add Wi-Fi support
+    * [x] Works on CircuitPython
+    * [x] Works with Blinka
 * [ ] Add current time of day support via Wi-Fi
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
-* [ ] Add support for network node information page
-* [ ] Add support for network discovery via coordinator node (PC/Raspberry Pi)
-* [ ] Add support for network messaging via coordinator node (PC/Raspberry Pi)
+* [ ] Add support for network node information page: index, inspect, cpu-information
+* [ ] Add support for standard messages: alive, name, role, blink, led on/off, restart
+* [ ] Add support for network directory via coordinator node (PC/Raspberry Pi) (register/unregister, heartbeat etc.)
+* [ ] Add support for custom messages on nodes
 * [ ] Add UART support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
