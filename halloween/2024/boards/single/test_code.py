@@ -1,3 +1,8 @@
+# Test code for the single microcontroller board. Tests:
+# * Button - triggers sound when pressed
+# * Ultrasonic sensor - triggers sound when detects
+# * Audio - plays lion.mp3
+
 import time
 
 from interactive.audio import AudioController
