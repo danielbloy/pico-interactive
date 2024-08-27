@@ -88,7 +88,13 @@ the end of this readme for more information about the license.
     * [ ] ~~Works with Blinka~~
 * [x] Add Audio support
     * [x] Works on CircuitPython
-    * [ ] ~~Works with Blinka-~~
+    * [ ] ~~Works with Blinka~~
+* [ ] Add Servo support
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
+* [ ] Add Motor support
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
 * [x] Add Wi-Fi support
     * [x] Works on CircuitPython
     * [x] Works with Blinka
