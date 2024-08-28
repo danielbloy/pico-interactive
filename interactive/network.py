@@ -26,7 +26,19 @@ HEADER_ROLE = 'Role'  # Role of the sender.
 
 class NetworkController:
     """
-    TODO
+    NetworkController provides a simple abstracted method for sending and responding to
+    network messages that can be used in both CircuitPython and play old Python.
+
+    NetworkController has built in support for the basic set of messages that every
+    network connected node needs to be able to respond to.
+
+    Please note that running a network stack on a CircuitPython board uses a lot of RAM
+    so limits how much else a node can do. On a Pico, running the Pico W variant of
+    CircuitPython will consume around an extra 40Kb of RAM compared to the non-W variant
+    even if you are not using the networking functionality. This is unlikely to be an
+    issue on a Pico 2 but on the original Pico it can cause issues.
+
+    Instances of this class will need to register() with a Runner in order to work.
     """
 
     def __init__(self, server):
