@@ -72,7 +72,7 @@ class NetworkController:
             # TODO: Blink
             # TODO: Led on and off: Use URL parameters
             # TODO: Heartbeat
-            # TODO: Lookup: Use query parameter?
+            # TODO: Lookup: Use query parameter? This should be added as an additional vocabulary.
         ])
 
         server.socket_timeout = 1
