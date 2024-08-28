@@ -23,12 +23,11 @@ def report_memory_usage_and_free(msg: str):
     report_memory_usage(f"{msg} after gc")
 
 #
-# Memory optimisation:
-# * TODO: Delete large variables using: del <large_variable>
-# * TODO: Examine where lists and dictionaries are used as they can grow slowly
-# * TODO: Examine all uses of strings
-# * TODO: Repeat tests with actual nodes to check they fit within memory bounds.
-
+# Memory optimisation tips:
+# * Delete large variables using: del <large_variable>
+# * Examine where lists and dictionaries are used as they can grow slowly.
+# * Be careful with string usage as each string created requires its own space.
+#
 # Very, very rough results (from before running Runner, before gc on Pico W):
 #  1 Runner ....... : 24 Kb
 #  2 Button ....... : 31 Kb, uses about 7kb
