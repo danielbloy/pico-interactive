@@ -8,25 +8,33 @@ from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKT
     NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error, debug, info
+from interactive.polyfills.network import requests
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 
 # Passing params, json etc:
-#   https://teamcity.featurespace.net/buildConfiguration/AricV3_Components_AricUiClient/13633316?hideTestsFromDependencies=false
+#   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#form-data-parsing
+#   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#url-parameters-and-wildcards
 #
 # URL parameters:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#url-parameters-and-wildcards
 #
 # Templating of results:
-#   https://teamcity.featurespace.net/buildConfiguration/AricV3_Components_AricUiClient/13633316?hideTestsFromDependencies=false
+#   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
 
 
 NO = "NO"
 YES = "YES"
+OK = "OK"
 
 HEADER_NAME = 'Name'  # Name of the sender.
 HEADER_ROLE = 'Role'  # Role of the sender.
+
+HEADERS = {
+    HEADER_NAME: configuration.NODE_NAME,
+    HEADER_ROLE: configuration.NODE_ROLE,
+}
 
 
 class NetworkController:
@@ -57,13 +65,11 @@ class NetworkController:
         self.__runner = None
         self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
         self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
+        self.__requires_heartbeat_messages = False
 
         self.server = server
 
-        server.headers = {
-            HEADER_NAME: configuration.NODE_NAME,
-            HEADER_ROLE: configuration.NODE_ROLE,
-        }
+        server.headers = HEADERS
 
         # Setup standard handlers for built-in messages.
         server.add_routes([
@@ -89,21 +95,6 @@ class NetworkController:
                 server.start(port=NETWORK_PORT_MICROCONTROLLER)
             else:
                 server.start(host=NETWORK_HOST_DESKTOP, port=NETWORK_PORT_DESKTOP)
-
-    async def send_message(self, node=None):
-        """
-        Sends a message with the provided payload to the specified node.
-        If no node is specified then the message is sent to the coordinator.
-        """
-        # TODO: Implement
-        pass
-
-    def add_message_handler(self):
-        """
-        Registers a message handler
-        """
-        # TODO: Implement
-        pass
 
     def register(self, runner: Runner) -> None:
         """
@@ -153,11 +144,10 @@ class NetworkController:
             await self.__unregister_from_coordinator()
             return
 
-        await self.__register_with_coordinator()
+        if self.__requires_heartbeat_messages:
+            send_heartbeat_message(NODE_COORDINATOR)
 
-        # TODO: send heartbeat message.
-        # TODO: test register and unregister are sent immediately.
-        # TODO: Validate Ultrasonic still works now we have changed it from registering as a loop task.
+        await self.__register_with_coordinator()
 
     async def __register_with_coordinator(self):
         """
@@ -167,21 +157,24 @@ class NetworkController:
             debug("Nodes does not require registration, ignoring.")
             return
 
-        # TODO: Implement
-        info("Registering node with coordinator...")
+        send_register_message(NODE_COORDINATOR)
         self.__requires_register_with_coordinator = False
+        self.__requires_unregister_from_coordinator = True
+        self.__requires_heartbeat_messages = True
 
     async def __unregister_from_coordinator(self):
         """
-        Unregisters this node from the controller node.
+        Unregisters this node from the controller node. Also disables sending
+        of any heartbeat messages.
         """
         if not self.__requires_unregister_from_coordinator:
             debug("Nodes does not require un-registration, ignoring.")
             return
 
-        # TODO: Implement
-        info("Un-registering node from coordinator...")
+        send_unregister_message(NODE_COORDINATOR)
         self.__requires_unregister_from_coordinator = False
+        self.__requires_register_with_coordinator = True
+        self.__requires_heartbeat_messages = False
 
 
 ####################################
@@ -215,12 +208,11 @@ def register(request: Request):
     GET: Register this node with the coordinator.
     POST: Another node wants to register with us.
     """
-    # TODO: Implement
     if request.method == GET:
-        return Response(request, "TODO register self with coordinator")
+        return Response(request, send_register_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
-        return Response(request, "TODO registered")
+        return Response(request, receive_register_message(request))
 
 
 def unregister(request: Request):
@@ -228,12 +220,11 @@ def unregister(request: Request):
     GET: Unregister this node from the coordinator.
     POST: Another node wants to unregister from us.
     """
-    # TODO: Implement
     if request.method == GET:
-        return Response(request, "TODO unregister self from coordinator")
+        return Response(request, send_unregister_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
-        return Response(request, "TODO unregistered")
+        return Response(request, receive_unregister_message(request))
 
 
 def heartbeat(request: Request):
@@ -241,12 +232,11 @@ def heartbeat(request: Request):
     GET: Sends a heartbeat message from this node to the coordinator.
     POST: Another node has sent a heartbeat message to us.
     """
-    # TODO: Implement
     if request.method == GET:
-        return Response(request, "TODO send heartbeat message to coordinator")
+        return Response(request, send_heartbeat_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
-        return Response(request, "TODO heartbeat message received from node")
+        return Response(request, receive_heartbeat_message(request))
 
 
 def restart(request: Request):
@@ -290,3 +280,59 @@ def blink(request: Request):
     """
     # TODO: Implement blink of onboard LED.
     return Response(request, 'LED has BLINKED')
+
+
+#############################
+# ***** M E S S A G E S *****
+#############################
+
+def send_message(node):
+    """
+    Sends a message with the provided payload to the specified node.
+    """
+    response = requests.get("https://www.adafruit.com/api/quotes.php", headers=HEADERS)
+
+    print("-" * 40)
+    #  prints the response to the REPL
+    print("Text Response: ", response.text)
+    print("-" * 40)
+    response.close()
+
+    # TODO: Get headers from server.
+    # TODO
+
+
+def send_register_message(node) -> str:
+    info("Registering node with coordinator...")
+    # TODO
+    return "registered with coordinator"
+
+
+def receive_register_message(request) -> str:
+    info("Registering node...")
+    # TODO
+    return OK
+
+
+def send_unregister_message(node) -> str:
+    info("Unregistering node from coordinator...")
+    # TODO
+    return "unregistered from coordinator"
+
+
+def receive_unregister_message(request) -> str:
+    info("Unregistering node...")
+    # TODO
+    return OK
+
+
+def send_heartbeat_message(node) -> str:
+    info("Sending heartbeat message to coordinator...")
+    # TODO
+    return "heartbeat message sent to coordinator"
+
+
+def receive_heartbeat_message(request) -> str:
+    info("Received heartbeat message...")
+    # TODO
+    return "TODO heartbeat message received from node"

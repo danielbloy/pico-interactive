@@ -5,6 +5,8 @@
 #  * https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
 #  * https://learn.adafruit.com/pico-w-wifi-with-circuitpython/pico-w-json-feed-openweathermap
 #
+# Adafruit requests library
+# API Documentation: https://docs.circuitpython.org/projects/requests/en/latest/api.html
 
 import os
 import ssl
@@ -38,11 +40,18 @@ if are_pins_available():
 else:
     import socket
     import toml
+    import requests
 
     with open('settings.toml') as f:
         config = toml.load(f)
 
     pool = socket
+
+
+    def __hide() -> None:
+        """This is not expected to be needed but stops PyCharm removing the import"""
+        request: requests.Request
+        del request
 
 
 def new_server(debug: bool = False) -> Server:
