@@ -129,4 +129,4 @@ class UltrasonicController:
                 handler,
                 terminate_on_cancel(self.__runner),
                 self.__sample_frequency))
-        runner.add_loop_task(scheduled_task)
+        runner.add_task(scheduled_task)
