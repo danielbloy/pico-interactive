@@ -3,6 +3,8 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
 
 import interactive.polyfills.cpu as cpu
 from interactive import configuration
+from interactive.configuration import NODE_COORDINATOR
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error
 from interactive.runner import Runner
@@ -50,6 +52,9 @@ class NetworkController:
             raise ValueError("server must be of type Server")
 
         self.__runner = None
+        self.__requires_registration_with_coordinator == NODE_COORDINATOR is not None
+        self.__requires_unregistration_from_coordinator == NODE_COORDINATOR is not None
+
         self.server = server
 
         server.headers = {
@@ -65,28 +70,24 @@ class NetworkController:
             Route("/inspect", GET, inspect, append_slash=True),
             Route("/register", [GET, POST], register, append_slash=True),
             Route("/unregister", [GET, POST], unregister, append_slash=True),
+            # TODO Route("/heartbeat", [GET, POST], heartbeat, append_slash=True),
             Route("/restart", GET, restart, append_slash=True),
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
             Route("/role", GET, role, append_slash=True),
-            # TODO: Blink
+            # TODO Route("/blink", GET, blink, append_slash=True),
             # TODO: Led on and off: Use URL parameters
-            # TODO: Heartbeat
             # TODO: Lookup: Use query parameter? This should be added as an additional vocabulary.
         ])
 
         server.socket_timeout = 1
         if server.stopped:
             if is_running_on_microcontroller():
-                server.start(port=80)
+                server.start(port=NETWORK_PORT_MICROCONTROLLER)
             else:
-                # TODO: Make the host and port configurable on desktop
-                server.start(host="127.0.0.1", port=5001)
+                server.start(host=NETWORK_HOST_DESKTOP, port=NETWORK_PORT_DESKTOP)
 
-        # TODO: Register with coordinator.
-        # TODO: Register with coordinator here or later?
-
-    def send_message(self, node=None):
+    async def send_message(self, node=None):
         """
         Sends a message with the provided payload to the specified node.
         If no node is specified then the message is sent to the coordinator.
@@ -101,20 +102,6 @@ class NetworkController:
         # TODO: Implement
         pass
 
-    def __register_with_coordinator(self):
-        """
-        Registers this node with the controller node.
-        """
-        pass
-        # TODO: Implement
-
-    def __unregister_from_coordinator(self):
-        """
-        Unregisters this node from the controller node.
-        """
-        pass
-        # TODO: Implement
-
     def register(self, runner: Runner) -> None:
         """
         Registers this NetworkController instance as a task with the provided Runner.
@@ -122,21 +109,39 @@ class NetworkController:
         :param runner: the runner to register with.
         """
         # TODO: Setup loop to periodically send a heartbeat message to the coordinator.
-
         self.__runner = runner
         runner.add_loop_task(self.__loop)
 
+        async def heartbeat() -> None:
+            """
+            """
+            if not self.__runner.cancel:
+
+        self.__runner = runner
+        scheduled_task = (
+            new_scheduled_task(
+                handler,
+                terminate_on_cancel(self.__runner),
+                self.__sample_frequency))
+        runner.add_loop_task(scheduled_task)
+
+
     async def __loop(self):
         """
-        The internal loop checks for songs in the queue and plays them if
-        nothing is playing.
+        The internal loop checks for incoming requests as well as registering and
+        unregistering from a coordinator.
         """
         if self.__runner.cancel:
             if not self.server.stopped:
                 self.server.stop()
+
+            await self.__unregister_from_coordinator()
+
             return
 
         try:
+            await self.__register_with_coordinator()
+
             # Process any waiting requests
             pool_result = self.server.poll()
 
@@ -146,6 +151,26 @@ class NetworkController:
 
         except OSError as err:
             error(str(err))
+
+    async def __register_with_coordinator(self):
+        """
+        Registers this node with the controller node.
+        """
+        if not self.__requires_registration_with_coordinator:
+            return
+
+        # TODO: Implement
+        self.__requires_registration_with_coordinator = False
+
+    async def __unregister_from_coordinator(self):
+        """
+        Unregisters this node from the controller node.
+        """
+        if not self.__requires_unregistration_from_coordinator:
+            return
+
+        # TODO: Implement
+        self.__requires_unregistration_from_coordinator = False
 
 
 ####################################
@@ -199,7 +224,7 @@ def unregister(request: Request):
 
 def restart(request: Request):
     """
-    Restarts the microcontroller.
+    Restarts the microcontroller; does nothing on desktop.
     """
     import asyncio
 

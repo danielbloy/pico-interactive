@@ -8,6 +8,7 @@ from interactive.memory import report_memory_usage
 
 NODE_NAME = "<hostname>"
 NODE_ROLE = "<host role>"
+NODE_COORDINATOR = None  # The I.P. Address of the coordinator node.
 
 REPORT_RAM = False
 REPORT_RAM_PERIOD = 5  # This is the period in seconds between each report.
@@ -57,7 +58,7 @@ set_log_level(LOG_LEVEL)
 class Config:
     """
     Holds the configuration settings required for constructing an instance of
-    Interactive.
+    Interactive. It's here to avoid circular dependencies.
     """
 
     def __init__(self):
