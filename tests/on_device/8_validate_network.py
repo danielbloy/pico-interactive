@@ -23,6 +23,7 @@
 #  curl --verbose http://127.0.0.1:5001/alive
 #  curl --verbose http://127.0.0.1:5001/name
 #  curl --verbose http://127.0.0.1:5001/role
+#  curl --verbose http://127.0.0.1:5001/blink
 #
 import time
 

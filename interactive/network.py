@@ -84,9 +84,13 @@ class NetworkController:
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
             Route("/role", GET, role, append_slash=True),
-            Route("/blink", GET, blink, append_slash=True),
-            # TODO: Led on and off: Use URL parameters
-            # TODO: Lookup: Use query parameter? This should be added as an additional vocabulary.
+            Route("/details", GET, details, append_slash=True),
+            Route("/lookup/all", GET, lookup_all, append_slash=True),
+            Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
+            Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
+            Route("/led/blink", GET, led_blink, append_slash=True),
+            Route("/led/<state>", GET, led_state, append_slash=True),
+            # TODO: Add an example of a vocabulary to add (perhaps coordinator).
         ])
 
         server.socket_timeout = 1
@@ -274,32 +278,64 @@ def role(request: Request):
     return Response(request, configuration.NODE_ROLE)
 
 
-def blink(request: Request):
+def details(request: Request):
+    """
+    Returns details of the node as JSON.
+    """
+    return JSONResponse(request, {
+        "name": configuration.NODE_NAME,
+        "role": configuration.NODE_ROLE,
+        "coordinator": configuration.NODE_COORDINATOR
+    })
+
+
+def led_blink(request: Request):
     """
     Blinks the local LED.
     """
-    # TODO: Implement blink of onboard LED.
-    return Response(request, 'LED has BLINKED')
+    return Response(request, receive_blink_message(request))
+
+
+def led_state(request: Request, state: str):
+    """
+    Turns the LED ON or OFF.
+    """
+    return Response(request, receive_led_message(request, state.upper()))
+
+
+def lookup_all(request: Request):
+    """
+    Return all known nodes
+    """
+    # TODO
+    return Response(request, NO)
+
+
+def lookup_name(request: Request, name: str):
+    """
+    Returns all known nodes by name.
+    """
+    # TODO
+    return Response(request, NO)
+
+
+def lookup_role(request: Request, role: str):
+    """
+    Returns all known nodes by role.
+    """
+    # TODO
+    return Response(request, NO)
 
 
 #############################
 # ***** M E S S A G E S *****
 #############################
 
-def send_message(node):
+def send_message(path: str, host: str = NODE_COORDINATOR, protocol: str = "http", method="GET", data=None, json=None):
     """
-    Sends a message with the provided payload to the specified node.
+    Sends a message with the provided payload to the specified node, ensuring headers are included.
     """
-    response = requests.get("https://www.adafruit.com/api/quotes.php", headers=HEADERS)
-
-    print("-" * 40)
-    #  prints the response to the REPL
-    print("Text Response: ", response.text)
-    print("-" * 40)
-    response.close()
-
-    # TODO: Get headers from server.
-    # TODO
+    return requests.request(method, f"{protocol}://{host}/{path}", headers=HEADERS, data=data, json=json)
 
 
 def send_register_message(node) -> str:
@@ -308,7 +344,7 @@ def send_register_message(node) -> str:
     return "registered with coordinator"
 
 
-def receive_register_message(request) -> str:
+def receive_register_message(request: Request) -> str:
     info("Registering node...")
     # TODO
     return OK
@@ -320,7 +356,7 @@ def send_unregister_message(node) -> str:
     return "unregistered from coordinator"
 
 
-def receive_unregister_message(request) -> str:
+def receive_unregister_message(request: Request) -> str:
     info("Unregistering node...")
     # TODO
     return OK
@@ -332,7 +368,29 @@ def send_heartbeat_message(node) -> str:
     return "heartbeat message sent to coordinator"
 
 
-def receive_heartbeat_message(request) -> str:
+def receive_heartbeat_message(request: Request) -> str:
     info("Received heartbeat message...")
     # TODO
     return "TODO heartbeat message received from node"
+
+
+def receive_blink_message(request: Request):
+    # TODO: Implement blink of onboard LED.
+    # TODO: Remove the invocation of quotes
+    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
+        print(response.headers)
+        print(response.text)
+
+    return 'LED has blinked'
+
+
+def receive_led_message(request: Request, state: str) -> str:
+    if state == 'ON':
+        # TODO: Turn the LED on
+        pass
+    elif state == 'OFF':
+        # TODO: Turn the LED off
+        pass
+    else:
+        return f'{state} is unknown'
+    return f'LED is {state}'

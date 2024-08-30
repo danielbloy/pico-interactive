@@ -5,8 +5,11 @@
 #  * https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
 #  * https://learn.adafruit.com/pico-w-wifi-with-circuitpython/pico-w-json-feed-openweathermap
 #
-# Adafruit requests library
-# API Documentation: https://docs.circuitpython.org/projects/requests/en/latest/api.html
+# Adafruit requests library:
+#  * API Documentation: https://docs.circuitpython.org/projects/requests/en/latest/api.html
+#
+# The requests library itself:
+#  * https://requests.readthedocs.io/en/latest/user/quickstart/
 
 import os
 import ssl
