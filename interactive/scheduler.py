@@ -166,3 +166,59 @@ def new_triggered_task(
             await run()
 
     return new_loop_task(handler, cancel_func)
+
+
+class TimedEventGenerator:
+    """
+    This class is used to generate event signal that need to happen at specified times
+    after the event generator is triggered. There is no way to pause a TimedEventGenerator
+    once it is triggered, though it can be stopped.
+
+    Multiple different events can be added for the same time and will all be fired; though
+    the order those events with the same time are fired is not guaranteed.
+
+    A TimedEventGenerator can be used in conjunction with a new_triggered_task() to generate
+    the events.
+    """
+
+    def __init__(self):
+        self.__running = False
+        self.__start_time = 0
+        self.__events_to_fire = None
+        self.events = {}
+
+    def start(self):
+        if self.__running:
+            return
+
+        self.__start_time = time.monotonic()
+        self.__running = True
+
+        # TODO: Fire start event
+
+    def stop(self):
+        if not self.__running:
+            return
+
+        self.__start_time = 0
+        self.__running = False
+
+        # TODO: Fire end event.
+
+    def reset(self):
+        self.stop()
+
+    @property
+    def running(self):
+        return self.__running
+
+    def run(self):
+        if not self.running:
+            return
+
+        now = time.monotonic()
+
+        # TODO: Iterate over events to fire.
+        # TODO: If no events, del list and stop.
+
+    # TODO: Add event (time from start, eventId: int
