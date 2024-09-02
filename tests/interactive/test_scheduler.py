@@ -521,3 +521,17 @@ class TestScheduler:
         asyncio.run(trigger_task())
 
         assert start_count == 2
+
+
+class TestTriggerTimedEvents:
+    def test_write_tests(self) -> None:
+        assert False
+
+    # TODO: Test calling start multiple times. (also check running)
+    # TODO: Test calling stop when not started (also check running)
+    # TODO: Test calling stop multiple times (also check running)
+    # TODO: Test stop also resets.
+    # TODO: Test running without any events.
+    # TODO: Test running with a single event.
+    # TODO: Test running with multiple events with the same time.
+    # TODO: Test running with multiple events with different times.

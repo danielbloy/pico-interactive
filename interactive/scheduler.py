@@ -168,24 +168,33 @@ def new_triggered_task(
     return new_loop_task(handler, cancel_func)
 
 
-class TimedEventGenerator:
+class TriggerTimedEvents:
     """
-    This class is used to generate event signal that need to happen at specified times
-    after the event generator is triggered. There is no way to pause a TimedEventGenerator
-    once it is triggered, though it can be stopped.
+    This class is used to trigger events that need to happen at specified times after the
+    trigger is started. There is no way to pause a TriggerTimedEvents once it is triggered,
+    though it can be stopped/reset.
+
+    Events that are triggered are returned by the run() function. This does a simple check
+    to see how much time has elapsed since the trigger was started and return all Events
+    that have elapsed. Events are only triggered once during a "run" of the tigger.
 
     Multiple different events can be added for the same time and will all be fired; though
-    the order those events with the same time are fired is not guaranteed.
+    the order those events are returned from run() is not guaranteed.
 
-    A TimedEventGenerator can be used in conjunction with a new_triggered_task() to generate
-    the events.
+    A TriggerTimedEvents can be used in conjunction with a new_triggered_task() to generate
+    the events based on an initial trigger event.
     """
+
+    class Event:
+        def __init__(self, trigger_time: float, event: int):
+            self.trigger_time = trigger_time
+            self.event = event
 
     def __init__(self):
         self.__running = False
         self.__start_time = 0
-        self.__events_to_fire = None
-        self.events = {}
+        self.__events_remaining = None
+        self.events = []
 
     def start(self):
         if self.__running:
@@ -193,8 +202,7 @@ class TimedEventGenerator:
 
         self.__start_time = time.monotonic()
         self.__running = True
-
-        # TODO: Fire start event
+        self.__events_remaining = self.events.copy()
 
     def stop(self):
         if not self.__running:
@@ -202,8 +210,7 @@ class TimedEventGenerator:
 
         self.__start_time = 0
         self.__running = False
-
-        # TODO: Fire end event.
+        del self.__events_remaining
 
     def reset(self):
         self.stop()
@@ -212,13 +219,25 @@ class TimedEventGenerator:
     def running(self):
         return self.__running
 
-    def run(self):
+    def run(self) -> [Event]:
         if not self.running:
             return
 
+        # If all events have been exhausted then stop running
+        if self.__events_remaining is None or len(self.__events_remaining) <= 0:
+            self.stop()
+            return
+
+        # Get all items that need to be fired.
         now = time.monotonic()
+        diff = now - self.__start_time
+        events_to_fire = [event for event in self.__events_remaining if diff >= event.trigger_time]
 
-        # TODO: Iterate over events to fire.
-        # TODO: If no events, del list and stop.
+        # Remove those that have been fired
+        for event in events_to_fire:
+            self.__events_remaining.remove(event)
 
-    # TODO: Add event (time from start, eventId: int
+        return events_to_fire
+
+    def add_event(self, trigger_time: float, event: int):
+        self.events.append(self.Event(trigger_time, event))
