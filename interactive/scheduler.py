@@ -197,6 +197,12 @@ class TriggerTimedEvents:
         self.events = []
 
     def start(self):
+        """
+        Starts the trigger which will result in the timed events being
+        returned by the run() method. This method is safe to call
+        multiple times when running and will not affect the triggered
+        events whilst running.
+        """
         if self.__running:
             return
 
@@ -205,6 +211,11 @@ class TriggerTimedEvents:
         self.__events_remaining = self.events.copy()
 
     def stop(self):
+        """
+        Stops the trigger if it is running. This will cancel any events that
+        were queued up ready to be triggered. As with start(), this method
+        is safe to call multiple times when running.
+        """
         if not self.__running:
             return
 
@@ -213,20 +224,32 @@ class TriggerTimedEvents:
         del self.__events_remaining
 
     def reset(self):
+        """
+        Simply calls stop().
+        """
         self.stop()
 
     @property
     def running(self):
+        """
+        Returns whether this trigger is running or not.
+        """
         return self.__running
 
     def run(self) -> [Event]:
+        """
+        Runs the trigger and returns a list of the events that have "fired" since the
+        last time run() is called. If the trigger is not running then an empty list
+        is returned. If the number of triggerable events has been exhausted then the
+        trigger will be automatically stopped.
+        """
         if not self.running:
-            return
+            return []
 
         # If all events have been exhausted then stop running
         if self.__events_remaining is None or len(self.__events_remaining) <= 0:
             self.stop()
-            return
+            return []
 
         # Get all items that need to be fired.
         now = time.monotonic()
@@ -240,4 +263,16 @@ class TriggerTimedEvents:
         return events_to_fire
 
     def add_event(self, trigger_time: float, event: int):
+        """
+        Adds an event that is to be triggered at the specified number of seconds
+        after the trigger has started. Multiple events can be setup for the same
+        trigger time and multiple events can use the same event identifier.
+
+        :param trigger_time: The time in second after the trigger is started that
+                             the event is desired to be triggered. Multiple events
+                             can be added for the same time value and all will get
+                             fired.
+        :param event:        An integer identifier for the event. This does not
+                             need to be unique.
+        """
         self.events.append(self.Event(trigger_time, event))
