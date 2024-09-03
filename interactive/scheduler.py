@@ -260,6 +260,9 @@ class TriggerTimedEvents:
         for event in events_to_fire:
             self.__events_remaining.remove(event)
 
+        if len(self.__events_remaining) <= 0:
+            self.stop()
+
         return events_to_fire
 
     def add_event(self, trigger_time: float, event: int):

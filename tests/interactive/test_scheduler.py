@@ -566,6 +566,7 @@ class TestTriggerTimedEvents:
         assert trigger.running
         assert len(trigger.events) == 2
         events = trigger.run()
+        assert trigger.running
         assert len(events) == 1
         assert events[0].event == 90
 
@@ -636,6 +637,7 @@ class TestTriggerTimedEvents:
         assert trigger.running
         assert len(trigger.events) == 2
         events = trigger.run()
+        assert trigger.running
         assert len(events) == 1
         assert events[0].event == 90
 
@@ -649,6 +651,7 @@ class TestTriggerTimedEvents:
 
         # Call run which returns nothing
         events = trigger.run()
+        assert not trigger.running
         assert len(events) == 0
 
         # Call start again and we should see a single event.
@@ -656,10 +659,89 @@ class TestTriggerTimedEvents:
         assert trigger.running
         assert len(trigger.events) == 2
         events = trigger.run()
+        assert trigger.running
         assert len(events) == 1
         assert events[0].event == 90
 
-    # TODO: Test running without any events.
-    # TODO: Test running with a single event.
-    # TODO: Test running with multiple events with the same time.
+    def test_running_without_any_events(self) -> None:
+        """
+        Validates that the trigger can be run without any events registered.
+        """
+        trigger = TriggerTimedEvents()
+        assert not trigger.running
+        assert len(trigger.events) == 0
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+        # Call run, which will detect there are no events and will stop the trigger.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 0
+
+        # Now we will check that stop works with no events.
+        # Start the trigger again, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+        trigger.stop()
+        assert not trigger.running
+
+    def test_running_with_a_single_event(self) -> None:
+        """
+        Validates that the trigger can be run with just a single event registered.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0.1, 90)
+        assert not trigger.running
+        assert len(trigger.events) == 1
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 1
+
+        # Call run which will not see any expired events and everything continues to run
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 0
+
+        # Pause long enough to guarantee the event will trigger
+        time.sleep(0.11)
+
+        # Call run again, which will detect there are is a single event which has fired
+        # and return it. The trigger will also be marked as not running at this point.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 1
+        assert events[0].event == 90
+
+    def test_running_with_multiple_events_with_same_time(self) -> None:
+        """
+        Validates that the trigger can be run with just a single event registered.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0.05, 91)
+        trigger.add_event(0.05, 90)
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+
+        # Pause long enough to guarantee the events will trigger
+        time.sleep(0.06)
+
+        # Call run, which will detect there are two events which have fired and
+        # return them. The trigger will also be marked as not running at this point.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 2
+        assert set([event.event for event in events]) == {90, 91}
+
     # TODO: Test running with multiple events with different times.
