@@ -27,8 +27,8 @@ NO = "NO"
 YES = "YES"
 OK = "OK"
 
-HEADER_NAME = 'Name'  # Name of the sender.
-HEADER_ROLE = 'Role'  # Role of the sender.
+HEADER_NAME = 'name'  # Name of the sender.
+HEADER_ROLE = 'role'  # Role of the sender.
 
 HEADERS = {
     HEADER_NAME: NODE_NAME,

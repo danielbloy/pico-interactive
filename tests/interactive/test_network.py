@@ -2,9 +2,10 @@ import socket
 from collections.abc import Callable, Awaitable
 
 import pytest
-from adafruit_httpserver import Server
+from adafruit_httpserver import Server, GET, POST
 
-from network import NetworkController
+from configuration import NODE_NAME, NODE_ROLE
+from network import NetworkController, HEADER_NAME, HEADER_ROLE
 from runner import Runner
 
 
@@ -33,23 +34,44 @@ class TestNetwork:
             # noinspection PyTypeChecker
             NetworkController("")
 
-    def test_server_configured_correctly_no_coordinator(self) -> None:
+    def test_server_configured_correctly(self) -> None:
         """
-        Validates that the server is setup correctly when there is no
-        coordinator configured (the default).
+        Validates that the server is setup correctly. This ignores that there
+        may be a coordinator or not.
         """
         server = TestServer()
         controller = NetworkController(server)
 
-        assert server.headers.items() == 2
+        # Check there are two headers
+        assert len(server.headers.items()) == 2
+        assert set([item[0] for item in server.headers.items()]) == {HEADER_NAME, HEADER_ROLE}
+        assert set([item[1] for item in server.headers.items()]) == {NODE_NAME, NODE_ROLE}
+        assert set(server.headers.items()) == {(HEADER_NAME, NODE_NAME), (HEADER_ROLE, NODE_ROLE)}
 
-        # TODO headers
-        # TODO: noordinator
+        # Check there are some routes. We check for the presence of some of the well
+        # known standard ones.
+        assert len(server._routes) >= 17
+        assert [route for route in server._routes if route.path == "/" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/index.html" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/inspect" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/register" and route.methods == {GET, POST}]
+        assert [route for route in server._routes if route.path == "/unregister" and route.methods == {GET, POST}]
+        assert [route for route in server._routes if route.path == "/heartbeat" and route.methods == {GET, POST}]
+        assert [route for route in server._routes if route.path == "/restart" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/alive" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/name" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/role" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/details" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/lookup/all" and route.methods == {GET}]
+        assert [route for route in server._routes if
+                route.path == "/lookup/name/<name>" and route.methods == {GET}]
+        assert [route for route in server._routes if
+                route.path == "/lookup/role/<role>" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/led/blink" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/led/<state>" and route.methods == {GET}]
 
-    def test_server_configured_correctly_with_coordinator(self) -> None:
-        # TODO headers
-        # TODO: noordinator
-        pass
+        # Check the server has started.
+        assert not server.stopped
 
     def test_registering_with_runner(self) -> None:
         """
