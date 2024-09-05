@@ -1,10 +1,10 @@
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request
 
+import control
 import interactive.polyfills.cpu as cpu
 from interactive import configuration
-from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
-    NETWORK_HEARTBEAT_FREQUENCY
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error, debug, info
 from interactive.polyfills.network import requests
@@ -111,12 +111,14 @@ class NetworkController:
         self.__runner = runner
         runner.add_loop_task(self.__serve_requests)
 
-        scheduled_task = (
-            new_scheduled_task(
-                self.__heartbeat,
-                terminate_on_cancel(self.__runner),
-                NETWORK_HEARTBEAT_FREQUENCY))
-        runner.add_task(scheduled_task)
+        # Only setup the heartbeat task if we have a coordinator.
+        if configuration.NODE_COORDINATOR:
+            scheduled_task = (
+                new_scheduled_task(
+                    self.__heartbeat,
+                    terminate_on_cancel(self.__runner),
+                    control.NETWORK_HEARTBEAT_FREQUENCY))
+            runner.add_task(scheduled_task)
 
     async def __serve_requests(self) -> None:
         """
@@ -211,6 +213,7 @@ def register(request: Request):
     GET: Register this node with the coordinator.
     POST: Another node wants to register with us.
     """
+    # TODO: what to do if configuration.NODE_COORDINATOR is None
     if request.method == GET:
         return Response(request, send_register_message(configuration.NODE_COORDINATOR))
 
@@ -223,6 +226,7 @@ def unregister(request: Request):
     GET: Unregister this node from the coordinator.
     POST: Another node wants to unregister from us.
     """
+    # TODO: what to do if configuration.NODE_COORDINATOR is None
     if request.method == GET:
         return Response(request, send_unregister_message(configuration.NODE_COORDINATOR))
 
@@ -235,6 +239,7 @@ def heartbeat(request: Request):
     GET: Sends a heartbeat message from this node to the coordinator.
     POST: Another node has sent a heartbeat message to us.
     """
+    # TODO: what to do if configuration.NODE_COORDINATOR is None
     if request.method == GET:
         return Response(request, send_heartbeat_message(configuration.NODE_COORDINATOR))
 
