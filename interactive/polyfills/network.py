@@ -16,9 +16,12 @@ import ssl
 
 from adafruit_httpserver import Server
 
-from interactive.environment import are_pins_available
+from environment import is_running_on_microcontroller
 
-if are_pins_available():
+# Rather than doing something different based on whether we have pins available or not
+# we make the network decision based on whether we are running on a microcontroller or
+# not it has a different network stack compared to a desktop.
+if is_running_on_microcontroller():
     import wifi
     import socketpool
     import adafruit_requests
@@ -45,8 +48,9 @@ else:
     import toml
     import requests
 
-    with open('settings.toml') as f:
-        config = toml.load(f)
+    if os.path.isfile('settings.toml'):
+        with open('settings.toml') as f:
+            config = toml.load(f)
 
     pool = socket
 
