@@ -33,6 +33,24 @@ class TestNetwork:
             # noinspection PyTypeChecker
             NetworkController("")
 
+    def test_server_configured_correctly_no_coordinator(self) -> None:
+        """
+        Validates that the server is setup correctly when there is no
+        coordinator configured (the default).
+        """
+        server = TestServer()
+        controller = NetworkController(server)
+
+        assert server.headers.items() == 2
+
+        # TODO headers
+        # TODO: noordinator
+
+    def test_server_configured_correctly_with_coordinator(self) -> None:
+        # TODO headers
+        # TODO: noordinator
+        pass
+
     def test_registering_with_runner(self) -> None:
         """
         Validates the NetworkController registers with the Runner.

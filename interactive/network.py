@@ -2,8 +2,7 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
     POST, PUT, Request
 
 import interactive.polyfills.cpu as cpu
-from interactive import configuration
-from interactive.configuration import NODE_COORDINATOR
+from interactive.configuration import NODE_COORDINATOR, NODE_NAME, NODE_ROLE
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
     NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_microcontroller
@@ -32,8 +31,8 @@ HEADER_NAME = 'Name'  # Name of the sender.
 HEADER_ROLE = 'Role'  # Role of the sender.
 
 HEADERS = {
-    HEADER_NAME: configuration.NODE_NAME,
-    HEADER_ROLE: configuration.NODE_ROLE,
+    HEADER_NAME: NODE_NAME,
+    HEADER_ROLE: NODE_ROLE,
 }
 
 
@@ -268,14 +267,14 @@ def name(request: Request):
     """
     Returns the name of the node.
     """
-    return Response(request, configuration.NODE_NAME)
+    return Response(request, NODE_NAME)
 
 
 def role(request: Request):
     """
     Returns the role of the node.
     """
-    return Response(request, configuration.NODE_ROLE)
+    return Response(request, NODE_ROLE)
 
 
 def details(request: Request):
@@ -283,9 +282,9 @@ def details(request: Request):
     Returns details of the node as JSON.
     """
     return JSONResponse(request, {
-        "name": configuration.NODE_NAME,
-        "role": configuration.NODE_ROLE,
-        "coordinator": configuration.NODE_COORDINATOR
+        "name": NODE_NAME,
+        "role": NODE_ROLE,
+        "coordinator": NODE_COORDINATOR
     })
 
 
