@@ -5,6 +5,7 @@ import pytest
 from adafruit_httpserver import Server, GET, POST
 
 from configuration import NODE_NAME, NODE_ROLE
+from interactive import configuration
 from network import NetworkController, HEADER_NAME, HEADER_ROLE
 from runner import Runner
 
@@ -75,7 +76,7 @@ class TestNetwork:
 
     def test_registering_with_runner(self) -> None:
         """
-        Validates the NetworkController registers with the Runner.
+        Validates the NetworkController registers with the Runner, no coordinator.
         """
         add_task_count: int = 0
 
@@ -90,3 +91,26 @@ class TestNetwork:
         assert add_task_count == 0
         controller.register(runner)
         assert add_task_count == 1
+
+    def test_registering_with_runner_with_coordinator(self) -> None:
+        """
+        Validates the NetworkController registers with the Runner, with coordinator.
+        """
+        add_task_count: int = 0
+        configuration.NODE_COORDINATOR = "127.0.0.1"
+
+        class TestRunner(Runner):
+            def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
+                nonlocal add_task_count
+                add_task_count += 1
+
+            def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
+                nonlocal add_task_count
+                add_task_count += 1
+
+        runner = TestRunner()
+        server = TestServer()
+        controller = NetworkController(server)
+        assert add_task_count == 0
+        controller.register(runner)
+        assert add_task_count == 2

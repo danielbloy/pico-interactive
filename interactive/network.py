@@ -2,7 +2,7 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
     POST, PUT, Request
 
 import interactive.polyfills.cpu as cpu
-from interactive.configuration import NODE_COORDINATOR, NODE_NAME, NODE_ROLE
+from interactive import configuration
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
     NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_microcontroller
@@ -31,8 +31,8 @@ HEADER_NAME = 'name'  # Name of the sender.
 HEADER_ROLE = 'role'  # Role of the sender.
 
 HEADERS = {
-    HEADER_NAME: NODE_NAME,
-    HEADER_ROLE: NODE_ROLE,
+    HEADER_NAME: configuration.NODE_NAME,
+    HEADER_ROLE: configuration.NODE_ROLE,
 }
 
 
@@ -62,8 +62,8 @@ class NetworkController:
             raise ValueError("server must be of type Server")
 
         self.__runner = None
-        self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
-        self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
+        self.__requires_register_with_coordinator = configuration.NODE_COORDINATOR is not None
+        self.__requires_unregister_from_coordinator = configuration.NODE_COORDINATOR is not None
         self.__requires_heartbeat_messages = False
 
         self.server = server
@@ -148,7 +148,7 @@ class NetworkController:
             return
 
         if self.__requires_heartbeat_messages:
-            send_heartbeat_message(NODE_COORDINATOR)
+            send_heartbeat_message(configuration.NODE_COORDINATOR)
 
         await self.__register_with_coordinator()
 
@@ -160,7 +160,7 @@ class NetworkController:
             debug("Nodes does not require registration, ignoring.")
             return
 
-        send_register_message(NODE_COORDINATOR)
+        send_register_message(configuration.NODE_COORDINATOR)
         self.__requires_register_with_coordinator = False
         self.__requires_unregister_from_coordinator = True
         self.__requires_heartbeat_messages = True
@@ -174,7 +174,7 @@ class NetworkController:
             debug("Nodes does not require un-registration, ignoring.")
             return
 
-        send_unregister_message(NODE_COORDINATOR)
+        send_unregister_message(configuration.NODE_COORDINATOR)
         self.__requires_unregister_from_coordinator = False
         self.__requires_register_with_coordinator = True
         self.__requires_heartbeat_messages = False
@@ -212,7 +212,7 @@ def register(request: Request):
     POST: Another node wants to register with us.
     """
     if request.method == GET:
-        return Response(request, send_register_message(NODE_COORDINATOR))
+        return Response(request, send_register_message(configuration.NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
         return Response(request, receive_register_message(request))
@@ -224,7 +224,7 @@ def unregister(request: Request):
     POST: Another node wants to unregister from us.
     """
     if request.method == GET:
-        return Response(request, send_unregister_message(NODE_COORDINATOR))
+        return Response(request, send_unregister_message(configuration.NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
         return Response(request, receive_unregister_message(request))
@@ -236,7 +236,7 @@ def heartbeat(request: Request):
     POST: Another node has sent a heartbeat message to us.
     """
     if request.method == GET:
-        return Response(request, send_heartbeat_message(NODE_COORDINATOR))
+        return Response(request, send_heartbeat_message(configuration.NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
         return Response(request, receive_heartbeat_message(request))
@@ -267,14 +267,14 @@ def name(request: Request):
     """
     Returns the name of the node.
     """
-    return Response(request, NODE_NAME)
+    return Response(request, configuration.NODE_NAME)
 
 
 def role(request: Request):
     """
     Returns the role of the node.
     """
-    return Response(request, NODE_ROLE)
+    return Response(request, configuration.NODE_ROLE)
 
 
 def details(request: Request):
@@ -282,9 +282,9 @@ def details(request: Request):
     Returns details of the node as JSON.
     """
     return JSONResponse(request, {
-        "name": NODE_NAME,
-        "role": NODE_ROLE,
-        "coordinator": NODE_COORDINATOR
+        "name": configuration.NODE_NAME,
+        "role": configuration.NODE_ROLE,
+        "coordinator": configuration.NODE_COORDINATOR
     })
 
 
@@ -330,7 +330,8 @@ def lookup_role(request: Request, role: str):
 # ***** M E S S A G E S *****
 #############################
 
-def send_message(path: str, host: str = NODE_COORDINATOR, protocol: str = "http", method="GET", data=None, json=None):
+def send_message(path: str, host: str = configuration.NODE_COORDINATOR, protocol: str = "http", method="GET",
+                 data=None, json=None):
     """
     Sends a message with the provided payload to the specified node, ensuring headers are included.
     """
