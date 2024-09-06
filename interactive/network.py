@@ -131,7 +131,7 @@ class NetworkController:
             if not self.server.stopped:
                 self.server.stop()
 
-            # This has to be done here as _heartbeat() is wrapped by
+            # This has to be done here as __heartbeat() is wrapped by
             # a task scheduler which checks for cancellation and
             # prevents client code running in such a scenario.
             await self.__unregister_from_coordinator()
@@ -196,13 +196,6 @@ def index(request: Request):
     """
     Serves the file html/index.html.
     """
-    print(request)
-    print(f"METHOD ... : '{request.method}'")
-    print(f"PATH ..... : '{request.path}'")
-    print(f"QPARAMS .. : '{request.query_params}'")
-    print(f"HTTPV .... : '{request.http_version}'")
-    print(f"HEADERS .. : '{request.headers}'")
-    print(f"RAW ...... : '{request.raw_request}'")
     return FileResponse(request, "index.html", 'interactive/html')
 
 
@@ -356,7 +349,8 @@ def lookup_role(request: Request, role: str):
 # ***** M E S S A G E S *****
 #############################
 
-def send_message(path: str, host: str = configuration.NODE_COORDINATOR, protocol: str = "http", method="GET",
+def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+                 protocol: str = "http", method="GET",
                  data=None, json=None):
     """
     Sends a message with the provided payload to the specified node, ensuring headers are included.

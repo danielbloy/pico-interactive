@@ -2,13 +2,14 @@ import socket
 from collections.abc import Callable, Awaitable
 
 import pytest
-from adafruit_httpserver import Server, GET, POST, Request
+from adafruit_httpserver import Server, GET, POST, Request, OK_200
 
 import control
 import network
 from configuration import NODE_NAME, NODE_ROLE
 from interactive import configuration
 from network import NetworkController, HEADER_NAME, HEADER_ROLE
+from polyfills import cpu
 from runner import Runner
 
 
@@ -252,10 +253,51 @@ class TestNetwork:
 
 
 class TestRequest(Request):
-    def __init__(self, raw_request: bytes = None):
+    def __init__(self, method, route: str, body: str = None):
         server = TestServer()
+        raw_request = bytes(
+            f"{method} {route} HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: test-framework\r\nAccept: */*\r\n\r\n{body}",
+            "utf-8")
         super().__init__(server, None, ('123.45.67.89', 12345), raw_request)
 
+
+class TestHttpRoutes:
+
+    def test_index_returns_index_html_with_get(self) -> None:
+        """
+        Validates that the index.html file is returned with no additional headers.
+        """
+        request = TestRequest("GET", "/")
+        response = network.index(request)
+        assert response._filename == "index.html"
+        assert response._root_path == 'interactive/html'
+        assert response._status == OK_200
+        assert len(response._headers) == 0
+
+    def test_cpu_information(self) -> None:
+        """
+        Validates that the cpu information is returned with no additional headers.
+        """
+        request = TestRequest("GET", "/cpu-information")
+        response = network.cpu_information(request)
+        assert response._data == cpu.info()
+        assert response._status == OK_200
+        assert len(response._headers) == 0
+
+    def test_inspect(self) -> None:
+        """
+        Validates that the inspect web page is returned with no additional headers.
+        """
+        request = TestRequest("GET", "/inspect")
+        response = network.inspect(request)
+        assert response._body == "TODO inspect"
+        assert response._status == OK_200
+        assert len(response._headers) == 0
+
+
+class TestMessages:
+    def test_implement_tests(self) -> None:
+        assert False
 
 # C:\Users\danie>curl --verbose http://127.0.0.1:5001/index.html
 # *   Trying 127.0.0.1:5001...
@@ -354,13 +396,3 @@ class TestRequest(Request):
 # HTTPV .... : 'HTTP/1.1'
 # HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
 # RAW ...... : 'b'GET /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''
-
-class TestHttpRoutes:
-
-    def test_implement_tests(self) -> None:
-        assert False
-
-
-class TestMessages:
-    def test_implement_tests(self) -> None:
-        assert False
