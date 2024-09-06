@@ -14,10 +14,10 @@
 #  curl --verbose http://127.0.0.1:5001/cpu-information
 #  curl --verbose http://127.0.0.1:5001/inspect
 #  curl --verbose http://127.0.0.1:5001/register
-#  curl --verbose http://127.0.0.1:5001/register -X POST -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/register -X POST -d "{\"key1\":\"value1\", \"key2\":\"value2\"}" -H "Content-Type: application/json"
 #  curl --verbose http://127.0.0.1:5001/register -X PUT
 #  curl --verbose http://127.0.0.1:5001/unregister
-#  curl --verbose http://127.0.0.1:5001/unregister -X POST -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/unregister -X POST -d "{\"key1\":\"value1\", \"key2\":\"value2\"}" -H "Content-Type: application/json"
 #  curl --verbose http://127.0.0.1:5001/unregister -X PUT
 #  curl --verbose http://127.0.0.1:5001/restart
 #  curl --verbose http://127.0.0.1:5001/alive

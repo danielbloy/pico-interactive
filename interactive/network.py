@@ -196,6 +196,13 @@ def index(request: Request):
     """
     Serves the file html/index.html.
     """
+    print(request)
+    print(f"METHOD ... : '{request.method}'")
+    print(f"PATH ..... : '{request.path}'")
+    print(f"QPARAMS .. : '{request.query_params}'")
+    print(f"HTTPV .... : '{request.http_version}'")
+    print(f"HEADERS .. : '{request.headers}'")
+    print(f"RAW ...... : '{request.raw_request}'")
     return FileResponse(request, "index.html", 'interactive/html')
 
 
@@ -220,6 +227,13 @@ def register(request: Request):
     GET: Register this node with the coordinator.
     POST: Another node wants to register with us.
     """
+    print(request)
+    print(f"METHOD ... : '{request.method}'")
+    print(f"PATH ..... : '{request.path}'")
+    print(f"QPARAMS .. : '{request.query_params}'")
+    print(f"HTTPV .... : '{request.http_version}'")
+    print(f"HEADERS .. : '{request.headers}'")
+    print(f"RAW ...... : '{request.raw_request}'")
     # TODO: what to do if configuration.NODE_COORDINATOR is None
     if request.method == GET:
         return Response(request, send_register_message(configuration.NODE_COORDINATOR))
