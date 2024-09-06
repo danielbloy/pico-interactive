@@ -123,10 +123,19 @@ class NetworkController:
     async def __serve_requests(self) -> None:
         """
         The internal loop checks for incoming requests to serve.
+        It also performs all shutdown tasks that need to happen
+        when cancellation occurs. As well as shutting down the
+        server, it unregisters with the coordinator.
         """
         if self.__runner.cancel:
             if not self.server.stopped:
                 self.server.stop()
+
+            # This has to be done here as _heartbeat() is wrapped by
+            # a task scheduler which checks for cancellation and
+            # prevents client code running in such a scenario.
+            await self.__unregister_from_coordinator()
+
             return
 
         try:
@@ -142,13 +151,11 @@ class NetworkController:
 
     async def __heartbeat(self) -> None:
         """
-        Handles registering and unregistering from a coordinator as well as sending
-        the regular heartbeat messages.
+        Handles registering with a coordinator as well as sending
+        the regular heartbeat messages. We cannot do the unregister
+        here because scheduled tasks are wrapped in a cancellation
+        check. Therefore, the cancellation is checked __serve_requests()
         """
-        if self.__runner.cancel:
-            await self.__unregister_from_coordinator()
-            return
-
         if self.__requires_heartbeat_messages:
             send_heartbeat_message(configuration.NODE_COORDINATOR)
 

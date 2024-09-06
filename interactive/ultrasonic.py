@@ -105,23 +105,22 @@ class UltrasonicController:
             Check the sensor against the trigger settings firing an event
             if it detects an object closer than the trigger distances.
             """
-            if not self.__runner.cancel:
-                now = time.monotonic()
+            now = time.monotonic()
 
-                # As checking the sensor is expensive and blocking, we only do it
-                # if we have a trigger that can trigger.
-                expired_triggers = [trigger for trigger in self.__triggers if now >= trigger.expiry_time]
-                if len(expired_triggers) <= 0:
-                    debug(f"No triggers are available for triggering, skipping.")
-                    return
+            # As checking the sensor is expensive and blocking, we only do it
+            # if we have a trigger that can trigger.
+            expired_triggers = [trigger for trigger in self.__triggers if now >= trigger.expiry_time]
+            if len(expired_triggers) <= 0:
+                debug(f"No triggers are available for triggering, skipping.")
+                return
 
-                self.__last_distance = self.__ultrasonic.distance
-                info(f"Distance from sensor {self.__last_distance}.")
-                for trigger in self.__triggers:
-                    if now >= trigger.expiry_time and self.__last_distance < trigger.distance:
-                        trigger.triggered_time = now
-                        trigger.expiry_time = now + trigger.reset_interval
-                        await trigger.handler(trigger.distance, self.__last_distance)
+            self.__last_distance = self.__ultrasonic.distance
+            info(f"Distance from sensor {self.__last_distance}.")
+            for trigger in self.__triggers:
+                if now >= trigger.expiry_time and self.__last_distance < trigger.distance:
+                    trigger.triggered_time = now
+                    trigger.expiry_time = now + trigger.reset_interval
+                    await trigger.handler(trigger.distance, self.__last_distance)
 
         self.__runner = runner
         scheduled_task = (
