@@ -329,6 +329,7 @@ class TestHttpRoutes:
             def test_restart_fn():
                 nonlocal restart_called_count
                 restart_called_count += 1
+                restart_fn()
 
             cpu.restart = test_restart_fn
 

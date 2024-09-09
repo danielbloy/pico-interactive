@@ -2,11 +2,11 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
     POST, PUT, Request, NOT_IMPLEMENTED_501
 
 import control
-import interactive.polyfills.cpu as cpu
 from interactive import configuration
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error, debug, info
+from interactive.polyfills import cpu
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
@@ -266,7 +266,7 @@ def restart(request: Request):
     Restarts the microcontroller; does nothing on desktop.
     """
     import asyncio
-
+    
     async def restart_node(seconds):
         await asyncio.sleep(seconds)
         cpu.restart()
