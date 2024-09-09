@@ -151,7 +151,7 @@ def get_node_config(network=False, button=True, buzzer=True, audio=True, ultraso
 def details() -> dict:
     """
     Returns details of the node. This will include its name, role and coordinator
-    values.
+    values. These are essentially the items not returned in the configuration.
     """
     return {
         FIELD_NAME: NODE_NAME,

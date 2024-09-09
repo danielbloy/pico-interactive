@@ -1,3 +1,4 @@
+from configuration import FIELD_NAME, FIELD_ROLE, FIELD_COORDINATOR
 from interactive import configuration
 from interactive.configuration import Config
 
@@ -68,3 +69,31 @@ class TestNode:
             configuration.ULTRASONIC_ECHO_PIN = original_config.ultrasonic_echo_pin
             configuration.TRIGGER_DISTANCE = original_config.trigger_distance
             configuration.TRIGGER_DURATION = original_config.trigger_duration
+
+    def test_details_returns_correct_values(self) -> None:
+        """
+        Validates details returns the correct values. This will mess with state
+        so will restore all values it finds.
+        """
+        # Copy original configuration state.
+        original_name = configuration.NODE_NAME
+        original_role = configuration.NODE_ROLE
+        original_coordinator = configuration.NODE_COORDINATOR
+
+        configuration.NODE_NAME = "JacKsoN"
+        configuration.NODE_ROLE = "RaNdOm"
+        configuration.NODE_COORDINATOR = "arbiter"
+
+        try:
+            details = configuration.details()
+            assert len(details.keys()) == 3
+            assert set(details.keys()) == {FIELD_NAME, FIELD_ROLE, FIELD_COORDINATOR}
+            assert details[FIELD_NAME] == "JacKsoN"
+            assert details[FIELD_ROLE] == "RaNdOm"
+            assert details[FIELD_COORDINATOR] == "arbiter"
+
+        finally:
+            # Restore original configuration state.
+            configuration.NODE_NAME = original_name
+            configuration.NODE_ROLE = original_role
+            configuration.NODE_COORDINATOR = original_coordinator
