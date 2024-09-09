@@ -1,3 +1,4 @@
+import asyncio
 import socket
 from collections.abc import Callable, Awaitable
 
@@ -313,10 +314,40 @@ class TestHttpRoutes:
         Validates that restart returns with no additional headers. The restart
         won't actually restart a Desktop PC as the polyfill is a noop.
         """
-        request = TestRequest("GET", "/restart")
-        response = network.restart(request)
-        assert response._body == network.YES
-        assert response._status == OK_200
+
+        restart_fn = cpu.restart
+        try:
+            restart_called_count = 0
+
+            def test_restart_fn():
+                nonlocal restart_called_count
+                restart_called_count += 1
+
+            cpu.restart = test_restart_fn
+
+            # Create an event loop which is needed for the async restart request.
+            request = TestRequest("GET", "/restart")
+
+            async def __execute():
+                # Before calling the request, there should only be a single
+                # async task which is this one.
+                assert len(asyncio.all_tasks()) == 1
+                response = network.restart(request)
+                assert response._body == network.YES
+                assert response._status == OK_200
+
+                # There should now be 2 tasks, this one and the restart async task.
+                assert len(asyncio.all_tasks()) == 2
+
+                # Await for long enough for the restart to get executed.
+                while len(asyncio.all_tasks()) > 1:
+                    await asyncio.sleep(0.1)
+
+            asyncio.run(__execute())
+            assert restart_called_count == 1
+
+        finally:
+            cpu.restart = restart_fn
 
     def test_alive(self) -> None:
         """
