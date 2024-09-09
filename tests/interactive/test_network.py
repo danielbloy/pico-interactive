@@ -358,7 +358,27 @@ class TestHttpRoutes:
 
     def test_led_blink(self) -> None:
         # TODO: Check receive_blink_message called.
-        assert False
+
+        message_fn = network.receive_blink_message
+        try:
+            message_called_count = 0
+
+            def test_message_fn(request):
+                nonlocal message_called_count
+                message_called_count += 1
+
+            network.receive_blink_message = test_message_fn
+
+            request = TestRequest("GET", "/led/blink")
+            response = network.led_blink(request)
+            assert response._body == 'LED has blinked'
+            assert response._status == OK_200
+            assert len(response._headers) == 0
+
+            assert message_called_count == 1
+
+        finally:
+            network.receive_blink_message = message_fn
 
     def test_led_state(self) -> None:
         assert False
