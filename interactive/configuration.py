@@ -6,6 +6,10 @@ from interactive.environment import are_pins_available
 from interactive.log import set_log_level, INFO, log
 from interactive.memory import report_memory_usage
 
+FIELD_NAME = "name"
+FIELD_ROLE = "role"
+FIELD_COORDINATOR = "coordinator"
+
 NODE_NAME = "<hostname>"
 NODE_ROLE = "<host role>"
 NODE_COORDINATOR = None  # The I.P. Address of the coordinator node.
@@ -142,3 +146,15 @@ def get_node_config(network=False, button=True, buzzer=True, audio=True, ultraso
         config.trigger_duration = TRIGGER_DURATION
 
     return config
+
+
+def details() -> dict:
+    """
+    Returns details of the node. This will include its name, role and coordinator
+    values.
+    """
+    return {
+        FIELD_NAME: NODE_NAME,
+        FIELD_ROLE: NODE_ROLE,
+        FIELD_COORDINATOR: NODE_COORDINATOR
+    }

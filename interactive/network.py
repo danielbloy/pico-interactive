@@ -300,11 +300,7 @@ def details(request: Request):
     """
     Returns details of the node as JSON.
     """
-    return JSONResponse(request, {
-        "name": configuration.NODE_NAME,
-        "role": configuration.NODE_ROLE,
-        "coordinator": configuration.NODE_COORDINATOR
-    })
+    return JSONResponse(request, configuration.deatils())
 
 
 def led_blink(request: Request):

@@ -304,21 +304,55 @@ class TestHttpRoutes:
         assert False
 
     def test_restart(self) -> None:
-        assert False
+        """
+        Validates that restart returns with no additional headers. The restart
+        won't actually restart a Desktop PC as the polyfill is a noop.
+        """
+        request = TestRequest("GET", "/restart")
+        response = network.restart(request)
+        assert response._body == network.YES
+        assert response._status == OK_200
 
     def test_alive(self) -> None:
-        assert False
+        """
+        Validates that alive returns with no additional headers.
+        """
+        request = TestRequest("GET", "/alive")
+        response = network.alive(request)
+        assert response._body == network.YES
+        assert response._status == OK_200
+        # TODO: This needs a running event loop; catch that an async function is added.
 
     def test_name(self) -> None:
-        assert False
+        """
+        Validates that name returns with no additional headers.
+        """
+        request = TestRequest("GET", "/name")
+        response = network.name(request)
+        assert response._body == configuration.NODE_NAME
+        assert response._status == OK_200
 
     def test_role(self) -> None:
-        assert False
+        """
+        Validates that role returns with no additional headers.
+        """
+        request = TestRequest("GET", "/role")
+        response = network.role(request)
+        assert response._body == configuration.NODE_ROLE
+        assert response._status == OK_200
 
     def test_details(self) -> None:
-        assert False
+        """
+        Validates that the details information is returned with no additional headers.
+        """
+        request = TestRequest("GET", "/details")
+        response = network.details(request)
+        assert response._data == configuration.details()
+        assert response._status == OK_200
+        assert len(response._headers) == 0
 
     def test_led_blink(self) -> None:
+        # TODO: Check receive_blink_message called.
         assert False
 
     def test_led_state(self) -> None:
