@@ -335,7 +335,31 @@ class TestHttpRoutes:
 
 
 class TestMessages:
-    def test_implement_tests(self) -> None:
+    def test_send_message(self) -> None:
+        assert False
+
+    def test_send_register_message(self) -> None:
+        assert False
+
+    def test_receive_register_message(self) -> None:
+        assert False
+
+    def test_send_unregister_message(self) -> None:
+        assert False
+
+    def test_receive_unregister_message(self) -> None:
+        assert False
+
+    def test_send_heartbeat_message(self) -> None:
+        assert False
+
+    def test_receive_heartbeat_message(self) -> None:
+        assert False
+
+    def test_receive_blink_message(self) -> None:
+        assert False
+
+    def test_receive_led_message(self) -> None:
         assert False
 
 # C:\Users\danie>curl --verbose http://127.0.0.1:5001/index.html
