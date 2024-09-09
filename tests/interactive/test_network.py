@@ -294,6 +294,45 @@ class TestHttpRoutes:
         assert response._status == OK_200
         assert len(response._headers) == 0
 
+    def test_register(self) -> None:
+        assert False
+
+    def test_unregister(self) -> None:
+        assert False
+
+    def test_heartbeat(self) -> None:
+        assert False
+
+    def test_restart(self) -> None:
+        assert False
+
+    def test_alive(self) -> None:
+        assert False
+
+    def test_name(self) -> None:
+        assert False
+
+    def test_role(self) -> None:
+        assert False
+
+    def test_details(self) -> None:
+        assert False
+
+    def test_led_blink(self) -> None:
+        assert False
+
+    def test_led_state(self) -> None:
+        assert False
+
+    def test_lookup_all(self) -> None:
+        assert False
+
+    def test_lookup_name(self) -> None:
+        assert False
+
+    def test_lookup_role(self) -> None:
+        assert False
+
 
 class TestMessages:
     def test_implement_tests(self) -> None:
