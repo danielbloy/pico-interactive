@@ -1,4 +1,5 @@
 import asyncio
+import os
 import socket
 from collections.abc import Callable, Awaitable
 
@@ -273,12 +274,18 @@ class TestHttpRoutes:
         """
         Validates that the index.html file is returned with no additional headers.
         """
-        request = TestRequest("GET", "/")
-        response = network.index(request)
-        assert response._filename == "index.html"
-        assert response._root_path == 'interactive/html'
-        assert response._status == OK_200
-        assert len(response._headers) == 0
+        path = os.getcwd()
+        try:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            os.chdir(os.path.join(dir_path, "../.."))
+            request = TestRequest("GET", "/")
+            response = network.index(request)
+            assert response._filename == "index.html"
+            assert response._root_path == 'interactive/html'
+            assert response._status == OK_200
+            assert len(response._headers) == 0
+        finally:
+            os.chdir(path)
 
     def test_cpu_information(self) -> None:
         """
@@ -312,9 +319,9 @@ class TestHttpRoutes:
     def test_restart(self) -> None:
         """
         Validates that restart returns with no additional headers. The restart
-        won't actually restart a Desktop PC as the polyfill is a noop.
+        won't actually restart a Desktop PC as the polyfill is a noop; though
+        we replace the restart() function anyway.
         """
-
         restart_fn = cpu.restart
         try:
             restart_called_count = 0
@@ -357,7 +364,6 @@ class TestHttpRoutes:
         response = network.alive(request)
         assert response._body == network.YES
         assert response._status == OK_200
-        # TODO: This needs a running event loop; catch that an async function is added.
 
     def test_name(self) -> None:
         """
