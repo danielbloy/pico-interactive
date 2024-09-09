@@ -90,7 +90,7 @@ class TestNetwork:
         assert [route for route in server._routes if
                 route.path == "/lookup/role/<role>" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/led/blink" and route.methods == {GET}]
-        assert [route for route in server._routes if route.path == "/led/<state>" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/led/<state>" and route.methods == {GET, POST}]
 
         # Check the server has started.
         assert not server.stopped
@@ -394,15 +394,17 @@ class TestHttpRoutes:
         assert len(response._headers) == 0
 
     def test_led_blink(self) -> None:
-        # TODO: Check receive_blink_message called.
-
+        """
+        Validates the led_blink route calls the appropriate receive function.
+        """
         message_fn = network.receive_blink_message
         try:
             message_called_count = 0
 
-            def test_message_fn(request):
+            def test_message_fn(request: Request) -> str:
                 nonlocal message_called_count
                 message_called_count += 1
+                return message_fn(request)
 
             network.receive_blink_message = test_message_fn
 
@@ -418,7 +420,37 @@ class TestHttpRoutes:
             network.receive_blink_message = message_fn
 
     def test_led_state(self) -> None:
-        assert False
+        """
+        Validates the led_state() returns the desired state..
+        """
+        message_fn = network.receive_led_message
+        try:
+            message_called_count = 0
+
+            def test_message_fn(request: Request, state: str) -> str:
+                nonlocal message_called_count
+                message_called_count += 1
+                return message_fn(request, state)
+
+            network.receive_led_message = test_message_fn
+
+            request = TestRequest("GET", "/led/<state>")
+            response = network.led_state(request, "ON")
+            assert response._body == 'LED is ON'
+            assert response._status == OK_200
+            assert len(response._headers) == 0
+
+            assert message_called_count == 1
+
+            response = network.led_state(request, "OFF")
+            assert response._body == 'LED is OFF'
+            assert response._status == OK_200
+            assert len(response._headers) == 0
+
+            assert message_called_count == 2
+
+        finally:
+            network.receive_led_message = message_fn
 
     def test_lookup_all(self) -> None:
         """

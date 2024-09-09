@@ -88,7 +88,7 @@ class NetworkController:
             Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
             Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
             Route("/led/blink", GET, led_blink, append_slash=True),
-            Route("/led/<state>", GET, led_state, append_slash=True),
+            Route("/led/<state>", [GET, POST], led_state, append_slash=True),
             # TODO: Add an example of a vocabulary to add (perhaps coordinator).
         ])
 
@@ -390,7 +390,7 @@ def receive_heartbeat_message(request: Request) -> str:
     return "TODO heartbeat message received from node"
 
 
-def receive_blink_message(request: Request):
+def receive_blink_message(request: Request) -> str:
     # TODO: Implement blink of onboard LED.
     # TODO: Remove the invocation of quotes
     with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
