@@ -2,7 +2,7 @@ import socket
 from collections.abc import Callable, Awaitable
 
 import pytest
-from adafruit_httpserver import Server, GET, POST, Request, OK_200
+from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501
 
 import control
 import network
@@ -262,6 +262,11 @@ class TestRequest(Request):
 
 
 class TestHttpRoutes:
+    """
+    NOTE: Even though these tests all specify (or at least try to) the correct route
+          in the TestRequest(), those routes are not typically needed for the test methods
+          as they expect to have been routed to correctly anyway.
+    """
 
     def test_index_returns_index_html_with_get(self) -> None:
         """
@@ -359,13 +364,31 @@ class TestHttpRoutes:
         assert False
 
     def test_lookup_all(self) -> None:
-        assert False
+        """
+        Validates that lookup_all() returns NOT_IMPLEMENTED_501 with no additional headers.
+        """
+        request = TestRequest("GET", "/lookup/all")
+        response = network.lookup_all(request)
+        assert response._body == network.NO
+        assert response._status == NOT_IMPLEMENTED_501
 
     def test_lookup_name(self) -> None:
-        assert False
+        """
+        Validates that lookup_name() returns NOT_IMPLEMENTED_501 with no additional headers.
+        """
+        request = TestRequest("GET", "/lookup/name/<name>")
+        response = network.lookup_name(request, "")
+        assert response._body == network.NO
+        assert response._status == NOT_IMPLEMENTED_501
 
     def test_lookup_role(self) -> None:
-        assert False
+        """
+        Validates that lookup_role() returns NOT_IMPLEMENTED_501 with no additional headers.
+        """
+        request = TestRequest("GET", "/lookup/role/<role>")
+        response = network.lookup_role(request, "")
+        assert response._body == network.NO
+        assert response._status == NOT_IMPLEMENTED_501
 
 
 class TestMessages:

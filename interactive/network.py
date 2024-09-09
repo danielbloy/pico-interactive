@@ -1,5 +1,5 @@
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT, Request
+    POST, PUT, Request, NOT_IMPLEMENTED_501
 
 import control
 import interactive.polyfills.cpu as cpu
@@ -300,7 +300,7 @@ def details(request: Request):
     """
     Returns details of the node as JSON.
     """
-    return JSONResponse(request, configuration.deatils())
+    return JSONResponse(request, configuration.details())
 
 
 def led_blink(request: Request):
@@ -321,24 +321,24 @@ def lookup_all(request: Request):
     """
     Return all known nodes
     """
-    # TODO
-    return Response(request, NO)
+    # TODO: Implement
+    return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
 
 def lookup_name(request: Request, name: str):
     """
     Returns all known nodes by name.
     """
-    # TODO
-    return Response(request, NO)
+    # TODO: Implement
+    return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
 
 def lookup_role(request: Request, role: str):
     """
     Returns all known nodes by role.
     """
-    # TODO
-    return Response(request, NO)
+    # TODO: Implement
+    return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
 
 #############################
