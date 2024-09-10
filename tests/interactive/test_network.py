@@ -301,7 +301,7 @@ class TestHttpRoutes:
         """
         Validates that restart returns with no additional headers. The restart
         won't actually restart a Desktop PC as the polyfill is a noop; though
-        we replace the restart() function anyway.
+        we monkeypatch the restart() function anyway.
         """
         restart_called_count = 0
 
@@ -309,7 +309,7 @@ class TestHttpRoutes:
             nonlocal restart_called_count
             restart_called_count += 1
 
-        monkeypatch.setattr(cpu, 'restart', test_restart_fn)
+        monkeypatch.setattr(network, 'cpu_restart', test_restart_fn)
 
         # Create an event loop which is needed for the async restart request.
         request = TestRequest("GET", "/restart")

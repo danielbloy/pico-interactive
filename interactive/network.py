@@ -6,7 +6,8 @@ from interactive import configuration
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error, debug, info
-from interactive.polyfills import cpu
+from interactive.polyfills.cpu import info as cpu_info
+from interactive.polyfills.cpu import restart as cpu_restart
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
@@ -204,7 +205,7 @@ def cpu_information(request: Request):
     Return the current CPU temperature, frequency, voltage, RAM and various
     other information items as JSON.
     """
-    return JSONResponse(request, cpu.info())
+    return JSONResponse(request, cpu_info())
 
 
 def inspect(request: Request):
@@ -269,7 +270,7 @@ def restart(request: Request):
 
     async def restart_node(seconds):
         await asyncio.sleep(seconds)
-        cpu.restart()
+        cpu_restart()
 
     asyncio.create_task(restart_node(5))
     return Response(request, YES)
