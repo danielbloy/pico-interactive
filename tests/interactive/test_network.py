@@ -388,64 +388,54 @@ class TestHttpRoutes:
         assert response._status == OK_200
         assert len(response._headers) == 0
 
-    def test_led_blink(self) -> None:
+    def test_led_blink(self, monkeypatch) -> None:
         """
         Validates the led_blink route calls the appropriate receive function.
         """
-        message_fn = network.receive_blink_message
-        try:
-            message_called_count = 0
+        message_called_count = 0
 
-            def test_message_fn(request: Request) -> str:
-                nonlocal message_called_count
-                message_called_count += 1
-                return message_fn(request)
+        def test_message_fn(r: Request) -> str:
+            nonlocal message_called_count
+            message_called_count += 1
+            return 'LED has blinked'
 
-            network.receive_blink_message = test_message_fn
+        monkeypatch.setattr(network, 'receive_blink_message', test_message_fn)
 
-            request = TestRequest("GET", "/led/blink")
-            response = network.led_blink(request)
-            assert response._body == 'LED has blinked'
-            assert response._status == OK_200
-            assert len(response._headers) == 0
+        request = TestRequest("GET", "/led/blink")
+        response = network.led_blink(request)
+        assert response._body == 'LED has blinked'
+        assert response._status == OK_200
+        assert len(response._headers) == 0
 
-            assert message_called_count == 1
+        assert message_called_count == 1
 
-        finally:
-            network.receive_blink_message = message_fn
-
-    def test_led_state(self) -> None:
+    def test_led_state(self, monkeypatch) -> None:
         """
         Validates the led_state() returns the desired state..
         """
-        message_fn = network.receive_led_message
-        try:
-            message_called_count = 0
+        message_called_count = 0
 
-            def test_message_fn(request: Request, state: str) -> str:
-                nonlocal message_called_count
-                message_called_count += 1
-                return message_fn(request, state)
+        def test_message_fn(request: Request, state: str) -> str:
+            nonlocal message_called_count
+            message_called_count += 1
+            return f'LED is {state}'
 
-            network.receive_led_message = test_message_fn
+        monkeypatch.setattr(network, 'receive_led_message', test_message_fn)
 
-            request = TestRequest("GET", "/led/<state>")
-            response = network.led_state(request, "ON")
-            assert response._body == 'LED is ON'
-            assert response._status == OK_200
-            assert len(response._headers) == 0
+        request = TestRequest("GET", "/led/<state>")
+        response = network.led_state(request, "ON")
+        assert response._body == 'LED is ON'
+        assert response._status == OK_200
+        assert len(response._headers) == 0
 
-            assert message_called_count == 1
+        assert message_called_count == 1
 
-            response = network.led_state(request, "OFF")
-            assert response._body == 'LED is OFF'
-            assert response._status == OK_200
-            assert len(response._headers) == 0
+        response = network.led_state(request, "OFF")
+        assert response._body == 'LED is OFF'
+        assert response._status == OK_200
+        assert len(response._headers) == 0
 
-            assert message_called_count == 2
-
-        finally:
-            network.receive_led_message = message_fn
+        assert message_called_count == 2
 
     def test_lookup_all(self) -> None:
         """
