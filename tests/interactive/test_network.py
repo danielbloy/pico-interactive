@@ -446,8 +446,21 @@ class TestHttpRoutes:
         assert response._status == NOT_IMPLEMENTED_501
 
 
+def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+                      protocol: str = "http", method="GET",
+                      data=None, json=None):
+    print("mock_send_message")
+    pass
+
+
 class TestMessages:
+
+    @pytest.fixture(autouse=True)
+    def send_message_patched(self, monkeypatch):
+        monkeypatch.setattr(network, 'send_message', mock_send_message)
+
     def test_send_message(self) -> None:
+        network.send_message("hi")
         assert False
 
     def test_send_register_message(self) -> None:
