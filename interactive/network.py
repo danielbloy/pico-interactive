@@ -266,7 +266,7 @@ def restart(request: Request):
     Restarts the microcontroller; does nothing on desktop.
     """
     import asyncio
-    
+
     async def restart_node(seconds):
         await asyncio.sleep(seconds)
         cpu.restart()
@@ -393,9 +393,9 @@ def receive_heartbeat_message(request: Request) -> str:
 def receive_blink_message(request: Request) -> str:
     # TODO: Implement blink of onboard LED.
     # TODO: Remove the invocation of quotes
-    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
-        print(response.headers)
-        print(response.text)
+    # with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
+    #    print(response.headers)
+    #    print(response.text)
 
     return 'LED has blinked'
 
