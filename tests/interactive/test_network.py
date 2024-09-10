@@ -123,41 +123,37 @@ class TestNetwork:
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
 
-    def test_registering_with_runner_with_coordinator(self) -> None:
+    def test_registering_with_runner_with_coordinator(self, monkeypatch) -> None:
         """
         Validates the NetworkController registers with the Runner, with coordinator.
         """
         add_task_count: int = 0
-        original = configuration.NODE_COORDINATOR
-        try:
-            configuration.NODE_COORDINATOR = "127.0.0.1"
 
-            class TestRunner(Runner):
-                def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
-                    nonlocal add_task_count
-                    add_task_count += 1
+        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "127.0.0.1")
 
-                def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
-                    nonlocal add_task_count
-                    add_task_count += 1
+        class TestRunner(Runner):
+            def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
+                nonlocal add_task_count
+                add_task_count += 1
 
-            def register(request):
-                print(request)
+            def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
+                nonlocal add_task_count
+                add_task_count += 1
 
-            network.register = register
+        def register(request):
+            print(request)
 
-            runner = TestRunner()
-            server = TestServer()
-            controller = NetworkController(server)
-            assert add_task_count == 0
-            controller.register(runner)
-            assert add_task_count == 2
-            assert server.start_called_count == 1
-            assert server.stop_called_count == 0
-            assert server.poll_called_count == 0
+        network.register = register
 
-        finally:
-            configuration.NODE_COORDINATOR = original
+        runner = TestRunner()
+        server = TestServer()
+        controller = NetworkController(server)
+        assert add_task_count == 0
+        controller.register(runner)
+        assert add_task_count == 2
+        assert server.start_called_count == 1
+        assert server.stop_called_count == 0
+        assert server.poll_called_count == 0
 
     def test_serve_requests(self) -> None:
         """
@@ -182,76 +178,61 @@ class TestNetwork:
         assert server.stop_called_count == 1
         assert server.poll_called_count > 5
 
-    def test_heartbeats(self) -> None:
+    def test_heartbeats(self, monkeypatch) -> None:
+        heartbeat_called_count = 0
+        register_called_count = 0
+        unregister_called_count = 0
 
-        original_node = configuration.NODE_COORDINATOR
-        original_frequency = control.NETWORK_HEARTBEAT_FREQUENCY
-        heartbeat_message_fn = network.send_heartbeat_message
-        register_message_fn = network.send_register_message
-        unregister_message_fn = network.send_unregister_message
-        try:
-            configuration.NODE_COORDINATOR = "123.45.67.89"
-            control.NETWORK_HEARTBEAT_FREQUENCY = control.RUNNER_DEFAULT_CALLBACK_FREQUENCY
-
-            heartbeat_called_count = 0
-            register_called_count = 0
-            unregister_called_count = 0
-
-            def heartbeat(node):
-                nonlocal heartbeat_called_count, register_called_count, unregister_called_count
-                assert node == "123.45.67.89"
-                assert register_called_count == 1
-                assert unregister_called_count == 0
-                heartbeat_called_count += 1
-
-            def register(node):
-                nonlocal heartbeat_called_count, register_called_count, unregister_called_count
-                assert node == "123.45.67.89"
-                assert register_called_count == 0
-                assert heartbeat_called_count == 0
-                assert unregister_called_count == 0
-                register_called_count += 1
-
-            def unregister(node):
-                nonlocal heartbeat_called_count, register_called_count, unregister_called_count
-                assert node == "123.45.67.89"
-                assert register_called_count == 1
-                assert unregister_called_count == 0
-                assert heartbeat_called_count > 1
-                unregister_called_count += 1
-
-            network.send_heartbeat_message = heartbeat
-            network.send_register_message = register
-            network.send_unregister_message = unregister
-
-            called_count: int = 0
-
-            async def callback():
-                nonlocal called_count
-                called_count += 1
-                runner.cancel = called_count >= 5
-
-            runner = Runner()
-            server = TestServer()
-            controller = NetworkController(server)
-            controller.register(runner)
-
-            runner.run(callback)
-            assert called_count == 5
-            assert server.start_called_count == 1
-            assert server.stop_called_count == 1
-            assert server.poll_called_count > 5
-
-            assert heartbeat_called_count < 5
+        def heartbeat(node):
+            nonlocal heartbeat_called_count, register_called_count, unregister_called_count
+            assert node == "123.45.67.89"
             assert register_called_count == 1
-            assert unregister_called_count == 1
+            assert unregister_called_count == 0
+            heartbeat_called_count += 1
 
-        finally:
-            configuration.NODE_COORDINATOR = original_node
-            control.NETWORK_HEARTBEAT_FREQUENCY = original_frequency
-            network.send_heartbeat_message = heartbeat_message_fn
-            network.send_register_message = register_message_fn
-            network.send_unregister_message = unregister_message_fn
+        def register(node):
+            nonlocal heartbeat_called_count, register_called_count, unregister_called_count
+            assert node == "123.45.67.89"
+            assert register_called_count == 0
+            assert heartbeat_called_count == 0
+            assert unregister_called_count == 0
+            register_called_count += 1
+
+        def unregister(node):
+            nonlocal heartbeat_called_count, register_called_count, unregister_called_count
+            assert node == "123.45.67.89"
+            assert register_called_count == 1
+            assert unregister_called_count == 0
+            assert heartbeat_called_count > 1
+            unregister_called_count += 1
+
+        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "123.45.67.89")
+        monkeypatch.setattr(control, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
+        monkeypatch.setattr(network, 'send_heartbeat_message', heartbeat)
+        monkeypatch.setattr(network, 'send_register_message', register)
+        monkeypatch.setattr(network, 'send_unregister_message', unregister)
+
+        called_count: int = 0
+
+        async def callback():
+            nonlocal called_count
+            called_count += 1
+            runner.cancel = called_count >= 5
+
+        runner = Runner()
+        server = TestServer()
+        controller = NetworkController(server)
+        controller.register(runner)
+
+        runner.run(callback)
+        assert called_count == 5
+        assert server.start_called_count == 1
+        assert server.stop_called_count == 1
+        assert server.poll_called_count > 5
+
+        assert heartbeat_called_count < 5
+        assert register_called_count == 1
+        assert unregister_called_count == 1
 
 
 class TestRequest(Request):
