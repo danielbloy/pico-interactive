@@ -272,7 +272,7 @@ class TestRequest(Request):
 def validate_methods(valid_methods, route, fn, *args) -> None:
     """
     Validates that only the methods for the specified route are valid, all others
-    should return a 404.
+    should return a 404. All valid routes should return a 200 or 501.
     """
     for method in {GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT}:
         request = TestRequest(method, route)
