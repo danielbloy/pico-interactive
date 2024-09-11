@@ -73,13 +73,11 @@ class NetworkController:
 
         # Setup standard handlers for built-in messages.
         server.add_routes([
+            # General service routes.
             Route("/", GET, index),
             Route("/index.html", GET, index),
             Route("/cpu-information", GET, cpu_information, append_slash=True),
             Route("/inspect", GET, inspect, append_slash=True),
-            Route("/register", [GET, POST], register, append_slash=True),
-            Route("/unregister", [GET, POST], unregister, append_slash=True),
-            Route("/heartbeat", [GET, POST], heartbeat, append_slash=True),
             Route("/restart", GET, restart, append_slash=True),
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
@@ -87,10 +85,13 @@ class NetworkController:
             Route("/details", GET, details, append_slash=True),
             Route("/led/blink", GET, led_blink, append_slash=True),
             Route("/led/<state>", [GET, POST], led_state, append_slash=True),
+            # Directory service routes
+            Route("/register", [GET, POST], register, append_slash=True),
+            Route("/unregister", [GET, POST], unregister, append_slash=True),
+            Route("/heartbeat", [GET, POST], heartbeat, append_slash=True),
             Route("/lookup/all", GET, lookup_all, append_slash=True),
             Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
             Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
-            # TODO: Add an example of a vocabulary to add (perhaps coordinator).
         ])
 
         server.socket_timeout = 1
@@ -190,9 +191,18 @@ class NetworkController:
         self.__requires_heartbeat_messages = False
 
 
-####################################
-# ***** H T T P    R O U T E S *****
-####################################
+def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+                 protocol: str = "http", method="GET",
+                 data=None, json=None):
+    """
+    Sends a message with the provided payload to the specified node, ensuring headers are included.
+    """
+    return requests.request(method, f"{protocol}://{host}/{path}", headers=HEADERS, data=data, json=json)
+
+
+###########################################################
+# ***** G E N E R A L    S E R V I C E    R O U T E S *****
+###########################################################
 def index(request: Request):
     """
     Serves the file html/index.html.
@@ -221,52 +231,6 @@ def inspect(request: Request):
     # TODO: Implement
     if request.method == GET:
         return Response(request, "TODO inspect")
-
-    return Response(request, NO, status=NOT_FOUND_404)
-
-
-def register(request: Request):
-    """
-    GET: Register this node with the coordinator. Will return an error if the
-         coordinator configuration is not set.
-    POST: Another node wants to register with us.
-    """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
-    if request.method == GET:
-        return Response(request, send_register_message(configuration.NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
-        return Response(request, receive_register_message(request))
-
-    return Response(request, NO, status=NOT_FOUND_404)
-
-
-def unregister(request: Request):
-    """
-    GET: Unregister this node from the coordinator.
-    POST: Another node wants to unregister from us.
-    """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
-    if request.method == GET:
-        return Response(request, send_unregister_message(configuration.NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
-        return Response(request, receive_unregister_message(request))
-
-    return Response(request, NO, status=NOT_FOUND_404)
-
-
-def heartbeat(request: Request):
-    """
-    GET: Sends a heartbeat message from this node to the coordinator.
-    POST: Another node has sent a heartbeat message to us.
-    """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
-    if request.method == GET:
-        return Response(request, send_heartbeat_message(configuration.NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
-        return Response(request, receive_heartbeat_message(request))
 
     return Response(request, NO, status=NOT_FOUND_404)
 
@@ -348,6 +312,82 @@ def led_state(request: Request, state: str):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
+##############################################################
+# ***** G E N E R AL    S E R V I C E    M E S S A G E S *****
+##############################################################
+
+def receive_blink_message(request: Request) -> str:
+    # TODO: Implement blink of onboard LED.
+    # TODO: Remove the invocation of quotes
+    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
+        print(response.headers)
+        print(response.text)
+
+    return 'LED has blinked'
+
+
+def receive_led_message(request: Request, state: str) -> str:
+    if state == 'ON':
+        # TODO: Turn the LED on
+        pass
+    elif state == 'OFF':
+        # TODO: Turn the LED off
+        pass
+    else:
+        return f'{state} is unknown'
+    return f'LED is {state}'
+
+
+###############################################################
+# ***** D I R E C T O R Y    S E R V I C E    R O U T E S *****
+###############################################################
+
+def register(request: Request):
+    """
+    GET: Register this node with the coordinator. Will return an error if the
+         coordinator configuration is not set.
+    POST: Another node wants to register with us.
+    """
+    # TODO: what to do if configuration.NODE_COORDINATOR is None
+    if request.method == GET:
+        return Response(request, send_register_message(configuration.NODE_COORDINATOR))
+
+    if request.method in [POST, PUT]:
+        return Response(request, receive_register_message(request))
+
+    return Response(request, NO, status=NOT_FOUND_404)
+
+
+def unregister(request: Request):
+    """
+    GET: Unregister this node from the coordinator.
+    POST: Another node wants to unregister from us.
+    """
+    # TODO: what to do if configuration.NODE_COORDINATOR is None
+    if request.method == GET:
+        return Response(request, send_unregister_message(configuration.NODE_COORDINATOR))
+
+    if request.method in [POST, PUT]:
+        return Response(request, receive_unregister_message(request))
+
+    return Response(request, NO, status=NOT_FOUND_404)
+
+
+def heartbeat(request: Request):
+    """
+    GET: Sends a heartbeat message from this node to the coordinator.
+    POST: Another node has sent a heartbeat message to us.
+    """
+    # TODO: what to do if configuration.NODE_COORDINATOR is None
+    if request.method == GET:
+        return Response(request, send_heartbeat_message(configuration.NODE_COORDINATOR))
+
+    if request.method in [POST, PUT]:
+        return Response(request, receive_heartbeat_message(request))
+
+    return Response(request, NO, status=NOT_FOUND_404)
+
+
 def lookup_all(request: Request):
     """
     Return all known nodes
@@ -381,18 +421,9 @@ def lookup_role(request: Request, role: str):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-#############################
-# ***** M E S S A G E S *****
-#############################
-
-def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
-                 protocol: str = "http", method="GET",
-                 data=None, json=None):
-    """
-    Sends a message with the provided payload to the specified node, ensuring headers are included.
-    """
-    return requests.request(method, f"{protocol}://{host}/{path}", headers=HEADERS, data=data, json=json)
-
+###################################################################
+# ***** D I R E C T O R Y    S E R V I C E    M E S S A G E S *****
+###################################################################
 
 def send_register_message(node) -> str:
     info("Registering node with coordinator...")
@@ -428,25 +459,3 @@ def receive_heartbeat_message(request: Request) -> str:
     info("Received heartbeat message...")
     # TODO
     return "TODO heartbeat message received from node"
-
-
-def receive_blink_message(request: Request) -> str:
-    # TODO: Implement blink of onboard LED.
-    # TODO: Remove the invocation of quotes
-    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
-        print(response.headers)
-        print(response.text)
-
-    return 'LED has blinked'
-
-
-def receive_led_message(request: Request, state: str) -> str:
-    if state == 'ON':
-        # TODO: Turn the LED on
-        pass
-    elif state == 'OFF':
-        # TODO: Turn the LED off
-        pass
-    else:
-        return f'{state} is unknown'
-    return f'LED is {state}'
