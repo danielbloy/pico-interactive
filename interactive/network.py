@@ -1,13 +1,14 @@
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
 
-import control
 from interactive import configuration
-from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
+    NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_microcontroller
 from interactive.log import error, debug, info
 from interactive.polyfills.cpu import info as cpu_info
 from interactive.polyfills.cpu import restart as cpu_restart
+from interactive.polyfills.led import onboard_led
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
@@ -27,6 +28,8 @@ from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 NO = "NO"
 YES = "YES"
 OK = "OK"
+ON = "ON"
+OFF = "OFF"
 
 HEADER_NAME = 'name'  # Name of the sender.
 HEADER_ROLE = 'role'  # Role of the sender.
@@ -83,6 +86,7 @@ class NetworkController:
             Route("/name", GET, name, append_slash=True),
             Route("/role", GET, role, append_slash=True),
             Route("/details", GET, details, append_slash=True),
+            Route("/blink", GET, led_blink, append_slash=True),
             Route("/led/blink", GET, led_blink, append_slash=True),
             Route("/led/<state>", [GET, POST], led_state, append_slash=True),
             # Directory service routes
@@ -119,7 +123,7 @@ class NetworkController:
                 new_scheduled_task(
                     self.__heartbeat,
                     terminate_on_cancel(self.__runner),
-                    control.NETWORK_HEARTBEAT_FREQUENCY))
+                    NETWORK_HEARTBEAT_FREQUENCY))
             runner.add_task(scheduled_task)
 
     async def __serve_requests(self) -> None:
@@ -316,25 +320,36 @@ def led_state(request: Request, state: str):
 # ***** G E N E R AL    S E R V I C E    M E S S A G E S *****
 ##############################################################
 
+onboard_led = onboard_led()
+
+
 def receive_blink_message(request: Request) -> str:
-    # TODO: Implement blink of onboard LED.
-    # TODO: Remove the invocation of quotes
-    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
-        print(response.headers)
-        print(response.text)
+    """
+    Simply blinks the onboard LED.
+    """
+    import asyncio
+
+    async def blink_led():
+        onboard_led.value = not onboard_led.value
+        await asyncio.sleep(0.25)
+        onboard_led.value = not onboard_led.value
+
+    asyncio.create_task(blink_led())
 
     return 'LED has blinked'
 
 
 def receive_led_message(request: Request, state: str) -> str:
-    if state == 'ON':
-        # TODO: Turn the LED on
-        pass
-    elif state == 'OFF':
-        # TODO: Turn the LED off
-        pass
+    """
+    Simply turns the onboard LED either on or off.
+    """
+    if state == ON:
+        onboard_led.value = True
+    elif state == OFF:
+        onboard_led.value = False
     else:
         return f'{state} is unknown'
+
     return f'LED is {state}'
 
 
@@ -440,6 +455,11 @@ def receive_register_message(request: Request) -> str:
 def send_unregister_message(node) -> str:
     info("Unregistering node from coordinator...")
     # TODO
+    # TODO: Remove the invocation of quotes
+    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
+        print(response.headers)
+        print(response.text)
+
     return "unregistered from coordinator"
 
 

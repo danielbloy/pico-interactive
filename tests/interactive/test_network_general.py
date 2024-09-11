@@ -1,13 +1,12 @@
 import asyncio
 import os
 
-import pytest
 from adafruit_httpserver import GET, Request, OK_200
 
 import network
 from interactive import configuration
 from polyfills import cpu
-from test_network import mock_send_message, validate_methods, TestRequest
+from test_network import validate_methods, TestRequest
 
 
 class TestRoutes:
@@ -16,10 +15,6 @@ class TestRoutes:
           in the TestRequest(), those routes are not typically needed for the test methods
           as they expect to have been routed to correctly anyway.
     """
-
-    @pytest.fixture(autouse=True)
-    def send_message_patched(self, monkeypatch):
-        monkeypatch.setattr(network, 'send_message', mock_send_message)
 
     def test_index_returns_index_html_with_get(self) -> None:
         """
@@ -67,8 +62,7 @@ class TestRoutes:
     def test_restart(self, monkeypatch) -> None:
         """
         Validates that restart returns with no additional headers. The restart
-        won't actually restart a Desktop PC as the polyfill is a noop; though
-        we monkeypatch the restart() function anyway.
+        won't actually restart a Desktop PC as the polyfill is a noop.
         """
 
         async def __validate_methods():
@@ -154,8 +148,6 @@ class TestRoutes:
         """
         Validates the led_blink route calls the appropriate receive function.
         """
-        validate_methods({GET}, "/led/blink", network.led_blink)
-
         message_called_count = 0
 
         def test_message_fn(r: Request) -> str:
@@ -164,6 +156,10 @@ class TestRoutes:
             return 'LED has blinked'
 
         monkeypatch.setattr(network, 'receive_blink_message', test_message_fn)
+
+        validate_methods({GET}, "/led/blink", network.led_blink)
+        # this reset is required because the validate_methods() call invokes network.led_blink().
+        message_called_count = 0
 
         request = TestRequest(GET, "/led/blink")
         response = network.led_blink(request)
@@ -205,10 +201,6 @@ class TestRoutes:
 
 
 class TestMessages:
-
-    @pytest.fixture(autouse=True)
-    def send_message_patched(self, monkeypatch):
-        monkeypatch.setattr(network, 'send_message', mock_send_message)
 
     def test_receive_blink_message(self) -> None:
         assert False

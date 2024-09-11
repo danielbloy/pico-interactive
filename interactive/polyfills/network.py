@@ -16,7 +16,7 @@ import ssl
 
 from adafruit_httpserver import Server
 
-from environment import is_running_on_microcontroller
+from interactive.environment import is_running_on_microcontroller
 
 # Rather than doing something different based on whether we have pins available or not
 # we make the network decision based on whether we are running on a microcontroller or

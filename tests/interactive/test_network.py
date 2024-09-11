@@ -74,21 +74,22 @@ class TestNetwork:
         assert [route for route in server._routes if route.path == "/" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/index.html" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/inspect" and route.methods == {GET}]
-        assert [route for route in server._routes if route.path == "/register" and route.methods == {GET, POST}]
-        assert [route for route in server._routes if route.path == "/unregister" and route.methods == {GET, POST}]
-        assert [route for route in server._routes if route.path == "/heartbeat" and route.methods == {GET, POST}]
         assert [route for route in server._routes if route.path == "/restart" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/alive" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/name" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/role" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/details" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/blink" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/led/blink" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/led/<state>" and route.methods == {GET, POST}]
+        assert [route for route in server._routes if route.path == "/register" and route.methods == {GET, POST}]
+        assert [route for route in server._routes if route.path == "/unregister" and route.methods == {GET, POST}]
+        assert [route for route in server._routes if route.path == "/heartbeat" and route.methods == {GET, POST}]
         assert [route for route in server._routes if route.path == "/lookup/all" and route.methods == {GET}]
         assert [route for route in server._routes if
                 route.path == "/lookup/name/<name>" and route.methods == {GET}]
         assert [route for route in server._routes if
                 route.path == "/lookup/role/<role>" and route.methods == {GET}]
-        assert [route for route in server._routes if route.path == "/led/blink" and route.methods == {GET}]
-        assert [route for route in server._routes if route.path == "/led/<state>" and route.methods == {GET, POST}]
 
         # Check the server has started.
         assert not server.stopped
@@ -240,7 +241,7 @@ class TestNetwork:
         # Now we setup the coordinator variables so we should get a register,
         # unregister and some heartbeat messages.
         monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "123.45.67.89")
-        monkeypatch.setattr(control, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
+        monkeypatch.setattr(network, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
 
         called_count = 0
 
