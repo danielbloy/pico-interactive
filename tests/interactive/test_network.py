@@ -4,7 +4,8 @@ import socket
 from collections.abc import Callable, Awaitable
 
 import pytest
-from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501
+from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501, NOT_FOUND_404, PUT, DELETE, \
+    PATCH, HEAD, OPTIONS, TRACE, CONNECT
 
 import control
 import network
@@ -13,6 +14,14 @@ from interactive import configuration
 from network import NetworkController, HEADER_NAME, HEADER_ROLE
 from polyfills import cpu
 from runner import Runner
+
+
+# This is used to mock out the network.send_message function to avoid us actually sending
+# network calls during the tests.
+def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+                      protocol: str = "http", method="GET",
+                      data=None, json=None):
+    pass
 
 
 class TestServer(Server):
@@ -278,6 +287,24 @@ class TestHttpRoutes:
           as they expect to have been routed to correctly anyway.
     """
 
+    @pytest.fixture(autouse=True)
+    def send_message_patched(self, monkeypatch):
+        monkeypatch.setattr(network, 'send_message', mock_send_message)
+
+    def validate_methods(valid_methods, route) -> None:
+        """
+        Validates that only the methods for the specified route are valid, all others
+        should return a 404.
+        """
+        method = {GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT}
+        for method in valid_methods:
+            if method not in valid_methods:
+                request = TestRequest(method, route)
+                response = network.inspect(request)
+                assert response._body == network.NO
+                assert response._status == NOT_FOUND_404
+                assert len(response._headers) == 0
+
     def test_index_returns_index_html_with_get(self) -> None:
         """
         Validates that the index.html file is returned with no additional headers.
@@ -309,7 +336,8 @@ class TestHttpRoutes:
         """
         Validates that the inspect web page is returned with no additional headers.
         """
-        request = TestRequest("GET", "/inspect")
+        self.validate_methods({GET}, "/inspect")
+        request = TestRequest(GET, "/inspect")
         response = network.inspect(request)
         assert response._body == "TODO inspect"
         assert response._status == OK_200
@@ -473,13 +501,6 @@ class TestHttpRoutes:
         assert response._status == NOT_IMPLEMENTED_501
 
 
-def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
-                      protocol: str = "http", method="GET",
-                      data=None, json=None):
-    print("mock_send_message")
-    pass
-
-
 class TestMessages:
 
     @pytest.fixture(autouse=True)
@@ -513,6 +534,15 @@ class TestMessages:
 
     def test_receive_led_message(self) -> None:
         assert False
+
+# print(request)
+# print(f"METHOD ... : '{request.method}'")
+# print(f"PATH ..... : '{request.path}'")
+# print(f"QPARAMS .. : '{request.query_params}'")
+# print(f"HTTPV .... : '{request.http_version}'")
+# print(f"HEADERS .. : '{request.headers}'")
+# print(f"RAW ...... : '{request.raw_request}'")
+
 
 # C:\Users\danie>curl --verbose http://127.0.0.1:5001/index.html
 # *   Trying 127.0.0.1:5001...

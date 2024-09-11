@@ -1,5 +1,5 @@
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT, Request, NOT_IMPLEMENTED_501
+    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
 
 import control
 from interactive import configuration
@@ -213,21 +213,18 @@ def inspect(request: Request):
     Return a web page of information about this node.
     """
     # TODO: Implement
-    return Response(request, "TODO inspect")
+    if request.method == GET:
+        return Response(request, "TODO inspect")
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def register(request: Request):
     """
-    GET: Register this node with the coordinator.
+    GET: Register this node with the coordinator. Will return an error if the
+         coordinator configuration is not set.
     POST: Another node wants to register with us.
     """
-    print(request)
-    print(f"METHOD ... : '{request.method}'")
-    print(f"PATH ..... : '{request.path}'")
-    print(f"QPARAMS .. : '{request.query_params}'")
-    print(f"HTTPV .... : '{request.http_version}'")
-    print(f"HEADERS .. : '{request.headers}'")
-    print(f"RAW ...... : '{request.raw_request}'")
     # TODO: what to do if configuration.NODE_COORDINATOR is None
     if request.method == GET:
         return Response(request, send_register_message(configuration.NODE_COORDINATOR))
