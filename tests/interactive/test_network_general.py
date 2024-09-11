@@ -46,7 +46,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/cpu-information", network.cpu_information)
 
-        request = TestRequest("GET", "/cpu-information")
+        request = TestRequest(GET, "/cpu-information")
         response = network.cpu_information(request)
         assert response._data == cpu.info()
         assert response._status == OK_200
@@ -70,7 +70,11 @@ class TestRoutes:
         won't actually restart a Desktop PC as the polyfill is a noop; though
         we monkeypatch the restart() function anyway.
         """
-        validate_methods({GET}, "/restart", network.restart)
+
+        async def __validate_methods():
+            validate_methods({GET}, "/restart", network.restart)
+
+        asyncio.run(__validate_methods())
 
         restart_called_count = 0
 
