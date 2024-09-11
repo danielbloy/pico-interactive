@@ -85,11 +85,11 @@ class NetworkController:
             Route("/name", GET, name, append_slash=True),
             Route("/role", GET, role, append_slash=True),
             Route("/details", GET, details, append_slash=True),
+            Route("/led/blink", GET, led_blink, append_slash=True),
+            Route("/led/<state>", [GET, POST], led_state, append_slash=True),
             Route("/lookup/all", GET, lookup_all, append_slash=True),
             Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
             Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
-            Route("/led/blink", GET, led_blink, append_slash=True),
-            Route("/led/<state>", [GET, POST], led_state, append_slash=True),
             # TODO: Add an example of a vocabulary to add (perhaps coordinator).
         ])
 
@@ -197,7 +197,10 @@ def index(request: Request):
     """
     Serves the file html/index.html.
     """
-    return FileResponse(request, "index.html", 'interactive/html')
+    if request.method == GET:
+        return FileResponse(request, "index.html", 'interactive/html')
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def cpu_information(request: Request):
@@ -205,7 +208,10 @@ def cpu_information(request: Request):
     Return the current CPU temperature, frequency, voltage, RAM and various
     other information items as JSON.
     """
-    return JSONResponse(request, cpu_info())
+    if request.method == GET:
+        return JSONResponse(request, cpu_info())
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def inspect(request: Request):
@@ -232,6 +238,8 @@ def register(request: Request):
     if request.method in [POST, PUT]:
         return Response(request, receive_register_message(request))
 
+    return Response(request, NO, status=NOT_FOUND_404)
+
 
 def unregister(request: Request):
     """
@@ -244,6 +252,8 @@ def unregister(request: Request):
 
     if request.method in [POST, PUT]:
         return Response(request, receive_unregister_message(request))
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def heartbeat(request: Request):
@@ -258,11 +268,16 @@ def heartbeat(request: Request):
     if request.method in [POST, PUT]:
         return Response(request, receive_heartbeat_message(request))
 
+    return Response(request, NO, status=NOT_FOUND_404)
+
 
 def restart(request: Request):
     """
     Restarts the microcontroller; does nothing on desktop.
     """
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
+
     import asyncio
 
     async def restart_node(seconds):
@@ -277,42 +292,60 @@ def alive(request: Request):
     """
     Simply returns YES in response to an alive message.
     """
-    return Response(request, YES)
+    if request.method == GET:
+        return Response(request, YES)
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def name(request: Request):
     """
     Returns the name of the node.
     """
-    return Response(request, configuration.NODE_NAME)
+    if request.method == GET:
+        return Response(request, configuration.NODE_NAME)
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def role(request: Request):
     """
     Returns the role of the node.
     """
-    return Response(request, configuration.NODE_ROLE)
+    if request.method == GET:
+        return Response(request, configuration.NODE_ROLE)
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def details(request: Request):
     """
     Returns details of the node as JSON.
     """
-    return JSONResponse(request, configuration.details())
+    if request.method == GET:
+        return JSONResponse(request, configuration.details())
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def led_blink(request: Request):
     """
     Blinks the local LED.
     """
-    return Response(request, receive_blink_message(request))
+    if request.method == GET:
+        return Response(request, receive_blink_message(request))
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def led_state(request: Request, state: str):
     """
     Turns the LED ON or OFF.
     """
-    return Response(request, receive_led_message(request, state.upper()))
+    if request.method == GET:
+        return Response(request, receive_led_message(request, state.upper()))
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def lookup_all(request: Request):
@@ -320,7 +353,10 @@ def lookup_all(request: Request):
     Return all known nodes
     """
     # TODO: Implement
-    return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method == GET:
+        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def lookup_name(request: Request, name: str):
@@ -328,7 +364,10 @@ def lookup_name(request: Request, name: str):
     Returns all known nodes by name.
     """
     # TODO: Implement
-    return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method == GET:
+        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 def lookup_role(request: Request, role: str):
@@ -336,7 +375,10 @@ def lookup_role(request: Request, role: str):
     Returns all known nodes by role.
     """
     # TODO: Implement
-    return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method == GET:
+        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+
+    return Response(request, NO, status=NOT_FOUND_404)
 
 
 #############################

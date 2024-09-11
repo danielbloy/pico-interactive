@@ -16,14 +16,6 @@ from polyfills import cpu
 from runner import Runner
 
 
-# This is used to mock out the network.send_message function to avoid us actually sending
-# network calls during the tests.
-def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
-                      protocol: str = "http", method="GET",
-                      data=None, json=None):
-    pass
-
-
 class TestServer(Server):
     def __init__(self) -> None:
         # noinspection PyTypeChecker
@@ -280,6 +272,31 @@ class TestRequest(Request):
         super().__init__(server, None, ('123.45.67.89', 12345), raw_request)
 
 
+def validate_methods(valid_methods, route, fn, *args) -> None:
+    """
+    Validates that only the methods for the specified route are valid, all others
+    should return a 404.
+    """
+    for method in {GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT}:
+        request = TestRequest(method, route)
+        response = fn(request, *args)
+
+        if method in valid_methods:
+            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501
+        else:
+            assert response._body == network.NO
+            assert response._status == NOT_FOUND_404
+
+
+# This is used to mock out the network.send_message function to avoid us actually sending
+# network calls during the tests.
+def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+                      protocol: str = "http", method="GET",
+                      data=None, json=None):
+    pass
+    # TODO: This needs to return a valid response object.
+
+
 class TestHttpRoutes:
     """
     NOTE: Even though these tests all specify (or at least try to) the correct route
@@ -291,29 +308,17 @@ class TestHttpRoutes:
     def send_message_patched(self, monkeypatch):
         monkeypatch.setattr(network, 'send_message', mock_send_message)
 
-    def validate_methods(valid_methods, route) -> None:
-        """
-        Validates that only the methods for the specified route are valid, all others
-        should return a 404.
-        """
-        method = {GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT}
-        for method in valid_methods:
-            if method not in valid_methods:
-                request = TestRequest(method, route)
-                response = network.inspect(request)
-                assert response._body == network.NO
-                assert response._status == NOT_FOUND_404
-                assert len(response._headers) == 0
-
     def test_index_returns_index_html_with_get(self) -> None:
         """
         Validates that the index.html file is returned with no additional headers.
         """
+        validate_methods({GET}, "/", network.index)
+
         path = os.getcwd()
         try:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             os.chdir(os.path.join(dir_path, "../.."))
-            request = TestRequest("GET", "/")
+            request = TestRequest(GET, "/")
             response = network.index(request)
             assert response._filename == "index.html"
             assert response._root_path == 'interactive/html'
@@ -326,6 +331,8 @@ class TestHttpRoutes:
         """
         Validates that the cpu information is returned with no additional headers.
         """
+        validate_methods({GET}, "/cpu-information", network.cpu_information)
+
         request = TestRequest("GET", "/cpu-information")
         response = network.cpu_information(request)
         assert response._data == cpu.info()
@@ -336,7 +343,8 @@ class TestHttpRoutes:
         """
         Validates that the inspect web page is returned with no additional headers.
         """
-        self.validate_methods({GET}, "/inspect")
+        validate_methods({GET}, "/inspect", network.inspect)
+
         request = TestRequest(GET, "/inspect")
         response = network.inspect(request)
         assert response._body == "TODO inspect"
@@ -344,13 +352,16 @@ class TestHttpRoutes:
         assert len(response._headers) == 0
 
     def test_register(self) -> None:
-        assert False
+        validate_methods({GET, POST, PUT}, "/register", network.register)
+        # TODO: Write the rest of the tests
 
     def test_unregister(self) -> None:
-        assert False
+        validate_methods({GET, POST, PUT}, "/unregister", network.unregister)
+        # TODO: Write the rest of the tests
 
     def test_heartbeat(self) -> None:
-        assert False
+        validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat)
+        # TODO: Write the rest of the tests
 
     def test_restart(self, monkeypatch) -> None:
         """
@@ -358,6 +369,8 @@ class TestHttpRoutes:
         won't actually restart a Desktop PC as the polyfill is a noop; though
         we monkeypatch the restart() function anyway.
         """
+        validate_methods({GET}, "/restart", network.restart)
+
         restart_called_count = 0
 
         def test_restart_fn():
@@ -367,7 +380,7 @@ class TestHttpRoutes:
         monkeypatch.setattr(network, 'cpu_restart', test_restart_fn)
 
         # Create an event loop which is needed for the async restart request.
-        request = TestRequest("GET", "/restart")
+        request = TestRequest(GET, "/restart")
 
         async def __execute():
             # Before calling the request, there should only be a single
@@ -391,7 +404,9 @@ class TestHttpRoutes:
         """
         Validates that alive returns with no additional headers.
         """
-        request = TestRequest("GET", "/alive")
+        validate_methods({GET}, "/alive", network.alive)
+
+        request = TestRequest(GET, "/alive")
         response = network.alive(request)
         assert response._body == network.YES
         assert response._status == OK_200
@@ -400,7 +415,9 @@ class TestHttpRoutes:
         """
         Validates that name returns with no additional headers.
         """
-        request = TestRequest("GET", "/name")
+        validate_methods({GET}, "/name", network.name)
+
+        request = TestRequest(GET, "/name")
         response = network.name(request)
         assert response._body == configuration.NODE_NAME
         assert response._status == OK_200
@@ -409,7 +426,9 @@ class TestHttpRoutes:
         """
         Validates that role returns with no additional headers.
         """
-        request = TestRequest("GET", "/role")
+        validate_methods({GET}, "/role", network.role)
+
+        request = TestRequest(GET, "/role")
         response = network.role(request)
         assert response._body == configuration.NODE_ROLE
         assert response._status == OK_200
@@ -418,7 +437,9 @@ class TestHttpRoutes:
         """
         Validates that the details information is returned with no additional headers.
         """
-        request = TestRequest("GET", "/details")
+        validate_methods({GET}, "/details", network.details)
+
+        request = TestRequest(GET, "/details")
         response = network.details(request)
         assert response._data == configuration.details()
         assert response._status == OK_200
@@ -428,6 +449,8 @@ class TestHttpRoutes:
         """
         Validates the led_blink route calls the appropriate receive function.
         """
+        validate_methods({GET}, "/led/blink", network.led_blink)
+
         message_called_count = 0
 
         def test_message_fn(r: Request) -> str:
@@ -437,7 +460,7 @@ class TestHttpRoutes:
 
         monkeypatch.setattr(network, 'receive_blink_message', test_message_fn)
 
-        request = TestRequest("GET", "/led/blink")
+        request = TestRequest(GET, "/led/blink")
         response = network.led_blink(request)
         assert response._body == 'LED has blinked'
         assert response._status == OK_200
@@ -449,6 +472,8 @@ class TestHttpRoutes:
         """
         Validates the led_state() returns the desired state..
         """
+        validate_methods({GET}, "/led/<state>", network.led_state, "ON")
+
         message_called_count = 0
 
         def test_message_fn(request: Request, state: str) -> str:
@@ -458,7 +483,7 @@ class TestHttpRoutes:
 
         monkeypatch.setattr(network, 'receive_led_message', test_message_fn)
 
-        request = TestRequest("GET", "/led/<state>")
+        request = TestRequest(GET, "/led/<state>")
         response = network.led_state(request, "ON")
         assert response._body == 'LED is ON'
         assert response._status == OK_200
@@ -477,7 +502,9 @@ class TestHttpRoutes:
         """
         Validates that lookup_all() returns NOT_IMPLEMENTED_501 with no additional headers.
         """
-        request = TestRequest("GET", "/lookup/all")
+        validate_methods({GET}, "/lookup/all", network.lookup_all)
+
+        request = TestRequest(GET, "/lookup/all")
         response = network.lookup_all(request)
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
@@ -486,7 +513,9 @@ class TestHttpRoutes:
         """
         Validates that lookup_name() returns NOT_IMPLEMENTED_501 with no additional headers.
         """
-        request = TestRequest("GET", "/lookup/name/<name>")
+        validate_methods({GET}, "/lookup/name/<name>", network.lookup_name, "NAME")
+
+        request = TestRequest(GET, "/lookup/name/<name>")
         response = network.lookup_name(request, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
@@ -495,7 +524,9 @@ class TestHttpRoutes:
         """
         Validates that lookup_role() returns NOT_IMPLEMENTED_501 with no additional headers.
         """
-        request = TestRequest("GET", "/lookup/role/<role>")
+        validate_methods({GET}, "/lookup/role/<role>", network.lookup_role, "ROLE")
+
+        request = TestRequest(GET, "/lookup/role/<role>")
         response = network.lookup_role(request, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
