@@ -179,6 +179,13 @@ class TestNetwork:
         assert server.poll_called_count > 5
 
     def test_heartbeats(self, monkeypatch) -> None:
+        """
+        Validates that the register, unregister and heartbeat messages are not sent
+        when there is no coordinator set (the default).
+
+        Also validates that the register, unregister and heartbeat messages are sent
+        at the correct points and intervals when a coordinator is set.
+        """
         heartbeat_called_count = 0
         register_called_count = 0
         unregister_called_count = 0
@@ -206,8 +213,6 @@ class TestNetwork:
             assert heartbeat_called_count > 1
             unregister_called_count += 1
 
-        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "123.45.67.89")
-        monkeypatch.setattr(control, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
         monkeypatch.setattr(network, 'send_heartbeat_message', heartbeat)
         monkeypatch.setattr(network, 'send_register_message', register)
         monkeypatch.setattr(network, 'send_unregister_message', unregister)
@@ -223,8 +228,30 @@ class TestNetwork:
         server = TestServer()
         controller = NetworkController(server)
         controller.register(runner)
-
         runner.run(callback)
+
+        assert called_count == 5
+        assert server.start_called_count == 1
+        assert server.stop_called_count == 1
+        assert server.poll_called_count > 5
+
+        assert heartbeat_called_count == 0
+        assert register_called_count == 0
+        assert unregister_called_count == 0
+
+        # Now we setup the coordinator variables so we should get a register,
+        # unregister and some heartbeat messages.
+        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "123.45.67.89")
+        monkeypatch.setattr(control, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
+
+        called_count = 0
+
+        runner = Runner()
+        server = TestServer()
+        controller = NetworkController(server)
+        controller.register(runner)
+        runner.run(callback)
+
         assert called_count == 5
         assert server.start_called_count == 1
         assert server.stop_called_count == 1
