@@ -101,9 +101,9 @@ the end of this readme for more information about the license.
 * [ ] Add current time of day support via Wi-Fi
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
-* [ ] Add support for network node information page: index, inspect, cpu-information
-* [ ] Add support for standard messages: alive, name, role, blink, led on/off, restart
-* [ ] Add support for network directory via coordinator node (PC/Raspberry Pi) (register/unregister, heartbeat etc.)
+* [x] Add support for network node information page: index, inspect, cpu-information
+* [x] Add support for standard messages: alive, name, role, blink, led on/off, restart
+* [x] Add support for network directory via coordinator node (PC/Raspberry Pi) (register/unregister, heartbeat etc.)
 * [ ] Add support for custom messages on nodes
 * [ ] Add UART support
     * [ ] Works on CircuitPython
