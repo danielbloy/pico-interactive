@@ -13,7 +13,7 @@ from interactive.network import NetworkController, HEADER_NAME, HEADER_ROLE
 from interactive.runner import Runner
 
 
-class TestServer(Server):
+class MockServer(Server):
     def __init__(self) -> None:
         # noinspection PyTypeChecker
         super().__init__(socket)
@@ -32,6 +32,40 @@ class TestServer(Server):
     def poll(self):
         self.poll_called_count += 1
         return super().poll()
+
+
+class MockRequest(Request):
+    def __init__(self, method, route: str, body: str = None):
+        server = MockServer()
+        raw_request = bytes(
+            f"{method} {route} HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: test-framework\r\nAccept: */*\r\n\r\n{body}",
+            "utf-8")
+        super().__init__(server, None, ('123.45.67.89', 12345), raw_request)
+
+
+def validate_methods(valid_methods, route, fn, *args) -> None:
+    """
+    Validates that only the methods for the specified route are valid, all others
+    should return a 404. All valid routes should return a 200 or 501.
+    """
+    for method in {GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT}:
+        request = MockRequest(method, route)
+        response = fn(request, *args)
+
+        if method in valid_methods:
+            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501
+        else:
+            assert response._body == network.NO
+            assert response._status == NOT_FOUND_404
+
+
+# This is used to mock out the network.send_message function to avoid us actually sending
+# network calls during the tests.
+def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+                      protocol: str = "http", method="GET",
+                      data=None, json=None):
+    pass
+    # TODO: This needs to return a valid response object.
 
 
 class TestNetwork:
@@ -59,7 +93,7 @@ class TestNetwork:
         Validates that the server is setup correctly. This ignores that there
         may be a coordinator or not.
         """
-        server = TestServer()
+        server = MockServer()
         controller = NetworkController(server)
 
         # Check there are two headers
@@ -113,7 +147,7 @@ class TestNetwork:
                 add_task_count += 1
 
         runner = TestRunner()
-        server = TestServer()
+        server = MockServer()
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
@@ -145,7 +179,7 @@ class TestNetwork:
         network.register = register
 
         runner = TestRunner()
-        server = TestServer()
+        server = MockServer()
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
@@ -167,7 +201,7 @@ class TestNetwork:
             runner.cancel = called_count >= 5
 
         runner = Runner()
-        server = TestServer()
+        server = MockServer()
         controller = NetworkController(server)
         controller.register(runner)
 
@@ -224,7 +258,7 @@ class TestNetwork:
             runner.cancel = called_count >= 5
 
         runner = Runner()
-        server = TestServer()
+        server = MockServer()
         controller = NetworkController(server)
         controller.register(runner)
         runner.run(callback)
@@ -246,7 +280,7 @@ class TestNetwork:
         called_count = 0
 
         runner = Runner()
-        server = TestServer()
+        server = MockServer()
         controller = NetworkController(server)
         controller.register(runner)
         runner.run(callback)
@@ -259,40 +293,6 @@ class TestNetwork:
         assert heartbeat_called_count < 5
         assert register_called_count == 1
         assert unregister_called_count == 1
-
-
-class TestRequest(Request):
-    def __init__(self, method, route: str, body: str = None):
-        server = TestServer()
-        raw_request = bytes(
-            f"{method} {route} HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: test-framework\r\nAccept: */*\r\n\r\n{body}",
-            "utf-8")
-        super().__init__(server, None, ('123.45.67.89', 12345), raw_request)
-
-
-def validate_methods(valid_methods, route, fn, *args) -> None:
-    """
-    Validates that only the methods for the specified route are valid, all others
-    should return a 404. All valid routes should return a 200 or 501.
-    """
-    for method in {GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT}:
-        request = TestRequest(method, route)
-        response = fn(request, *args)
-
-        if method in valid_methods:
-            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501
-        else:
-            assert response._body == network.NO
-            assert response._status == NOT_FOUND_404
-
-
-# This is used to mock out the network.send_message function to avoid us actually sending
-# network calls during the tests.
-def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
-                      protocol: str = "http", method="GET",
-                      data=None, json=None):
-    pass
-    # TODO: This needs to return a valid response object.
 
 # print(request)
 # print(f"METHOD ... : '{request.method}'")

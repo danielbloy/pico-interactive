@@ -6,7 +6,7 @@ from adafruit_httpserver import GET, Request, OK_200
 from interactive import configuration
 from interactive import network
 from interactive.polyfills import cpu
-from test_network import validate_methods, TestRequest
+from test_network import validate_methods, MockRequest
 
 
 class TestRoutes:
@@ -26,7 +26,7 @@ class TestRoutes:
         try:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             os.chdir(os.path.join(dir_path, "../.."))
-            request = TestRequest(GET, "/")
+            request = MockRequest(GET, "/")
             response = network.index(request)
             assert response._filename == "index.html"
             assert response._root_path == 'interactive/html'
@@ -41,7 +41,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/cpu-information", network.cpu_information)
 
-        request = TestRequest(GET, "/cpu-information")
+        request = MockRequest(GET, "/cpu-information")
         response = network.cpu_information(request)
         assert response._data == cpu.info()
         assert response._status == OK_200
@@ -53,7 +53,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/inspect", network.inspect)
 
-        request = TestRequest(GET, "/inspect")
+        request = MockRequest(GET, "/inspect")
         response = network.inspect(request)
         assert response._body == "TODO inspect"
         assert response._status == OK_200
@@ -79,7 +79,7 @@ class TestRoutes:
         monkeypatch.setattr(network, 'cpu_restart', test_restart_fn)
 
         # Create an event loop which is needed for the async restart request.
-        request = TestRequest(GET, "/restart")
+        request = MockRequest(GET, "/restart")
 
         async def __execute():
             # Before calling the request, there should only be a single
@@ -105,7 +105,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/alive", network.alive)
 
-        request = TestRequest(GET, "/alive")
+        request = MockRequest(GET, "/alive")
         response = network.alive(request)
         assert response._body == network.YES
         assert response._status == OK_200
@@ -116,7 +116,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/name", network.name)
 
-        request = TestRequest(GET, "/name")
+        request = MockRequest(GET, "/name")
         response = network.name(request)
         assert response._body == configuration.NODE_NAME
         assert response._status == OK_200
@@ -127,7 +127,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/role", network.role)
 
-        request = TestRequest(GET, "/role")
+        request = MockRequest(GET, "/role")
         response = network.role(request)
         assert response._body == configuration.NODE_ROLE
         assert response._status == OK_200
@@ -138,7 +138,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/details", network.details)
 
-        request = TestRequest(GET, "/details")
+        request = MockRequest(GET, "/details")
         response = network.details(request)
         assert response._data == configuration.details()
         assert response._status == OK_200
@@ -161,7 +161,7 @@ class TestRoutes:
         # this reset is required because the validate_methods() call invokes network.led_blink().
         message_called_count = 0
 
-        request = TestRequest(GET, "/led/blink")
+        request = MockRequest(GET, "/led/blink")
         response = network.led_blink(request)
         assert response._body == 'LED has blinked'
         assert response._status == OK_200
@@ -184,7 +184,7 @@ class TestRoutes:
 
         monkeypatch.setattr(network, 'receive_led_message', test_message_fn)
 
-        request = TestRequest(GET, "/led/<state>")
+        request = MockRequest(GET, "/led/<state>")
         response = network.led_state(request, "ON")
         assert response._body == 'LED is ON'
         assert response._status == OK_200

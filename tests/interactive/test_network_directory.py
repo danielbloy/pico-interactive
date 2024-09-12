@@ -2,7 +2,7 @@ import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
 
 from interactive import network
-from test_network import mock_send_message, validate_methods, TestRequest
+from test_network import mock_send_message, validate_methods, MockRequest
 
 
 class TestRoutes:
@@ -22,17 +22,17 @@ class TestRoutes:
         """
         validate_methods({GET, POST, PUT}, "/register", network.register)
 
-        request = TestRequest(GET, "/register")
+        request = MockRequest(GET, "/register")
         response = network.register(request)
         assert response._body == 'registered with coordinator'
         assert response._status == OK_200
 
-        request = TestRequest(POST, "/register")
+        request = MockRequest(POST, "/register")
         response = network.register(request)
         assert response._body == network.OK
         assert response._status == OK_200
 
-        request = TestRequest(PUT, "/register")
+        request = MockRequest(PUT, "/register")
         response = network.register(request)
         assert response._body == network.OK
         assert response._status == OK_200
@@ -43,17 +43,17 @@ class TestRoutes:
         """
         validate_methods({GET, POST, PUT}, "/unregister", network.unregister)
 
-        request = TestRequest(GET, "/unregister")
+        request = MockRequest(GET, "/unregister")
         response = network.unregister(request)
         assert response._body == 'unregistered from coordinator'
         assert response._status == OK_200
 
-        request = TestRequest(POST, "/unregister")
+        request = MockRequest(POST, "/unregister")
         response = network.unregister(request)
         assert response._body == network.OK
         assert response._status == OK_200
 
-        request = TestRequest(PUT, "/unregister")
+        request = MockRequest(PUT, "/unregister")
         response = network.unregister(request)
         assert response._body == network.OK
         assert response._status == OK_200
@@ -64,17 +64,17 @@ class TestRoutes:
         """
         validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat)
 
-        request = TestRequest(GET, "/heartbeat")
+        request = MockRequest(GET, "/heartbeat")
         response = network.heartbeat(request)
         assert response._body == 'heartbeat message sent to coordinator'
         assert response._status == OK_200
 
-        request = TestRequest(POST, "/heartbeat")
+        request = MockRequest(POST, "/heartbeat")
         response = network.heartbeat(request)
         assert response._body == 'TODO heartbeat message received from node'
         assert response._status == OK_200
 
-        request = TestRequest(PUT, "/heartbeat")
+        request = MockRequest(PUT, "/heartbeat")
         response = network.heartbeat(request)
         assert response._body == 'TODO heartbeat message received from node'
         assert response._status == OK_200
@@ -85,7 +85,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/lookup/all", network.lookup_all)
 
-        request = TestRequest(GET, "/lookup/all")
+        request = MockRequest(GET, "/lookup/all")
         response = network.lookup_all(request)
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
@@ -96,7 +96,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/lookup/name/<name>", network.lookup_name, "NAME")
 
-        request = TestRequest(GET, "/lookup/name/<name>")
+        request = MockRequest(GET, "/lookup/name/<name>")
         response = network.lookup_name(request, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
@@ -107,7 +107,7 @@ class TestRoutes:
         """
         validate_methods({GET}, "/lookup/role/<role>", network.lookup_role, "ROLE")
 
-        request = TestRequest(GET, "/lookup/role/<role>")
+        request = MockRequest(GET, "/lookup/role/<role>")
         response = network.lookup_role(request, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
