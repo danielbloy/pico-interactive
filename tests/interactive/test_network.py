@@ -5,12 +5,12 @@ import pytest
 from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501, NOT_FOUND_404, PUT, DELETE, \
     PATCH, HEAD, OPTIONS, TRACE, CONNECT
 
-import control
-import network
-from configuration import NODE_NAME, NODE_ROLE
+import interactive.control as control
+import interactive.network as network
 from interactive import configuration
-from network import NetworkController, HEADER_NAME, HEADER_ROLE
-from runner import Runner
+from interactive.configuration import NODE_NAME, NODE_ROLE
+from interactive.network import NetworkController, HEADER_NAME, HEADER_ROLE
+from interactive.runner import Runner
 
 
 class TestServer(Server):

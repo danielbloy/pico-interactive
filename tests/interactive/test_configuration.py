@@ -1,6 +1,5 @@
-from configuration import FIELD_NAME, FIELD_ROLE, FIELD_COORDINATOR
 from interactive import configuration
-from interactive.configuration import Config
+from interactive.configuration import Config, FIELD_NAME, FIELD_ROLE, FIELD_COORDINATOR
 
 
 class TestNode:

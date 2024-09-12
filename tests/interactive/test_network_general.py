@@ -3,9 +3,9 @@ import os
 
 from adafruit_httpserver import GET, Request, OK_200
 
-import network
 from interactive import configuration
-from polyfills import cpu
+from interactive import network
+from interactive.polyfills import cpu
 from test_network import validate_methods, TestRequest
 
 

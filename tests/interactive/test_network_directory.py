@@ -1,7 +1,7 @@
 import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
 
-import network
+from interactive import network
 from test_network import mock_send_message, validate_methods, TestRequest
 
 
