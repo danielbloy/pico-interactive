@@ -456,9 +456,9 @@ def send_unregister_message(node) -> str:
     info("Unregistering node from coordinator...")
     # TODO
     # TODO: Remove the invocation of quotes
-    with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
-        print(response.headers)
-        print(response.text)
+    # with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
+    #    print(response.headers)
+    #    print(response.text)
 
     return "unregistered from coordinator"
 

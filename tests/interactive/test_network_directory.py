@@ -1,5 +1,5 @@
 import pytest
-from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT
+from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
 
 import network
 from test_network import mock_send_message, validate_methods, TestRequest
@@ -17,16 +17,67 @@ class TestRoutes:
         monkeypatch.setattr(network, 'send_message', mock_send_message)
 
     def test_register(self) -> None:
+        """
+        Temporary tests awaiting full implementation of directory service.
+        """
         validate_methods({GET, POST, PUT}, "/register", network.register)
-        # TODO: Write the rest of the tests
+
+        request = TestRequest(GET, "/register")
+        response = network.register(request)
+        assert response._body == 'registered with coordinator'
+        assert response._status == OK_200
+
+        request = TestRequest(POST, "/register")
+        response = network.register(request)
+        assert response._body == network.OK
+        assert response._status == OK_200
+
+        request = TestRequest(PUT, "/register")
+        response = network.register(request)
+        assert response._body == network.OK
+        assert response._status == OK_200
 
     def test_unregister(self) -> None:
+        """
+        Temporary tests awaiting full implementation of directory service.
+        """
         validate_methods({GET, POST, PUT}, "/unregister", network.unregister)
-        # TODO: Write the rest of the tests
+
+        request = TestRequest(GET, "/unregister")
+        response = network.unregister(request)
+        assert response._body == 'unregistered from coordinator'
+        assert response._status == OK_200
+
+        request = TestRequest(POST, "/unregister")
+        response = network.unregister(request)
+        assert response._body == network.OK
+        assert response._status == OK_200
+
+        request = TestRequest(PUT, "/unregister")
+        response = network.unregister(request)
+        assert response._body == network.OK
+        assert response._status == OK_200
 
     def test_heartbeat(self) -> None:
+        """
+        Temporary tests awaiting full implementation of directory service.
+        """
         validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat)
-        # TODO: Write the rest of the tests
+
+        request = TestRequest(GET, "/heartbeat")
+        response = network.heartbeat(request)
+        assert response._body == 'heartbeat message sent to coordinator'
+        assert response._status == OK_200
+
+        request = TestRequest(POST, "/heartbeat")
+        response = network.heartbeat(request)
+        assert response._body == 'TODO heartbeat message received from node'
+        assert response._status == OK_200
+
+        request = TestRequest(PUT, "/heartbeat")
+        response = network.heartbeat(request)
+        assert response._body == 'TODO heartbeat message received from node'
+        assert response._status == OK_200
 
     def test_lookup_all(self) -> None:
         """
