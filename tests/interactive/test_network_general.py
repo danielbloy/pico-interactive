@@ -203,8 +203,64 @@ class TestRoutes:
 class TestMessages:
 
     def test_receive_blink_message(self, monkeypatch) -> None:
-        # monkeypatch.setattr(network, 'onboard_led', test_message_fn)
-        assert False
+        """
+        Validates that the onboard LED is blinked regardless of its starting state.
+        """
+
+        class TestLed:
+            def __init__(self):
+                self._value = False
+                self.values = []
+
+            @property
+            def value(self):
+                return self._value
+
+            @value.setter
+            def value(self, val):
+                self._value = val
+                self.values.append(val)
+
+        test_led = TestLed()
+        monkeypatch.setattr(network, 'onboard_led', test_led)
+
+        async def __execute():
+            # Before calling the request, there should only be a single
+            # async task which is this one.
+            assert len(asyncio.all_tasks()) == 1
+
+            # Validate when the LED starts as off.
+            response = network.receive_blink_message(None)
+            assert response == 'LED has blinked'
+
+            # There should now be 2 tasks, this one and the restart async task.
+            assert len(asyncio.all_tasks()) == 2
+
+            # Await for long enough for the restart to get executed.
+            while len(asyncio.all_tasks()) > 1:
+                await asyncio.sleep(0.1)
+
+            assert len(test_led.values) == 2
+            assert test_led.values == [True, False]
+
+            # Validate when the LED starts as ON.
+            test_led.values = []
+            test_led.value = True
+
+            response = network.receive_blink_message(None)
+            assert response == 'LED has blinked'
+
+            # There should now be 2 tasks, this one and the restart async task.
+            assert len(asyncio.all_tasks()) == 2
+
+            # Await for long enough for the restart to get executed.
+            while len(asyncio.all_tasks()) > 1:
+                await asyncio.sleep(0.1)
+
+            assert len(test_led.values) == 2
+            assert test_led.values == [False, True]
+
+        asyncio.run(__execute())
 
     def test_receive_led_message(self) -> None:
         """
