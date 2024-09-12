@@ -158,7 +158,7 @@ class TestNetwork:
 
     def test_registering_with_runner_with_coordinator(self, monkeypatch) -> None:
         """
-        Validates the NetworkController registers with the Runner, with coordinator.
+        Validates the NetworkController registers with the Runner and with coordinator.
         """
         add_task_count: int = 0
 
@@ -173,10 +173,11 @@ class TestNetwork:
                 nonlocal add_task_count
                 add_task_count += 1
 
+        # Monkey patch register out as we don't actually want to perform the register.
         def register(request):
-            print(request)
+            pass
 
-        network.register = register
+        monkeypatch.setattr(network, 'register', register)
 
         runner = TestRunner()
         server = MockServer()
