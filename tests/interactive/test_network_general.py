@@ -244,8 +244,8 @@ class TestMessages:
             assert test_led.values == [True, False]
 
             # Validate when the LED starts as ON.
-            test_led.values = []
             test_led.value = True
+            test_led.values = []
 
             response = network.receive_blink_message(None)
             assert response == 'LED has blinked'
