@@ -8,7 +8,7 @@ from interactive.runner import Runner
 from interactive.ultrasonic import UltrasonicController
 
 
-class TestUltrasonic(Ultrasonic):
+class MockUltrasonic(Ultrasonic):
     def __init__(self):
         super().__init__(None, None)
         self.dist = 0.0
@@ -46,7 +46,7 @@ class TestUltrasonicController:
         to the default max distance and does not invoke the Ultrasonic distance
         sensor to calculate distance even when called.
         """
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         controller = UltrasonicController(ultrasonic)
 
         ultrasonic.dist = 123.456
@@ -67,7 +67,7 @@ class TestUltrasonicController:
             called_count += 1
             runner.cancel = called_count >= 2
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         controller = UltrasonicController(ultrasonic)
 
         # Check that the initial value is correct.
@@ -120,7 +120,7 @@ class TestUltrasonicController:
             called_count += 1
             runner.cancel = called_count >= 2
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 123.456
 
         controller = UltrasonicController(ultrasonic)
@@ -160,7 +160,7 @@ class TestUltrasonicController:
             called_count += 1
             runner.cancel = called_count >= 2
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 123.456
 
         controller = UltrasonicController(ultrasonic)
@@ -204,7 +204,7 @@ class TestUltrasonicController:
             called_count += 1
             runner.cancel = called_count >= 2
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 123.456
 
         controller = UltrasonicController(ultrasonic)
@@ -279,7 +279,7 @@ class TestUltrasonicController:
             called_count += 1
             runner.cancel = called_count >= 2
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 123.456
 
         controller = UltrasonicController(ultrasonic)
@@ -340,7 +340,7 @@ class TestUltrasonicController:
             nonlocal ultrasonic
             runner.cancel = time.time() >= end_time
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 345.678
 
         controller = UltrasonicController(ultrasonic, SAMPLE_FREQUENCY)
@@ -423,7 +423,7 @@ class TestUltrasonicController:
             nonlocal ultrasonic
             runner.cancel = time.time() >= end_time
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 123.456
 
         controller = UltrasonicController(ultrasonic, SAMPLE_FREQUENCY)
@@ -479,7 +479,7 @@ class TestUltrasonicController:
                 add_task_count += 1
 
         runner = TestRunner()
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         controller = UltrasonicController(ultrasonic)
         assert add_task_count == 0
         controller.register(runner)
@@ -499,7 +499,7 @@ class TestUltrasonicController:
             nonlocal ultrasonic
             runner.cancel = time.time() >= end_time
 
-        ultrasonic = TestUltrasonic()
+        ultrasonic = MockUltrasonic()
         ultrasonic.dist = 123.456
 
         controller = UltrasonicController(ultrasonic, SAMPLE_FREQUENCY)

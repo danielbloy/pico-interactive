@@ -7,7 +7,7 @@ from interactive.polyfills.audio import Audio
 from interactive.runner import Runner
 
 
-class TestAudio(Audio):
+class MockAudio(Audio):
     def __init__(self):
         super().__init__(None, None)
         self.playing_count = 0
@@ -86,7 +86,7 @@ class TestAudioController:
                 add_task_count += 1
 
         runner = TestRunner()
-        audio = TestAudio()
+        audio = MockAudio()
         controller = AudioController(audio)
         assert add_task_count == 0
         controller.register(runner)
@@ -104,7 +104,7 @@ class TestAudioController:
             runner.cancel = called_count >= 5
 
         runner = Runner()
-        audio = TestAudio()
+        audio = MockAudio()
         controller = AudioController(audio)
         controller.register(runner)
 
@@ -130,7 +130,7 @@ class TestAudioController:
             runner.cancel = called_count >= 10
 
         runner = Runner()
-        audio = TestAudio()
+        audio = MockAudio()
         controller = AudioController(audio)
         controller.register(runner)
 
@@ -161,7 +161,7 @@ class TestAudioController:
             runner.cancel = called_count >= 5
 
         runner = Runner()
-        audio = TestAudio()
+        audio = MockAudio()
         controller = AudioController(audio)
         controller.register(runner)
 
