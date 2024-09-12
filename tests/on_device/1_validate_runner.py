@@ -1,14 +1,14 @@
 import asyncio
 
-from interactive.environment import are_pins_available
+from interactive.environment import is_running_on_microcontroller
 from interactive.log import set_log_level, debug, info, INFO
 from interactive.memory import report_memory_usage_and_free
 from interactive.runner import Runner
 
-REPORT_RAM = are_pins_available()
+REPORT_RAM = is_running_on_microcontroller()
 
 if __name__ == '__main__':
-    
+
     set_log_level(INFO)
 
     if REPORT_RAM:

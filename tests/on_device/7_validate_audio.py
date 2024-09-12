@@ -2,14 +2,14 @@ import time
 
 from interactive.audio import AudioController
 from interactive.button import ButtonController
-from interactive.environment import are_pins_available
+from interactive.environment import are_pins_available, is_running_on_microcontroller
 from interactive.log import set_log_level, info, INFO
 from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.runner import Runner
 
-REPORT_RAM = are_pins_available()
+REPORT_RAM = is_running_on_microcontroller()
 
 BUTTON_PIN = None
 

@@ -8,7 +8,7 @@
 import time
 
 from interactive.button import ButtonController
-from interactive.environment import are_pins_available
+from interactive.environment import are_pins_available, is_running_on_microcontroller
 from interactive.log import set_log_level, INFO, critical
 from interactive.memory import report_memory_usage_and_free
 from interactive.network import NetworkController
@@ -18,7 +18,7 @@ from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 from interactive.ultrasonic import UltrasonicController
 
-REPORT_RAM = are_pins_available()
+REPORT_RAM = is_running_on_microcontroller()
 REPORT_RAM_PERIODIC = REPORT_RAM and True
 REPORT_RAM_PERIOD = 5
 

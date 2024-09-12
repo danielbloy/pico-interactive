@@ -1,12 +1,12 @@
 import time
 
 from interactive.configuration import Config
-from interactive.environment import are_pins_available
+from interactive.environment import are_pins_available, is_running_on_microcontroller
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO
 from interactive.memory import report_memory_usage_and_free
 
-REPORT_RAM = are_pins_available()
+REPORT_RAM = is_running_on_microcontroller()
 
 BUTTON_PIN = None
 BUZZER_PIN = None
