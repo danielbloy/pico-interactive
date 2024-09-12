@@ -440,7 +440,7 @@ def lookup_role(request: Request, role: str):
 # ***** D I R E C T O R Y    S E R V I C E    M E S S A G E S *****
 ###################################################################
 
-def send_register_message(node) -> str:
+def send_register_message(node: str) -> str:
     info("Registering node with coordinator...")
     # TODO
     return "registered with coordinator"
@@ -469,7 +469,7 @@ def receive_unregister_message(request: Request) -> str:
     return OK
 
 
-def send_heartbeat_message(node) -> str:
+def send_heartbeat_message(node: str) -> str:
     info("Sending heartbeat message to coordinator...")
     # TODO
     return "heartbeat message sent to coordinator"

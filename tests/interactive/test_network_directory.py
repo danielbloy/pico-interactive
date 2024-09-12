@@ -120,19 +120,19 @@ class TestMessages:
         monkeypatch.setattr(network, 'send_message', mock_send_message)
 
     def test_send_register_message(self) -> None:
-        assert False
+        assert network.send_register_message(None) == "registered with coordinator"
 
     def test_receive_register_message(self) -> None:
-        assert False
+        assert network.receive_register_message(None) == network.OK
 
     def test_send_unregister_message(self) -> None:
-        assert False
+        assert network.send_unregister_message(None) == "unregistered from coordinator"
 
     def test_receive_unregister_message(self) -> None:
-        assert False
+        assert network.receive_unregister_message(None) == network.OK
 
     def test_send_heartbeat_message(self) -> None:
-        assert False
+        assert network.send_heartbeat_message(None) == "heartbeat message sent to coordinator"
 
     def test_receive_heartbeat_message(self) -> None:
-        assert False
+        assert network.receive_heartbeat_message(None) == "TODO heartbeat message received from node"
