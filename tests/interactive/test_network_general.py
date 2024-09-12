@@ -202,8 +202,43 @@ class TestRoutes:
 
 class TestMessages:
 
-    def test_receive_blink_message(self) -> None:
+    def test_receive_blink_message(self, monkeypatch) -> None:
+        # monkeypatch.setattr(network, 'onboard_led', test_message_fn)
         assert False
 
     def test_receive_led_message(self) -> None:
-        assert False
+        """
+        Validates that receive_led_message() correctly sets the state of the onboard LED.
+        """
+        # Unknown state should do nothing with the LED
+        network.onboard_led.value = False
+        response = network.receive_led_message(None, "UNKNOWN")
+        assert response == 'UNKNOWN is unknown'
+        assert not network.onboard_led.value
+
+        network.onboard_led.value = True
+        response = network.receive_led_message(None, "UNKNOWN")
+        assert response == 'UNKNOWN is unknown'
+        assert network.onboard_led.value
+
+        # OFF should turn the LED off, regardless of the starting state
+        network.onboard_led.value = False
+        response = network.receive_led_message(None, network.OFF)
+        assert response == 'LED is OFF'
+        assert not network.onboard_led.value
+
+        network.onboard_led.value = True
+        response = network.receive_led_message(None, network.OFF)
+        assert response == 'LED is OFF'
+        assert not network.onboard_led.value
+
+        # ON should turn the LED ON, regardless of the starting state
+        network.onboard_led.value = False
+        response = network.receive_led_message(None, network.ON)
+        assert response == 'LED is ON'
+        assert network.onboard_led.value
+
+        network.onboard_led.value = True
+        response = network.receive_led_message(None, network.ON)
+        assert response == 'LED is ON'
+        assert network.onboard_led.value
