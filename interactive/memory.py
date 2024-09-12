@@ -23,13 +23,12 @@ def report_memory_usage_and_free(msg: str):
     report_memory_usage(f"{msg} after gc")
 
 #
-# Memory optimisation:
-# * TODO: Delete large variables using: del <large_variable>
-# * TODO: Examine where lists and dictionaries are used as they can grow slowly
-# * TODO: Examine all uses of strings
-# * TODO: Repeat tests with actual nodes to check they fit within memory bounds.
-
-# Very, very rough results (from before running Runner, before gc):
+# Memory optimisation tips:
+# * Delete large variables using: del <large_variable>
+# * Examine where lists and dictionaries are used as they can grow slowly.
+# * Be careful with string usage as each string created requires its own space.
+#
+# Very, very rough results (from before running Runner, before gc on Pico W):
 #  1 Runner ....... : 24 Kb
 #  2 Button ....... : 31 Kb, uses about 7kb
 #  3 Buzzer ....... : 40 Kb, uses about 9kb
@@ -39,6 +38,10 @@ def report_memory_usage_and_free(msg: str):
 #  7 Audio ........ : 86 Kb, uses about 35 Kb
 #  8 Network ...... : 105 Kb, uses about 74 Kb
 #
+# Results also indicate that running the Pico W variant of CircuitPython uses an
+# extra 40Kb of RAM compared to the plain pico CircuitPython build that does not
+# include the network stack.
+#
 # Combinations:
 #  a Runner + Button + Audio + Pixels ........ :
 #  b Runner + Button + Ultrasonic + Network .. :
@@ -47,7 +50,7 @@ def report_memory_usage_and_free(msg: str):
 #
 # 1 - Runner:
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 23984 bytes, Free: 101392 bytes
@@ -62,9 +65,24 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 27184 bytes, Free: 98192 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 24512 bytes, Free: 141760 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 24496 bytes, Free: 141776 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 25968 bytes, Free: 140304 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 24736 bytes, Free: 141536 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 45888 bytes, Free: 120384 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 28080 bytes, Free: 138192 bytes
+#
 # 2 - Runner + Button:
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 30336 bytes, Free: 95040 bytes
@@ -79,9 +97,24 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 33600 bytes, Free: 91776 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 30944 bytes, Free: 135328 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 30896 bytes, Free: 135376 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 32736 bytes, Free: 133536 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 31472 bytes, Free: 134800 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 46816 bytes, Free: 119456 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 34208 bytes, Free: 132064 bytes
+#
 # 3 - Runner + Button + Buzzer:
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 36880 bytes, Free: 88496 bytes
@@ -96,9 +129,24 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 41968 bytes, Free: 83408 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 37488 bytes, Free: 128784 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 37424 bytes, Free: 128848 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 42000 bytes, Free: 124272 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 38960 bytes, Free: 127312 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 43760 bytes, Free: 122512 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 42544 bytes, Free: 123728 bytes
+#
 # 4 - Runner + Button + Animations (on LEDs and NeoPixels):
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 58032 bytes, Free: 67344 bytes
@@ -113,9 +161,24 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 89728 bytes, Free: 34400 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 58848 bytes, Free: 103968 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 58816 bytes, Free: 104000 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 93088 bytes, Free: 69728 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 86496 bytes, Free: 76320 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 114784 bytes, Free: 48032 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 90464 bytes, Free: 72352 bytes
+#
 # 5 - Interactive (Runner + Button + Buzzer):
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 41072 bytes, Free: 84304 bytes
@@ -130,9 +193,25 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 45856 bytes, Free: 79520 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    No config file was found
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 31888 bytes, Free: 134384 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 31824 bytes, Free: 134448 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 39408 bytes, Free: 126864 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 39408 bytes, Free: 126864 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 46720 bytes, Free: 119552 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 43024 bytes, Free: 123248 bytes
+#
 # 6 - Runner + Button + Ultrasonic:
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 34528 bytes, Free: 90848 bytes
@@ -147,9 +226,24 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 38928 bytes, Free: 86448 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 35168 bytes, Free: 131104 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 35152 bytes, Free: 131120 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 37744 bytes, Free: 128528 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 36464 bytes, Free: 129808 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 52272 bytes, Free: 114000 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 39568 bytes, Free: 126704 bytes
+#
 # 7 - Runner + Button + Audio:
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    MEMORY USAGE: Before creating Objects before gc
 #    HEAP: Allocated: 32592 bytes, Free: 92784 bytes
@@ -164,9 +258,24 @@ def report_memory_usage_and_free(msg: str):
 #    MEMORY USAGE: After running Runner after gc
 #    HEAP: Allocated: 72048 bytes, Free: 52080 bytes
 #
+#    10 second run (pico):
+#    Running on a microcontroller. Pins are available.
+#    MEMORY USAGE: Before creating Objects before gc
+#    HEAP: Allocated: 33232 bytes, Free: 133040 bytes
+#    MEMORY USAGE: Before creating Objects after gc
+#    HEAP: Allocated: 33168 bytes, Free: 133104 bytes
+#    MEMORY USAGE: Before running Runner before gc
+#    HEAP: Allocated: 69392 bytes, Free: 93424 bytes
+#    MEMORY USAGE: Before running Runner after gc
+#    HEAP: Allocated: 69392 bytes, Free: 93424 bytes
+#    MEMORY USAGE: After running Runner before gc
+#    HEAP: Allocated: 102880 bytes, Free: 59936 bytes
+#    MEMORY USAGE: After running Runner after gc
+#    HEAP: Allocated: 72640 bytes, Free: 90176 bytes
+#
 # 8 - Runner + Button + Network (full pico-interactive framework):
 #
-#    10 second run:
+#    10 second run (pico W):
 #    Running on a microcontroller. Pins are available.
 #    Config file loaded
 #    Connected to WiFi
@@ -189,3 +298,5 @@ def report_memory_usage_and_free(msg: str):
 #    CRITICAL - MEMORY USAGE: After running Runner after gc
 #    CRITICAL - HEAP: Allocated: 101488 bytes, Free: 22640 bytes
 #
+#    10 second run (pico):
+#    n/a - no network stack

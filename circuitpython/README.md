@@ -2,7 +2,10 @@
 
 This directory contains a copy of all the CircuitPython images and libraries that
 this project is tested against and supports. Currently, the project is being built
-against CircuitPython 9.0.5.
+against:
+
+* CircuitPython 9.0.5 - confirmed
+* CircuitPython 9.1.2 - testing in progress
 
 The CircuitPython libraries that are required for the project have been extracted
 out into the `lib` directory for easy access.

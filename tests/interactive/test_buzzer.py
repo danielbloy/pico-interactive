@@ -8,7 +8,7 @@ from interactive.polyfills.buzzer import Buzzer
 from interactive.runner import Runner
 
 
-class TestBuzzer(Buzzer):
+class MockBuzzer(Buzzer):
     def __init__(self):
         super().__init__(None)
 
@@ -56,7 +56,7 @@ class TestBuzzerController:
                 add_task_count += 1
 
         runner = TestRunner()
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         assert add_task_count == 0
         controller.register(runner)
@@ -66,7 +66,7 @@ class TestBuzzerController:
         """
         Validates play invokes the buzzer with the correct values.
         """
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         controller.play(999, 32.5)
 
@@ -78,7 +78,7 @@ class TestBuzzerController:
         """
         Validates off invokes the buzzer with the correct values.
         """
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         controller.play(999, 32.5)
 
@@ -95,7 +95,7 @@ class TestBuzzerController:
         """
         Validates beep() invokes the buzzer with default values.
         """
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         controller.beep()
 
@@ -120,7 +120,7 @@ class TestBuzzerController:
                 assert buzzer.off_count == 0
 
         runner = Runner()
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         controller.register(runner)
         controller.play(999, 0.2)
@@ -149,7 +149,7 @@ class TestBuzzerController:
             runner.cancel = time.monotonic() > finish
 
         runner = Runner()
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         controller.register(runner)
         controller.beeps(3)
@@ -182,7 +182,7 @@ class TestBuzzerController:
                 call_off = False
 
         runner = Runner()
-        buzzer = TestBuzzer()
+        buzzer = MockBuzzer()
         controller = BuzzerController(buzzer)
         controller.register(runner)
         controller.beeps(100)

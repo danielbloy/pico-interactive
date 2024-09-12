@@ -6,6 +6,14 @@ from interactive.runner import Runner
 
 
 class BuzzerController:
+    """
+    BuzzerController provides a trivial method to play tones through a simple buzzer;
+    such as a little piezo buzzer. BuzzerController works well with simply melodies
+    that can be provided with the Melody and MelodySequence classes. For more complex
+    audio through mp3 files, use the AudioController class.
+
+    Instances of this class will need to register() with a Runner in order to work.
+    """
 
     def __init__(self, buzzer: Buzzer):
         if buzzer is None:
@@ -60,7 +68,7 @@ class BuzzerController:
 
     def register(self, runner: Runner) -> None:
         """
-        Registers this Buzzercontroller instance as a task with the provided Runner.
+        Registers this BuzzerController instance as a task with the provided Runner.
 
         :param runner: the runner to register with.
         """

@@ -5,6 +5,8 @@ MAX_DUTY = 65535
 if are_pins_available():
 
     from microcontroller import Pin
+    import board
+    from digitalio import DigitalInOut, Direction
     import pwmio
 
 
@@ -33,6 +35,15 @@ if are_pins_available():
         return LedPin(pin)
 
 
+    def __onboard_led() -> DigitalInOut:
+        """
+        Returns the boards onboard LED as a digital on/off LED.
+        """
+        led = DigitalInOut(board.LED)
+        led.direction = Direction.OUTPUT
+
+        return led
+
 else:
     class LedPin:
         """
@@ -53,6 +64,23 @@ else:
         return LedPin(pin)
 
 
+    class DigitalInOut:
+        def __init__(self):
+            self._value = False
+
+        @property
+        def value(self):
+            return self._value
+
+        @value.setter
+        def value(self, val):
+            self._value = val
+
+
+    def __onboard_led() -> DigitalInOut:
+        return DigitalInOut()
+
+
 def new_led_pin(pin) -> LedPin:
     """
     Returns a new LED that performs the LED processing based on
@@ -62,3 +90,11 @@ def new_led_pin(pin) -> LedPin:
     :param pin: The pin or key to use for the button signal.
     """
     return __new_led_pin(pin)
+
+
+def onboard_led() -> DigitalInOut:
+    """
+    Returns the onboard LED as a simple DigitalInOut that can be
+    turned on or off using the value property.
+    """
+    return __onboard_led()

@@ -5,15 +5,23 @@
 #  * https://learn.adafruit.com/pico-w-http-server-with-circuitpython/code-the-pico-w-http-server
 #  * https://learn.adafruit.com/pico-w-wifi-with-circuitpython/pico-w-json-feed-openweathermap
 #
+# Adafruit requests library:
+#  * API Documentation: https://docs.circuitpython.org/projects/requests/en/latest/api.html
+#
+# The requests library itself:
+#  * https://requests.readthedocs.io/en/latest/user/quickstart/
 
 import os
 import ssl
 
 from adafruit_httpserver import Server
 
-from interactive.environment import are_pins_available
+from interactive.environment import is_running_on_microcontroller
 
-if are_pins_available():
+# Rather than doing something different based on whether we have pins available or not
+# we make the network decision based on whether we are running on a microcontroller or
+# not it has a different network stack compared to a desktop.
+if is_running_on_microcontroller():
     import wifi
     import socketpool
     import adafruit_requests
@@ -38,11 +46,19 @@ if are_pins_available():
 else:
     import socket
     import toml
+    import requests
 
-    with open('settings.toml') as f:
-        config = toml.load(f)
+    if os.path.isfile('settings.toml'):
+        with open('settings.toml') as f:
+            config = toml.load(f)
 
     pool = socket
+
+
+    def __hide() -> None:
+        """This is not expected to be needed but stops PyCharm removing the import"""
+        request: requests.Request
+        del request
 
 
 def new_server(debug: bool = False) -> Server:

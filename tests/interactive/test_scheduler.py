@@ -5,7 +5,7 @@ import pytest
 
 from interactive.control import SCHEDULER_DEFAULT_FREQUENCY, ASYNC_LOOP_SLEEP_INTERVAL
 from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task, \
-    new_triggered_task, Triggerable, TriggerableAlwaysOn
+    new_triggered_task, Triggerable, TriggerableAlwaysOn, TriggerTimedEvents
 
 
 class Cancellable:
@@ -521,3 +521,271 @@ class TestScheduler:
         asyncio.run(trigger_task())
 
         assert start_count == 2
+
+
+class TestTriggerTimedEvents:
+    def test_calling_start(self) -> None:
+        """
+        Validates that calling start works when called once, twice or more times.
+        In these tests, there are no events to fire so it is a basic test. More
+        complex tests are performed later.
+        """
+        trigger = TriggerTimedEvents()
+        assert not trigger.running
+        assert len(trigger.events) == 0
+
+        # Start the trigger
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+        # Calling start a second time should have no effect
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+        # And calling it a third time should have no effect
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+    def test_calling_start_multiple_times(self) -> None:
+        """
+        Validates that calling start works when called once, twice or more times.
+        In these tests there are events to fire. It also validates that calling
+        start multiple times does not affect the timing of events.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0, 90)
+        trigger.add_event(99, 99)
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Start the trigger which should immediately fire one event.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 1
+        assert events[0].event == 90
+
+        # Starting the trigger again should result in no more additional events.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+        events = trigger.run()
+        assert len(events) == 0
+
+    def test_calling_stop_when_not_started(self) -> None:
+        """
+        Validates that calling stop works even when the trigger is not running.
+        """
+        trigger = TriggerTimedEvents()
+        assert not trigger.running
+        assert len(trigger.events) == 0
+
+        # Stop the trigger, nothing should happen.
+        trigger.stop()
+        assert not trigger.running
+        assert len(trigger.events) == 0
+
+        # Stop the trigger again, again nothing should happen.
+        trigger.stop()
+        assert not trigger.running
+        assert len(trigger.events) == 0
+
+    def test_calling_stop_when_running(self) -> None:
+        """
+        Validates that calling stop on a running trigger will cancel any events
+        that are queued up to run.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0, 90)
+        trigger.add_event(99, 99)
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Start the trigger which should immediately make one event ready to fire (but don't call run)
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+
+        # Now stop the trigger which cancels the events. (we actually call reset() here to test it calls stop())
+        trigger.reset()
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Call run() which should return no events.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 0
+
+    def test_starting_and_stopping_multiple_times(self) -> None:
+        """
+        Validates that calling starting and stopping the trigger multiple times
+        results in the events being triggered correctly each time.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0, 90)
+        trigger.add_event(0.1, 91)
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Start the trigger which should immediately fire one event.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 1
+        assert events[0].event == 90
+
+        # Wait long enough that we should have another event ready to fire.
+        time.sleep(0.2)
+
+        # Stop the trigger, which cancels any remaining events
+        trigger.stop()
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Call run which returns nothing
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 0
+
+        # Call start again and we should see a single event.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 1
+        assert events[0].event == 90
+
+    def test_running_without_any_events(self) -> None:
+        """
+        Validates that the trigger can be run without any events registered.
+        """
+        trigger = TriggerTimedEvents()
+        assert not trigger.running
+        assert len(trigger.events) == 0
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+        # Call run, which will detect there are no events and will stop the trigger.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 0
+
+        # Now we will check that stop works with no events.
+        # Start the trigger again, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 0
+
+        trigger.stop()
+        assert not trigger.running
+
+    def test_running_with_a_single_event(self) -> None:
+        """
+        Validates that the trigger can be run with just a single event registered.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0.1, 90)
+        assert not trigger.running
+        assert len(trigger.events) == 1
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 1
+
+        # Call run which will not see any expired events and everything continues to run
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 0
+
+        # Pause long enough to guarantee the event will trigger
+        time.sleep(0.2)
+
+        # Call run again, which will detect there are is a single event which has fired
+        # and return it. The trigger will also be marked as not running at this point.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 1
+        assert events[0].event == 90
+
+    def test_running_with_multiple_events_with_same_time(self) -> None:
+        """
+        Validates that the trigger can be run with multiple events registered
+        for the same time.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0.05, 91)
+        trigger.add_event(0.05, 90)
+        assert not trigger.running
+        assert len(trigger.events) == 2
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 2
+
+        # Pause long enough to guarantee the events will trigger
+        time.sleep(0.15)
+
+        # Call run, which will detect there are two events which have fired and
+        # return them. The trigger will also be marked as not running at this point.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 2
+        assert set([event.event for event in events]) == {90, 91}
+
+    def test_running_with_multiple_events_with_different_times(self) -> None:
+        """
+        Validates that the trigger can be run with multiple events registered
+        for multiple times.
+        """
+        trigger = TriggerTimedEvents()
+        trigger.add_event(0, 90)
+        trigger.add_event(0.08, 13)
+        trigger.add_event(0.1, 81)
+        trigger.add_event(0.1, 82)
+        trigger.add_event(0.3, 103)
+        assert not trigger.running
+        assert len(trigger.events) == 5
+
+        # Start the trigger, this should indicate that the trigger is running.
+        trigger.start()
+        assert trigger.running
+        assert len(trigger.events) == 5
+
+        # The first event fires straight away.
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 1
+        assert events[0].event == 90
+
+        # Pause long enough to guarantee the next events will trigger but leaving 1.
+        time.sleep(0.2)
+
+        # Call run, which will detect there are three events which have fired and
+        # return them. The trigger will still be running at this point.
+        events = trigger.run()
+        assert trigger.running
+        assert len(events) == 3
+        assert set([event.event for event in events]) == {13, 81, 82}
+
+        # Pause long enough to guarantee the last event will trigger but leaving 1.
+        time.sleep(0.2)
+
+        # Call run, which will detect there is a single event which has fired and
+        # return it. The trigger will also be marked as not running at this point.
+        events = trigger.run()
+        assert not trigger.running
+        assert len(events) == 1
+        assert events[0].event == 103

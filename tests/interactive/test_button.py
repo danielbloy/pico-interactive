@@ -7,7 +7,7 @@ from interactive.polyfills.button import Button
 from interactive.runner import Runner
 
 
-class TestButton(Button):
+class MockButton(Button):
     def __init__(self):
         super().__init__(None)
         self.short_count_pattern = [0]
@@ -73,7 +73,7 @@ class TestButtonController:
         Straightforward validation that a handler can be added
         as well as removed without raising an error.
         """
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
 
         # This should be fine.
@@ -93,7 +93,7 @@ class TestButtonController:
         Straightforward validation that a handler can be added
         as well as removed without raising an error.
         """
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
 
         # This should be fine.
@@ -113,7 +113,7 @@ class TestButtonController:
         Straightforward validation that a handler can be added
         as well as removed without raising an error.
         """
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
 
         # This should be fine.
@@ -140,7 +140,7 @@ class TestButtonController:
                 add_task_count += 1
 
         runner = TestRunner()
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
         assert add_task_count == 0
         controller.register(runner)
@@ -159,7 +159,7 @@ class TestButtonController:
             runner.cancel = called_count >= 10
 
         runner = Runner()
-        button = TestButton()
+        button = MockButton()
         button.short_count_pattern = [0, 1, 2]
         button.long_press_pattern = [True, False]
         controller = ButtonController(button)
@@ -188,7 +188,7 @@ class TestButtonController:
             single_click_count += 1
 
         runner = Runner()
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
         controller.add_single_click_handler(single_click)
         controller.register(runner)
@@ -231,7 +231,7 @@ class TestButtonController:
             multi_click_count += 1
 
         runner = Runner()
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
         controller.add_multi_click_handler(multi_click)
         controller.register(runner)
@@ -274,7 +274,7 @@ class TestButtonController:
             long_press_count += 1
 
         runner = Runner()
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
         controller.add_long_press_handler(long_press)
         controller.register(runner)
@@ -329,7 +329,7 @@ class TestButtonController:
             long_press_count += 1
 
         runner = Runner()
-        button = TestButton()
+        button = MockButton()
         controller = ButtonController(button)
         controller.add_single_click_handler(single_click)
         controller.add_multi_click_handler(multi_click)

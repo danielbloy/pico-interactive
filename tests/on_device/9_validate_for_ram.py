@@ -4,14 +4,14 @@ import time
 
 from interactive.animation import Flicker
 from interactive.configuration import get_node_config
-from interactive.environment import are_pins_available
+from interactive.environment import are_pins_available, is_running_on_microcontroller
 from interactive.interactive import Interactive
 from interactive.log import set_log_level, info, INFO, critical
 from interactive.memory import report_memory_usage_and_free
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
 
-REPORT_RAM = are_pins_available()
+REPORT_RAM = is_running_on_microcontroller()
 
 BUTTON_PIN = None
 

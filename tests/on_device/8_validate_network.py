@@ -14,20 +14,21 @@
 #  curl --verbose http://127.0.0.1:5001/cpu-information
 #  curl --verbose http://127.0.0.1:5001/inspect
 #  curl --verbose http://127.0.0.1:5001/register
-#  curl --verbose http://127.0.0.1:5001/register -X POST -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/register -X POST -d "{\"key1\":\"value1\", \"key2\":\"value2\"}" -H "Content-Type: application/json"
 #  curl --verbose http://127.0.0.1:5001/register -X PUT
 #  curl --verbose http://127.0.0.1:5001/unregister
-#  curl --verbose http://127.0.0.1:5001/unregister -X POST -d '{"key1":"value1", "key2":"value2"}' -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/unregister -X POST -d "{\"key1\":\"value1\", \"key2\":\"value2\"}" -H "Content-Type: application/json"
 #  curl --verbose http://127.0.0.1:5001/unregister -X PUT
 #  curl --verbose http://127.0.0.1:5001/restart
 #  curl --verbose http://127.0.0.1:5001/alive
 #  curl --verbose http://127.0.0.1:5001/name
 #  curl --verbose http://127.0.0.1:5001/role
+#  curl --verbose http://127.0.0.1:5001/blink
 #
 import time
 
 from interactive.button import ButtonController
-from interactive.environment import are_pins_available
+from interactive.environment import are_pins_available, is_running_on_microcontroller
 from interactive.log import set_log_level, info, INFO
 from interactive.memory import report_memory_usage_and_free
 from interactive.network import NetworkController
@@ -35,7 +36,7 @@ from interactive.polyfills.button import new_button
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
 
-REPORT_RAM = are_pins_available()
+REPORT_RAM = is_running_on_microcontroller()
 
 BUTTON_PIN = None
 
@@ -55,7 +56,7 @@ if __name__ == '__main__':
 
     async def single_click_handler() -> None:
         info('Single click!')
-        # TODO: Send message.
+        # TODO send message
 
 
     runner = Runner()

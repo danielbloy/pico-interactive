@@ -9,6 +9,8 @@ class AudioController:
     played through the Audio instance. Basic controls to pause, resume and
     stop are provided along with a cancel option which stops the music and
     clears the queue.
+
+    Instances of this class will need to register() with a Runner in order to work.
     """
 
     def __init__(self, audio: Audio):
