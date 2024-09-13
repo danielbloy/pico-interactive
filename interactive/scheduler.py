@@ -185,7 +185,6 @@ class TriggerTimedEvents:
     the events based on an initial trigger event.
     """
 
-    # TODO: Event could be replaced with a tuple.
     class Event:
         def __init__(self, trigger_time: float, event: int):
             self.trigger_time = trigger_time
