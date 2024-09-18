@@ -61,8 +61,8 @@ class Interactive:
                 self.button_controller.add_multi_click_handler(self.config.button_multi_press)
                 self.button_controller.add_long_press_handler(self.config.button_long_press)
             else:
-                self.button_controller.add_single_click_handler(self.__single_click_handler)
-                self.button_controller.add_multi_click_handler(self.__multi_click_handler)
+                self.button_controller.add_single_click_handler(self.__single_press_handler)
+                self.button_controller.add_multi_click_handler(self.__multi_press_handler)
                 self.button_controller.add_long_press_handler(self.__long_press_handler)
 
             self.button_controller.register(self.runner)
@@ -164,12 +164,12 @@ class Interactive:
                 debug('Turning off the audio')
                 self.audio_controller.cancel()
 
-    async def __single_click_handler(self) -> None:
+    async def __single_press_handler(self) -> None:
         if not self.runner.cancel and self.buzzer_controller:
             # TODO: This needs to be a proper action
             self.buzzer_controller.beep()
 
-    async def __multi_click_handler(self) -> None:
+    async def __multi_press_handler(self) -> None:
         if not self.runner.cancel and self.buzzer_controller:
             # TODO: This needs to be a proper action
             self.buzzer_controller.beeps(2)
