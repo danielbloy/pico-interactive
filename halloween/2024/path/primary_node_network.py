@@ -26,7 +26,7 @@
 # TODO: Turn on Interactive/Runner restart code.
 
 from interactive.configuration import get_node_config
-from interactive.interactive import Interactive
+from interactive.framework import Interactive
 
 
 async def cancel() -> None:

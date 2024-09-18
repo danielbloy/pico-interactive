@@ -5,7 +5,7 @@ import asyncio
 import board
 
 from interactive.animation import Flicker
-from interactive.interactive import Interactive
+from interactive.framework import Interactive
 from interactive.log import info
 from interactive.polyfills.animation import ORANGE, BLACK
 from interactive.polyfills.pixel import new_pixels
