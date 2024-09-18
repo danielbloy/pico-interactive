@@ -9,7 +9,7 @@ if is_running_on_desktop():
 
 class ButtonController:
     """
-    ButtonController provides abstracted single-click, multi-click and long-press
+    ButtonController provides abstracted single-press, multi-press and long-press
     callbacks based on a Button interface. In CircuitPython, the button will likely
     be based on a real physical button connected to a pin whereas under a normal PC
     (without Blinka running) this could be a simple keypress.
@@ -26,25 +26,25 @@ class ButtonController:
 
         self.__runner = None
         self.__button = button
-        self.__single_click_handler = None
-        self.__multi_click_handler = None
+        self.__single_press_handler = None
+        self.__multi_press_handler = None
         self.__long_press_handler = None
 
-    def add_single_click_handler(self, handler: Callable[[], Awaitable[None]] = None):
+    def add_single_press_handler(self, handler: Callable[[], Awaitable[None]] = None):
         """
-        Adds a handler for the single-click event. Overwrites any previous handler.
+        Adds a handler for the single-press event. Overwrites any previous handler.
 
-        :param handler: The handler to call if a single-click event occurs.
+        :param handler: The handler to call if a single-press event occurs.
         """
-        self.__single_click_handler = handler
+        self.__single_press_handler = handler
 
-    def add_multi_click_handler(self, handler: Callable[[], Awaitable[None]] = None):
+    def add_multi_press_handler(self, handler: Callable[[], Awaitable[None]] = None):
         """
-        Adds a handler for the multi-click event. Overwrites any previous handler.
+        Adds a handler for the multi-press event. Overwrites any previous handler.
 
-        :param handler: The handler to call if a multi-click event occurs.
+        :param handler: The handler to call if a multi-press event occurs.
         """
-        self.__multi_click_handler = handler
+        self.__multi_press_handler = handler
 
     def add_long_press_handler(self, handler: Callable[[], Awaitable[None]] = None):
         """
@@ -73,11 +73,11 @@ class ButtonController:
             short_count = self.__button.short_count
             if short_count != 0:
 
-                if short_count == 1 and self.__single_click_handler is not None:
-                    await self.__single_click_handler()
+                if short_count == 1 and self.__single_press_handler is not None:
+                    await self.__single_press_handler()
 
-                elif short_count > 1 and self.__multi_click_handler is not None:
-                    await self.__multi_click_handler()
+                elif short_count > 1 and self.__multi_press_handler is not None:
+                    await self.__multi_press_handler()
 
             if self.__button.long_press and self.__long_press_handler is not None:
                 await self.__long_press_handler()

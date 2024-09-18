@@ -57,12 +57,12 @@ class Interactive:
             self.button_controller = ButtonController(self.button)
             # Allow overrides of the button presses instead of default behaviour.
             if self.config.button_single_press or self.config.button_multi_press or self.config.button_long_press:
-                self.button_controller.add_single_click_handler(self.config.button_single_press)
-                self.button_controller.add_multi_click_handler(self.config.button_multi_press)
+                self.button_controller.add_single_press_handler(self.config.button_single_press)
+                self.button_controller.add_multi_press_handler(self.config.button_multi_press)
                 self.button_controller.add_long_press_handler(self.config.button_long_press)
             else:
-                self.button_controller.add_single_click_handler(self.__single_press_handler)
-                self.button_controller.add_multi_click_handler(self.__multi_press_handler)
+                self.button_controller.add_single_press_handler(self.__single_press_handler)
+                self.button_controller.add_multi_press_handler(self.__multi_press_handler)
                 self.button_controller.add_long_press_handler(self.__long_press_handler)
 
             self.button_controller.register(self.runner)

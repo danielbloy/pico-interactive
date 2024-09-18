@@ -123,8 +123,8 @@ if __name__ == '__main__':
 
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
-    button_controller.add_single_click_handler(single_click_handler)
-    button_controller.add_multi_click_handler(multi_click_handler)
+    button_controller.add_single_press_handler(single_click_handler)
+    button_controller.add_multi_press_handler(multi_click_handler)
     button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
 
