@@ -23,11 +23,19 @@
 # * A network message
 # * A button press
 
-# TODO: Turn on Interactive/Runner restart code.
+import board
 
 from interactive.configuration import get_node_config
 from interactive.framework import Interactive
 
+SKULL_PIXELS_PINS = [board.GP5, board.GP6, board.GP7, board.GP8, board.GP9, board.GP10]
+
+
+# TODO: Turn on Interactive/Runner restart code.
+# TODO: Move the common code for Primary and secondary nodes to a common file.: remember different pins for skulls
+# TODO: Hook up button to trigger
+# TODO: Hook up network message to trigger
+# TODO: Hook up ultrasonic to trigger.
 
 async def cancel() -> None:
     pass

@@ -34,7 +34,9 @@ if are_pins_available():
     LED_GREEN = board.GP5
     LED_RED = board.GP1
     PIXELS_PIN = board.GP28
-    PIXELS_MULTI_PINS = [board.GP5, board.GP6, board.GP7, board.GP8, board.GP9, board.GP10]
+    # Uncomment if testing one of the Halloween boards; the pins conflict with the LEDs
+    PIXELS_MULTI_PINS = []
+    # PIXELS_MULTI_PINS = [board.GP5, board.GP6, board.GP7, board.GP8, board.GP9, board.GP10]
 
 if __name__ == '__main__':
 
