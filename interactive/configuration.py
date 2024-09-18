@@ -72,6 +72,9 @@ class Config:
         self.garbage_collect_period = 9999
         self.network = False
         self.button_pin = None
+        self.button_single_press = None
+        self.button_multi_press = None
+        self.button_long_press = None
         self.buzzer_pin = None
         self.buzzer_volume = 1.0
         self.audio_pin = None

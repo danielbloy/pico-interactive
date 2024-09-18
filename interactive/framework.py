@@ -14,10 +14,13 @@ if is_running_on_desktop():
 class Interactive:
     """
     Interactive is the entry point class and sets up a running environment based on the
-    configuration provided bby a Config instance. Interactive will create all the
+    configuration provided by a Config instance. Interactive will create all the
     necessary instances to control the buzzer, button etc. Most of the configuration
     properties are optional and will only invoke the relevant control objects if
-    valid properties are provided. This allows a large range of boards to be supported.
+    valid properties are provided. Interactive also sets up the runner to be more
+    tolerant of failures by enforcing the following runner properties:
+      * cancel_on_exception = False
+      * restart_on_exception = True
     """
 
     def __init__(self, config: Config):
@@ -27,6 +30,10 @@ class Interactive:
 
         self.config = config
         self.runner = Runner()
+
+        self.runner.cancel_on_exception = False
+        self.runner.restart_on_exception = True
+        self.runner.restart_on_completion = False  # TODO: determine if this also needs enabling.
         self.runner.add_loop_task(self.__cancel_operations)
 
         self.server = None
@@ -48,9 +55,16 @@ class Interactive:
 
             self.button = new_button(self.config.button_pin)
             self.button_controller = ButtonController(self.button)
-            self.button_controller.add_single_click_handler(self.__single_click_handler)
-            self.button_controller.add_multi_click_handler(self.__multi_click_handler)
-            self.button_controller.add_long_press_handler(self.__long_press_handler)
+            # Allow overrides of the button presses instead of default behaviour.
+            if self.config.button_single_press or self.config.button_multi_press or self.config.button_long_press:
+                self.button_controller.add_single_click_handler(self.config.button_single_press)
+                self.button_controller.add_multi_click_handler(self.config.button_multi_press)
+                self.button_controller.add_long_press_handler(self.config.button_long_press)
+            else:
+                self.button_controller.add_single_click_handler(self.__single_click_handler)
+                self.button_controller.add_multi_click_handler(self.__multi_click_handler)
+                self.button_controller.add_long_press_handler(self.__long_press_handler)
+
             self.button_controller.register(self.runner)
 
         self.buzzer = None

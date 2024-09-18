@@ -23,19 +23,14 @@
 # * A network message
 # * A button press
 
-import board
-
 from interactive.configuration import get_node_config
 from interactive.framework import Interactive
-
-SKULL_PIXELS_PINS = [board.GP5, board.GP6, board.GP7, board.GP8, board.GP9, board.GP10]
+from interactive.log import set_log_level, INFO
 
 
 # TODO: Turn on Interactive/Runner restart code.
 # TODO: Move the common code for Primary and secondary nodes to a common file.: remember different pins for skulls
-# TODO: Hook up button to trigger
 # TODO: Hook up network message to trigger
-# TODO: Hook up ultrasonic to trigger.
 
 async def cancel() -> None:
     pass
@@ -53,10 +48,22 @@ async def stop_display() -> None:
     pass
 
 
+async def button_press() -> None:
+    pass
+
+
 config = get_node_config(network=True, button=True, buzzer=False, audio=False, ultrasonic=True)
-config.trigger_start = start_display()
+config.trigger_start = start_display()  # TODO: should this have the ()?
 config.trigger_run = run_display()
 config.trigger_stop = stop_display()
+# config.trigger_distance = 100  # TODO: These could be configured in the config file.
+# config.trigger_duration = 120  # TODO: These could be configured in th config file.
+
+# TODO: Hook up button to trigger
+config.button_single_press = button_press
+
+# TODO set logging off
+set_log_level(INFO)
 
 
 async def callback() -> None:
