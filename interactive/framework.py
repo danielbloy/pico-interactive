@@ -109,7 +109,7 @@ class Interactive:
                 start=self.config.trigger_start,
                 run=self.config.trigger_run,
                 stop=self.config.trigger_stop)
-            self.runner.add_loop_task(trigger_loop)
+            self.runner.add_task(trigger_loop)
 
         if self.config.report_ram:
             async def report_memory() -> None:

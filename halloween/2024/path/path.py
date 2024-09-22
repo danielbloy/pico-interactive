@@ -25,13 +25,12 @@ class PathController:
         self.trigger_events.add_event(2.0, 4)
         self.trigger_events.add_event(2.5, 5)
 
-    # TODO: Setup: TriggerTimedEvents to turn on the skulls at the appropriate points
-
     async def start_display(self) -> None:
+
         for pixel in self.pixels:
-            pixel.fill(SKULL_COLOUR)
+            pixel.fill(BLACK)
             pixel.brightness = SKULL_OFF
-            pixel.write()
+            pixel.show()
 
         self._audio_controller.queue("lion.mp3")
 
@@ -41,7 +40,9 @@ class PathController:
         events = self.trigger_events.run()
 
         for event in events:
+            self.pixels[event.event].fill(SKULL_COLOUR)
             self.pixels[event.event].brightness = SKULL_BRIGHTNESS
+            self.pixels[event.event].show()
 
         for animation in self.animations:
             animation.animate()
@@ -55,5 +56,4 @@ class PathController:
         for pixel in self.pixels:
             pixel.fill(BLACK)
             pixel.brightness = SKULL_OFF
-            pixel.write()
             pixel.show()
