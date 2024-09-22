@@ -145,8 +145,9 @@ def get_node_config(network=False, button=True, buzzer=True, audio=True, ultraso
     if ultrasonic:
         config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
         config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
-        config.trigger_distance = TRIGGER_DISTANCE
-        config.trigger_duration = TRIGGER_DURATION
+
+    config.trigger_distance = TRIGGER_DISTANCE
+    config.trigger_duration = TRIGGER_DURATION
 
     return config
 
