@@ -96,6 +96,7 @@ class NetworkController:
             Route("/lookup/all", GET, lookup_all, append_slash=True),
             Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
             Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
+            # TODO: Trigger route that has a pluggable callback.
         ])
 
         server.socket_timeout = 1

@@ -69,9 +69,9 @@ async def test_task_2() -> None:
 
 
 config = get_node_config(button=False, buzzer=False, ultrasonic=False)
-config.trigger_start = start_display()
-config.trigger_run = run_display()
-config.trigger_stop = stop_display()
+config.trigger_start = start_display()  # TODO: should this have the ()?
+config.trigger_run = run_display()  # TODO: should this have the ()?
+config.trigger_stop = stop_display()  # TODO: should this have the ()?
 
 interactive = Interactive(config)
 

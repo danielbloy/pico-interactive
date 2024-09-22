@@ -32,43 +32,25 @@ from interactive.log import set_log_level, INFO
 # TODO: Move the common code for Primary and secondary nodes to a common file.: remember different pins for skulls
 # TODO: Hook up network message to trigger
 
-async def cancel() -> None:
-    pass
-
 
 async def start_display() -> None:
-    pass
-
-
-async def run_display() -> None:
-    pass
-
-
-async def stop_display() -> None:
-    pass
-
-
-async def button_press() -> None:
+    # TODO: Trigger path nodes
     pass
 
 
 config = get_node_config(network=True, button=True, buzzer=False, audio=False, ultrasonic=True)
-config.trigger_start = start_display()  # TODO: should this have the ()?
-config.trigger_run = run_display()
-config.trigger_stop = stop_display()
+config.trigger_start = start_display
 # config.trigger_distance = 100  # TODO: These could be configured in the config file.
 # config.trigger_duration = 120  # TODO: These could be configured in th config file.
 
-# TODO: Hook up button to trigger
-config.button_single_press = button_press
+config.button_single_press = start_display
 
 # TODO set logging off
 set_log_level(INFO)
 
 
 async def callback() -> None:
-    if interactive.cancel:
-        await cancel()
+    pass
 
 
 interactive = Interactive(config)
