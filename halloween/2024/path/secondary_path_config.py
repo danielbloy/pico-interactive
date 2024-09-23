@@ -1,0 +1,14 @@
+import board
+
+BUTTON_PIN = board.GP26
+AUDIO_PIN = board.GP22
+ULTRASONIC_TRIGGER_PIN = board.GP17
+ULTRASONIC_ECHO_PIN = board.GP16
+
+TRIGGER_DURATION = 5
+GARBAGE_COLLECT = False
+REPORT_RAM = True
+
+from interactive.log import INFO
+
+LOG_LEVEL = INFO
