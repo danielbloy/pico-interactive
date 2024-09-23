@@ -1,5 +1,6 @@
 from interactive.animation import Flicker
-from interactive.audio import AudioController
+from interactive.configuration import get_node_config
+from interactive.framework import Interactive
 from interactive.polyfills.animation import BLACK, ORANGE
 from interactive.polyfills.pixel import new_pixels
 from interactive.scheduler import TriggerTimedEvents
@@ -10,50 +11,67 @@ SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
 
 
-class PathController:
-    def __init__(self, pins: list, audio_controller: AudioController):
-        self._audio_controller = audio_controller
-        self.pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in pins if pin is not None]
-        self.animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in self.pixels]
+# TODO: need to extract out the audio as only the primary plays audio.
+def run_path(skull_pins: list):
+    pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in skull_pins if pin is not None]
+    animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
 
-        self.trigger_events = TriggerTimedEvents()
-        # The event is the index to enable
-        self.trigger_events.add_event(0.0, 0)
-        self.trigger_events.add_event(0.5, 1)
-        self.trigger_events.add_event(1.0, 2)
-        self.trigger_events.add_event(1.5, 3)
-        self.trigger_events.add_event(2.0, 4)
-        self.trigger_events.add_event(2.5, 5)
+    trigger_events = TriggerTimedEvents()
+    # The event is the index to enable
+    trigger_events.add_event(0.0, 0)
+    trigger_events.add_event(0.5, 1)
+    trigger_events.add_event(1.0, 2)
+    trigger_events.add_event(1.5, 3)
+    trigger_events.add_event(2.0, 4)
+    trigger_events.add_event(2.5, 5)
 
-    async def start_display(self) -> None:
+    async def trigger_display() -> None:
+        interactive.triggerable.triggered = True
 
-        for pixel in self.pixels:
+    async def start_display() -> None:
+        for pixel in pixels:
             pixel.fill(BLACK)
             pixel.brightness = SKULL_OFF
             pixel.show()
 
-        self._audio_controller.queue("lion.mp3")
+        interactive.audio_controller.queue("lion.mp3")
 
-        self.trigger_events.start()
+        trigger_events.start()
 
-    async def run_display(self) -> None:
-        events = self.trigger_events.run()
+    async def run_display() -> None:
+        events = trigger_events.run()
 
         for event in events:
-            self.pixels[event.event].fill(SKULL_COLOUR)
-            self.pixels[event.event].brightness = SKULL_BRIGHTNESS
-            self.pixels[event.event].show()
+            pixels[event.event].fill(SKULL_COLOUR)
+            pixels[event.event].brightness = SKULL_BRIGHTNESS
+            pixels[event.event].show()
 
-        for animation in self.animations:
+        for animation in animations:
             animation.animate()
 
-    async def stop_display(self) -> None:
-        self.trigger_events.stop()
+    async def stop_display() -> None:
+        trigger_events.stop()
 
-        for animation in self.animations:
+        for animation in animations:
             animation.freeze()
 
-        for pixel in self.pixels:
+        for pixel in pixels:
             pixel.fill(BLACK)
             pixel.brightness = SKULL_OFF
             pixel.show()
+
+    config = get_node_config(network=False, button=True, buzzer=False, audio=True, ultrasonic=False, trigger=True)
+    config.trigger_start = start_display
+    config.trigger_run = run_display
+    config.trigger_stop = stop_display
+    config.button_single_press = trigger_display
+
+    interactive = Interactive(config)
+
+    del config
+
+    async def callback() -> None:
+        if interactive.cancel:
+            await stop_display()
+
+    interactive.run(callback)
