@@ -48,11 +48,25 @@ class TestNode:
         config = configuration.get_node_config(audio=False)
         assert config.audio_pin == defaults.audio_pin
 
-        config = configuration.get_node_config(ultrasonic=False)
+        config = configuration.get_node_config(ultrasonic=False, trigger=False)
         assert config.ultrasonic_trigger_pin == defaults.ultrasonic_trigger_pin
         assert config.ultrasonic_echo_pin == defaults.ultrasonic_echo_pin
         assert config.trigger_distance == defaults.trigger_distance
         assert config.trigger_duration == defaults.trigger_duration
+
+        # Validate that we can still specify the trigger when the ultrasonic is off.
+        config = configuration.get_node_config(ultrasonic=False, trigger=True)
+        assert config.ultrasonic_trigger_pin == defaults.ultrasonic_trigger_pin
+        assert config.ultrasonic_echo_pin == defaults.ultrasonic_echo_pin
+        assert config.trigger_distance != defaults.trigger_distance
+        assert config.trigger_duration != defaults.trigger_duration
+
+        # Validate that the trigger is forced on when ultrasonic is specified.
+        config = configuration.get_node_config(ultrasonic=True, trigger=False)
+        assert config.ultrasonic_trigger_pin != defaults.ultrasonic_trigger_pin
+        assert config.ultrasonic_echo_pin != defaults.ultrasonic_echo_pin
+        assert config.trigger_distance != defaults.trigger_distance
+        assert config.trigger_duration != defaults.trigger_duration
 
     def test_details_returns_correct_values(self, monkeypatch) -> None:
         """

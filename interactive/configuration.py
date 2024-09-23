@@ -116,7 +116,7 @@ class Config:
             log(level, s)
 
 
-def get_node_config(network=False, button=True, buzzer=True, audio=True, ultrasonic=True) -> Config:
+def get_node_config(network=False, button=True, buzzer=True, audio=True, ultrasonic=True, trigger=True) -> Config:
     if REPORT_RAM:
         report_memory_usage("get_node_config")
 
@@ -143,11 +143,14 @@ def get_node_config(network=False, button=True, buzzer=True, audio=True, ultraso
         config.audio_pin = AUDIO_PIN
 
     if ultrasonic:
+        # If the ultrasonic sensor is in use, we force the trigger to load.
+        trigger = True
         config.ultrasonic_trigger_pin = ULTRASONIC_TRIGGER_PIN
         config.ultrasonic_echo_pin = ULTRASONIC_ECHO_PIN
 
-    config.trigger_distance = TRIGGER_DISTANCE
-    config.trigger_duration = TRIGGER_DURATION
+    if trigger:
+        config.trigger_distance = TRIGGER_DISTANCE
+        config.trigger_duration = TRIGGER_DURATION
 
     return config
 
