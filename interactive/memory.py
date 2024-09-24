@@ -12,12 +12,12 @@ import gc
 from interactive.log import critical
 
 
-def report_memory_usage(msg: str):
+def report_memory_usage(msg: str = ""):
     critical(f"MEMORY USAGE: {msg}")
     critical(f"HEAP: Allocated: {gc.mem_alloc()} bytes, Free: {gc.mem_free()} bytes")
 
 
-def report_memory_usage_and_free(msg: str):
+def report_memory_usage_and_free(msg: str = ""):
     report_memory_usage(f"{msg} before gc")
     gc.collect()
     report_memory_usage(f"{msg} after gc")

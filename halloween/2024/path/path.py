@@ -3,7 +3,9 @@ import gc
 from interactive.animation import Flicker
 from interactive.audio import AudioController
 from interactive.button import ButtonController
-from interactive.configuration import get_node_config
+from interactive.configuration import AUDIO_PIN, BUTTON_PIN, TRIGGER_DURATION
+from interactive.configuration import REPORT_RAM, REPORT_RAM_PERIOD, GARBAGE_COLLECT, GARBAGE_COLLECT_PERIOD
+from interactive.configuration import SKULL_PINS, PRIMARY_NODE
 from interactive.memory import report_memory_usage, report_memory_usage_and_free
 from interactive.polyfills.animation import BLACK, ORANGE
 from interactive.polyfills.audio import new_mp3_player
@@ -17,108 +19,114 @@ SKULL_OFF = 0.0
 SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
 
-
 # Because of memory constraints, we do not use the Interactive class here.
 # Rather, we setup everything ourselves to minimise what we pull in.
-def run_path(skull_pins: list, primary: bool):
-    pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in skull_pins if pin is not None]
-    animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
+runner = Runner()
 
-    trigger_events = TriggerTimedEvents()
-    # The event is the index to enable
-    trigger_events.add_event(0.0, 0)
-    trigger_events.add_event(0.5, 1)
-    trigger_events.add_event(1.0, 2)
-    trigger_events.add_event(1.5, 3)
-    trigger_events.add_event(2.0, 4)
-    trigger_events.add_event(2.5, 5)
+runner.cancel_on_exception = False
+runner.restart_on_exception = True
+runner.restart_on_completion = False
 
-    async def trigger_display() -> None:
-        triggerable.triggered = True
+pixels = [new_pixels(pin, 8, brightness=SKULL_BRIGHTNESS) for pin in SKULL_PINS if pin is not None]
+animations = [Flicker(pixel, speed=SKULL_SPEED, color=SKULL_COLOUR) for pixel in pixels]
 
-    async def start_display() -> None:
-        for pixel in pixels:
-            pixel.fill(BLACK)
-            pixel.brightness = SKULL_OFF
-            pixel.show()
+audio_controller = AudioController(new_mp3_player(AUDIO_PIN, "interactive/mp3.mp3"))
+audio_controller.register(runner)
 
-        if primary:
-            audio_controller.queue("bells.mp3")
-        else:
-            # TODO: Add in a delay for the lion.
-            audio_controller.queue("lion.mp3")
+# The event is the skull index to enable
+trigger_events = TriggerTimedEvents()
+trigger_events.add_event(0.0, 0)
+trigger_events.add_event(0.5, 1)
+trigger_events.add_event(1.0, 2)
+trigger_events.add_event(1.5, 3)
+trigger_events.add_event(2.0, 4)
+trigger_events.add_event(2.5, 5)
 
-        trigger_events.start()
 
-    async def run_display() -> None:
-        events = trigger_events.run()
+async def start_display() -> None:
+    for pixel in pixels:
+        pixel.fill(BLACK)
+        pixel.brightness = SKULL_OFF
+        pixel.show()
 
-        for event in events:
-            pixels[event.event].fill(SKULL_COLOUR)
-            pixels[event.event].brightness = SKULL_BRIGHTNESS
-            pixels[event.event].show()
+    if PRIMARY_NODE:
+        audio_controller.queue("bells.mp3")
+    else:
+        # TODO: Add in a delay for the lion.
+        audio_controller.queue("lion.mp3")
 
-        for animation in animations:
-            animation.animate()
+    trigger_events.start()
 
-    async def stop_display() -> None:
-        trigger_events.stop()
 
-        for pixel in pixels:
-            pixel.fill(BLACK)
-            pixel.brightness = SKULL_OFF
-            pixel.show()
+async def run_display() -> None:
+    events = trigger_events.run()
 
-    config = get_node_config()
+    for event in events:
+        pixels[event.event].fill(SKULL_COLOUR)
+        pixels[event.event].brightness = SKULL_BRIGHTNESS
+        pixels[event.event].show()
 
-    runner = Runner()
+    for animation in animations:
+        animation.animate()
 
-    runner.cancel_on_exception = False
-    runner.restart_on_exception = True
-    runner.restart_on_completion = False
 
-    button_controller = ButtonController(new_button(config.button_pin))
-    button_controller.add_single_press_handler(trigger_display)
-    button_controller.register(runner)
+async def stop_display() -> None:
+    trigger_events.stop()
 
-    audio_controller = AudioController(new_mp3_player(config.audio_pin, "interactive/mp3.mp3"))
-    audio_controller.register(runner)
+    for pixel in pixels:
+        pixel.fill(BLACK)
+        pixel.brightness = SKULL_OFF
+        pixel.show()
 
-    triggerable = Triggerable()
-    trigger_loop = new_triggered_task(
-        triggerable,
-        duration=config.trigger_duration,
-        start=start_display,
-        run=run_display,
-        stop=stop_display)
-    runner.add_task(trigger_loop)
 
-    if config.report_ram:
-        async def report_memory() -> None:
-            report_memory_usage("report_memory()")
+triggerable = Triggerable()
 
-        report_memory_task = (
-            new_triggered_task(
-                TriggerableAlwaysOn(), config.report_ram_period, start=report_memory))
-        runner.add_task(report_memory_task)
+trigger_loop = new_triggered_task(
+    triggerable,
+    duration=TRIGGER_DURATION,
+    start=start_display,
+    run=run_display,
+    stop=stop_display)
+runner.add_task(trigger_loop)
 
-    if config.garbage_collect:
-        async def garbage_collect() -> None:
-            report_memory_usage_and_free("garbage_collect()")
 
-        garbage_collect_task = (
-            new_triggered_task(
-                TriggerableAlwaysOn(), config.garbage_collect_period, stop=garbage_collect))
-        runner.add_task(garbage_collect_task)
+async def trigger_display() -> None:
+    triggerable.triggered = True
 
-    if config.report_ram:
-        report_memory_usage('Before execution')
 
-    del config
-    gc.collect()
+button_controller = ButtonController(new_button(BUTTON_PIN))
+button_controller.add_single_press_handler(trigger_display)
+button_controller.register(runner)
 
-    async def callback() -> None:
-        if runner.cancel:
-            await stop_display()
+if REPORT_RAM:
+    async def report_memory() -> None:
+        report_memory_usage()
 
-    runner.run(callback)
+
+    report_memory_task = (
+        new_triggered_task(
+            TriggerableAlwaysOn(), REPORT_RAM_PERIOD, start=report_memory))
+    runner.add_task(report_memory_task)
+
+if GARBAGE_COLLECT:
+    async def garbage_collect() -> None:
+        report_memory_usage_and_free()
+
+
+    garbage_collect_task = (
+        new_triggered_task(
+            TriggerableAlwaysOn(), GARBAGE_COLLECT_PERIOD, stop=garbage_collect))
+    runner.add_task(garbage_collect_task)
+
+gc.collect()
+
+
+async def callback() -> None:
+    if runner.cancel:
+        await stop_display()
+
+
+if REPORT_RAM:
+    report_memory_usage()
+
+runner.run(callback)
