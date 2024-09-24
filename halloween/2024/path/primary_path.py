@@ -6,4 +6,4 @@ from path import run_path
 
 SKULL_PIXELS_PINS = [board.GP1, board.GP2, board.GP3, board.GP4, board.GP5, board.GP6]
 
-run_path(SKULL_PIXELS_PINS)
+run_path(SKULL_PIXELS_PINS, True)
