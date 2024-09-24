@@ -1,3 +1,5 @@
+# NOTE: Rename this to code.py on each path microcontroller (primary and secondary).
+
 import gc
 
 from interactive.animation import Flicker
