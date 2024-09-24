@@ -1,20 +1,17 @@
 # NOTE: Rename this to code.py on each path microcontroller (primary and secondary).
 
-import gc
-
 from interactive.animation import Flicker
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.configuration import AUDIO_PIN, BUTTON_PIN, TRIGGER_DURATION
-from interactive.configuration import REPORT_RAM, REPORT_RAM_PERIOD, GARBAGE_COLLECT, GARBAGE_COLLECT_PERIOD
 from interactive.configuration import SKULL_PINS, PRIMARY_NODE
-from interactive.memory import report_memory_usage, report_memory_usage_and_free
+from interactive.memory import setup_memory_reporting
 from interactive.polyfills.animation import BLACK, ORANGE
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
-from interactive.scheduler import new_triggered_task, TriggerableAlwaysOn, TriggerTimedEvents, Triggerable
+from interactive.scheduler import new_triggered_task, TriggerTimedEvents, Triggerable
 
 SKULL_BRIGHTNESS = 1.0
 SKULL_OFF = 0.0
@@ -100,35 +97,5 @@ button_controller = ButtonController(new_button(BUTTON_PIN))
 button_controller.add_single_press_handler(trigger_display)
 button_controller.register(runner)
 
-if REPORT_RAM:
-    async def report_memory() -> None:
-        report_memory_usage()
-
-
-    report_memory_task = (
-        new_triggered_task(
-            TriggerableAlwaysOn(), REPORT_RAM_PERIOD, start=report_memory))
-    runner.add_task(report_memory_task)
-
-if GARBAGE_COLLECT:
-    async def garbage_collect() -> None:
-        report_memory_usage_and_free()
-
-
-    garbage_collect_task = (
-        new_triggered_task(
-            TriggerableAlwaysOn(), GARBAGE_COLLECT_PERIOD, stop=garbage_collect))
-    runner.add_task(garbage_collect_task)
-
-gc.collect()
-
-
-async def callback() -> None:
-    if runner.cancel:
-        await stop_display()
-
-
-if REPORT_RAM:
-    report_memory_usage()
-
-runner.run(callback)
+setup_memory_reporting(runner)
+runner.run()

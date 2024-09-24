@@ -1,5 +1,5 @@
 # NOTE: Rename this to code.py on the primary node network microcontroller.
-
+#
 # This node runs:
 # * Network communications
 # * Ultrasonic sensor for trigger
@@ -23,36 +23,50 @@
 # * A network message
 # * A button press
 
-from interactive.configuration import get_node_config
-from interactive.framework import Interactive
-from interactive.log import set_log_level, INFO
+from interactive.button import ButtonController
+from interactive.configuration import BUTTON_PIN, TRIGGER_DURATION
+from interactive.memory import setup_memory_reporting
+from interactive.network import NetworkController
+from interactive.polyfills.button import new_button
+from interactive.polyfills.network import new_server
+from interactive.runner import Runner
+from interactive.scheduler import new_triggered_task, Triggerable
 
+# Because of memory constraints, we do not use the Interactive class here.
+# Rather, we setup everything ourselves to minimise what we pull in.
+runner = Runner()
 
-# TODO: Turn on Interactive/Runner restart code.
-# TODO: Move the common code for Primary and secondary nodes to a common file.: remember different pins for skulls
-# TODO: Hook up network message to trigger
+runner.cancel_on_exception = False
+runner.restart_on_exception = True
+runner.restart_on_completion = False
 
 
 async def start_display() -> None:
-    # TODO: Trigger path nodes
+    # TODO: Press the button on each path node to trigger it
     pass
 
 
-config = get_node_config(network=True, button=True, buzzer=False, audio=False, ultrasonic=True)
-config.trigger_start = start_display
-# config.trigger_distance = 100  # TODO: These could be configured in the config file.
-# config.trigger_duration = 120  # TODO: These could be configured in th config file.
+triggerable = Triggerable()
 
-config.button_single_press = start_display
-
-# TODO set logging off
-set_log_level(INFO)
+trigger_loop = new_triggered_task(
+    triggerable,
+    duration=TRIGGER_DURATION,
+    start=start_display)
+runner.add_task(trigger_loop)
 
 
-async def callback() -> None:
-    pass
+async def trigger_display() -> None:
+    triggerable.triggered = True
 
 
-interactive = Interactive(config)
+button_controller = ButtonController(new_button(BUTTON_PIN))
+button_controller.add_single_press_handler(trigger_display)
+button_controller.register(runner)
 
-interactive.run(callback)
+# TODO: Hook up network message to trigger
+server = new_server()
+network_controller = NetworkController(server)
+network_controller.register(runner)
+
+setup_memory_reporting(runner)
+runner.run()
