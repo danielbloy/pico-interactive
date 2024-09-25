@@ -61,30 +61,52 @@ class DirectoryController:
         for name in to_remove:
             del self._directory[name]
 
-    def register_endpoint(self, ip, name, role: str):
-        name = name.strip()
-        if len(name) <= 0:
-            return
+    def register_endpoint(self, ip: str, name: str, role: str) -> bool:
+        """
+        Registers an endpoint. The name and role information are considered case-insensitive
+        so will be stored as lowercase. The name is considered the unique aspect of
+        an endpoint so a single name corresponds to a single endpoint. Multiple endpoint
+        names can have the same IP address or role.
 
-        if name not in self._directory:
-            self._directory[name] = DirectoryController.Endpoint(ip.strip(), name, role.strip())
+        Where an endpoint is re-registered, the new data overwrites the old data.
 
-        self._directory[name].ip = ip.strip()
-        self._directory[name].role = role.strip()
-        self._directory[name].expiry_time = time.monotonic() + DIRECTORY_EXPIRY_DURATION
+        Re-registering an endpoint extends its expiry time.
 
-    def unregister_endpoint(self, name):
-        name = name.strip()
-        if len(name) <= 0:
-            return
+        Returns whether registration (or re-registration) was successful or not.
 
-        if name not in self._directory:
-            return
+        :param ip:   The IP address of the endpoint, as a string. Stored as lowercase.
+        :param name: The name of the endpoint, as a string. Stored as lowercase.
+        :param role: The nominal role of the registered endpoint. Stored as lowercase.
+        """
+        lookup = name.strip().lower()
+        if len(lookup) <= 0:
+            return False
 
-        del self._directory[name]
+        if lookup not in self._directory:
+            self._directory[lookup] = (
+                DirectoryController.Endpoint(ip.strip().lower(), lookup, role.strip().lower()))
 
-    def heartbeat_from_endpoint(self, ip, name, role):
-        self.register_endpoint(ip, name, role)
+        self._directory[lookup].ip = ip.strip().lower()
+        self._directory[lookup].role = role.strip().lower()
+        self._directory[lookup].expiry_time = time.monotonic() + DIRECTORY_EXPIRY_DURATION
+
+        return True
+
+    def unregister_endpoint(self, name) -> bool:
+        lookup = name.strip().lower()
+        if len(lookup) <= 0:
+            return False
+
+        if lookup not in self._directory:
+            return True
+
+        del self._directory[lookup]
+
+    def heartbeat_from_endpoint(self, ip, name, role) -> bool:
+        """
+        Simply forwards to register_endpoint()
+        """
+        return self.register_endpoint(ip, name, role)
 
     # Returns the IP address for all the known nodes
     def lookup_all_endpoints(self):
