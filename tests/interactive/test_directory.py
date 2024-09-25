@@ -26,11 +26,30 @@ class TestDirectoryController:
         assert add_task_count == 0
         controller.register(runner)
         assert add_task_count == 1
+        assert len(controller.lookup_all_endpoints()) == 0
+
+    def test_register_endpoint_fails_with_no_name(self) -> None:
+        """
+        
+        """
+        assert False
 
     def test_register_endpoint(self) -> None:
+        """
+        Validates that an endpoint can be registered and then looked up.
+        """
+        assert False
+
+    def test_register_endpoint_multiple_times(self) -> None:
+        assert False
+
+    def test_unregister_unknown_endpoint(self) -> None:
         assert False
 
     def test_unregister_endpoint(self) -> None:
+        assert False
+
+    def test_unregister_endpoint_multiple_times(self) -> None:
         assert False
 
     def test_endpoint_expires(self) -> None:
