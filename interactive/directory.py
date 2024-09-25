@@ -61,7 +61,7 @@ class DirectoryController:
         for name in to_remove:
             del self._directory[name]
 
-    def register_endpoint(self, ip: str, name: str, role: str) -> bool:
+    def register_endpoint(self, ip: str, name: str, role: str):
         """
         Registers an endpoint. The name and role information are considered case-insensitive
         so will be stored as lowercase. The name is considered the unique aspect of
@@ -72,15 +72,16 @@ class DirectoryController:
 
         Re-registering an endpoint extends its expiry time.
 
-        Returns whether registration (or re-registration) was successful or not.
-
         :param ip:   The IP address of the endpoint, as a string. Stored as lowercase.
         :param name: The name of the endpoint, as a string. Stored as lowercase.
         :param role: The nominal role of the registered endpoint. Stored as lowercase.
         """
+        if name is None:
+            return
+
         lookup = name.strip().lower()
         if len(lookup) <= 0:
-            return False
+            return
 
         if lookup not in self._directory:
             self._directory[lookup] = (
@@ -90,37 +91,61 @@ class DirectoryController:
         self._directory[lookup].role = role.strip().lower()
         self._directory[lookup].expiry_time = time.monotonic() + DIRECTORY_EXPIRY_DURATION
 
-        return True
+        return
 
-    def unregister_endpoint(self, name) -> bool:
+    def unregister_endpoint(self, name):
+        """
+        Removes an endpoint. If no endpoint exists, nothing happens.
+        """
+        if name is None:
+            return
+
         lookup = name.strip().lower()
         if len(lookup) <= 0:
-            return False
+            return
 
         if lookup not in self._directory:
-            return True
+            return
 
         del self._directory[lookup]
 
-    def heartbeat_from_endpoint(self, ip, name, role) -> bool:
+    def heartbeat_from_endpoint(self, ip, name, role):
         """
         Simply forwards to register_endpoint()
         """
         return self.register_endpoint(ip, name, role)
 
-    # Returns the IP address for all the known nodes
-    def lookup_all_endpoints(self):
+    def lookup_all_endpoints(self) -> dict[str, str]:
+        """
+        Returns the IP address for all the known nodes.
+        """
         return dict((name, endpoint.ip) for name, endpoint in self._directory.items())
 
-    # Returns the IP address for the first matching name
     def lookup_endpoint_by_name(self, name) -> [None, str]:
-        name = name.strip()
-
-        if name not in self._directory:
+        """
+        Returns the IP address for the matching name.
+        """
+        if name is None:
             return None
 
-        return self._directory[name].ip
+        lookup = name.strip().lower()
+        if len(lookup) <= 0:
+            return
 
-    # Return a dictionary of names to IPs.
-    def lookup_endpoints_by_role(self, role):
-        return dict((name, endpoint.ip) for name, endpoint in self._directory.items() if endpoint.role == role)
+        if lookup not in self._directory:
+            return None
+
+        return self._directory[lookup].ip
+
+    def lookup_endpoints_by_role(self, role) -> [None, dict[str, str]]:
+        """
+        Return a dictionary of names to IPs.
+        """
+        if role is None:
+            return None
+
+        lookup = role.strip().lower()
+        if len(lookup) <= 0:
+            return
+        
+        return dict((name, endpoint.ip) for name, endpoint in self._directory.items() if endpoint.role == lookup)
