@@ -18,8 +18,10 @@ SKULL_OFF = 0.0
 SKULL_SPEED = 0.1
 SKULL_COLOUR = ORANGE
 
-# Because of memory constraints, we do not use the Interactive class here.
-# Rather, we setup everything ourselves to minimise what we pull in.
+# Because of memory constraints when using a Pico W CircuitPython image we do not use the
+# Interactive class here. This allows for much easier testing but also keeps the code
+# consistent with network_code.py which must use the Pico W CircuitPython image.
+# Doing the setup ourselves saves a notable amount of RAM.
 runner = Runner()
 
 runner.cancel_on_exception = False

@@ -1,9 +1,7 @@
-import gc
-
 from interactive.configuration import Config
 from interactive.environment import is_running_on_desktop
 from interactive.log import info, debug, critical, CRITICAL
-from interactive.memory import report_memory_usage, report_memory_usage_and_free
+from interactive.memory import setup_memory_reporting
 from interactive.runner import Runner
 
 if is_running_on_desktop():
@@ -26,9 +24,6 @@ class Interactive:
 
         critical('Running with config:')
         config.log(CRITICAL)
-
-        if config.report_ram:
-            report_memory_usage("Interactive.__init__() start")
 
         self.runner = Runner()
 
@@ -114,36 +109,7 @@ class Interactive:
                 stop=config.trigger_stop)
             self.runner.add_task(trigger_loop)
 
-        if config.report_ram:
-            from interactive.scheduler import new_triggered_task, TriggerableAlwaysOn, terminate_on_cancel
-
-            async def report_memory() -> None:
-                report_memory_usage("Interactive.report_memory()")
-
-            triggerable = TriggerableAlwaysOn()
-            report_memory_task = (
-                new_triggered_task(
-                    triggerable, config.report_ram_period, start=report_memory,
-                    cancel_func=terminate_on_cancel(self)))
-            self.runner.add_task(report_memory_task)
-
-        if config.garbage_collect:
-            from interactive.scheduler import new_triggered_task, TriggerableAlwaysOn, terminate_on_cancel
-
-            async def garbage_collect() -> None:
-                report_memory_usage_and_free("Interactive.garbage_collect()")
-
-            triggerable = TriggerableAlwaysOn()
-            garbage_collect_task = (
-                new_triggered_task(
-                    triggerable, config.garbage_collect_period, stop=garbage_collect,
-                    cancel_func=terminate_on_cancel(self)))
-            self.runner.add_task(garbage_collect_task)
-
-        gc.collect()
-
-        if config.report_ram:
-            report_memory_usage("Interactive.__init__() start")
+        setup_memory_reporting(self.runner)
 
     @property
     def cancel(self) -> bool:
