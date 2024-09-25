@@ -136,3 +136,110 @@ class TestMessages:
 
     def test_receive_heartbeat_message(self) -> None:
         assert network.receive_heartbeat_message(None) == "TODO heartbeat message received from node"
+
+# print(request)
+# print(f"METHOD ... : '{request.method}'")
+# print(f"PATH ..... : '{request.path}'")
+# print(f"QPARAMS .. : '{request.query_params}'")
+# print(f"HTTPV .... : '{request.http_version}'")
+# print(f"HEADERS .. : '{request.headers}'")
+# print(f"RAW ...... : '{request.raw_request}'")
+
+
+# C:\Users\danie>curl --verbose http://127.0.0.1:5001/index.html
+# *   Trying 127.0.0.1:5001...
+# * Connected to 127.0.0.1 (127.0.0.1) port 5001
+# > GET /index.html HTTP/1.1
+# > Host: 127.0.0.1:5001
+# > User-Agent: curl/8.8.0
+# > Accept: */*
+# >
+# * Request completely sent off
+# < HTTP/1.1 200 OK
+# < name: <hostname>
+# < role: <host role>
+# < content-type: text/html
+# < content-length: 345
+# < connection: close
+# <
+# <!DOCTYPE html>
+# <html lang="en">
+# <head>
+#     <meta charset="UTF-8">
+#     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+#     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#     <title>Pico Interactive</title>
+# </head>
+# <body>
+# <p>Hello from the <strong>CircuitPython HTTP Server!</strong></p>
+# </body>
+# </html>
+# * Closing connection
+
+# Server
+# <Request "GET /index.html">
+# METHOD ... : 'GET'
+# PATH ..... : '/index.html'
+# QPARAMS .. : ''
+# HTTPV .... : 'HTTP/1.1'
+# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
+# RAW ...... : 'b'GET /index.html HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''
+
+
+# C:\Users\danie>  curl --verbose http://127.0.0.1:5001/register -X POST -H "Content-Type: application/json" -d "{\"key1\":\"value1\", \"key2\":\"value2\"}"
+# Note: Unnecessary use of -X or --request, POST is already inferred.
+# *   Trying 127.0.0.1:5001...
+# * Connected to 127.0.0.1 (127.0.0.1) port 5001
+# > POST /register HTTP/1.1
+# > Host: 127.0.0.1:5001
+# > User-Agent: curl/8.8.0
+# > Accept: */*
+# > Content-Type: application/json
+# > Content-Length: 34
+# >
+# * upload completely sent off: 34 bytes
+# < HTTP/1.1 200 OK
+# < name: <hostname>
+# < role: <host role>
+# < content-type: text/plain
+# < content-length: 2
+# < connection: close
+# <
+# OK* Closing connection
+
+# Server
+# <Request "POST /register">
+# METHOD ... : 'POST'
+# PATH ..... : '/register'
+# QPARAMS .. : ''
+# HTTPV .... : 'HTTP/1.1'
+# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*'], 'content-type': ['application/json'], 'content-length': ['34']}>'
+# RAW ...... : 'b'POST /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\nContent-Type: application/json\r\nContent-Length: 34\r\n\r\n{"key1":"value1", "key2":"value2"}''
+
+
+# C:\Users\danie>curl --verbose http://127.0.0.1:5001/register
+# *   Trying 127.0.0.1:5001...
+# * Connected to 127.0.0.1 (127.0.0.1) port 5001
+# > GET /register HTTP/1.1
+# > Host: 127.0.0.1:5001
+# > User-Agent: curl/8.8.0
+# > Accept: */*
+# >
+# < HTTP/1.1 200 OK
+# < name: <hostname>
+# < role: <host role>
+# < content-type: text/plain
+# < content-length: 27
+# < connection: close
+# <
+# registered with coordinator* we are done reading and this is set to close, stop send
+# * Closing connection
+
+# Server
+# <Request "GET /register">
+# METHOD ... : 'GET'
+# PATH ..... : '/register'
+# QPARAMS .. : ''
+# HTTPV .... : 'HTTP/1.1'
+# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
+# RAW ...... : 'b'GET /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''
