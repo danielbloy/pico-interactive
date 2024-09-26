@@ -97,6 +97,8 @@ class NetworkController:
             Route("/blink", GET, led_blink, append_slash=True),
             Route("/led/blink", GET, led_blink, append_slash=True),
             Route("/led/<state>", [GET, POST], led_state, append_slash=True),
+            # Trigger route that will call a user specified callback.
+            Route("/trigger", GET, self.__trigger, append_slash=True),
             # Directory service routes
             Route("/register", [GET, POST], register, append_slash=True),
             Route("/unregister", [GET, POST], unregister, append_slash=True),
@@ -104,8 +106,6 @@ class NetworkController:
             Route("/lookup/all", GET, lookup_all, append_slash=True),
             Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
             Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
-            # Trigger route that will call a user specified callback.
-            Route("/trigger", GET, self.__trigger, append_slash=True),
         ])
 
         server.socket_timeout = 1
@@ -346,9 +346,9 @@ def trigger(request: Request, trigger_callback: Callable[[], None]):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-##############################################################
-# ***** G E N E R AL    S E R V I C E    M E S S A G E S *****
-##############################################################
+###############################################################
+# ***** G E N E R A L    S E R V I C E    M E S S A G E S *****
+###############################################################
 
 onboard_led = onboard_led()
 
