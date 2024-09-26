@@ -2,7 +2,9 @@ from collections.abc import Callable
 
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
+from pip._internal.exceptions import ConfigurationError
 
+from configuration import NODE_COORDINATOR
 from interactive import configuration
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
     NETWORK_HEARTBEAT_FREQUENCY
@@ -73,8 +75,8 @@ class NetworkController:
                 raise ValueError("trigger_callback must be Callable")
 
         self.__runner = None
-        self.__requires_register_with_coordinator = configuration.NODE_COORDINATOR is not None
-        self.__requires_unregister_from_coordinator = configuration.NODE_COORDINATOR is not None
+        self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
+        self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
         self.__requires_heartbeat_messages = False
 
         self.server = server
@@ -128,7 +130,7 @@ class NetworkController:
         runner.add_loop_task(self.__serve_requests)
 
         # Only setup the heartbeat task if we have a coordinator.
-        if configuration.NODE_COORDINATOR:
+        if NODE_COORDINATOR:
             scheduled_task = (
                 new_scheduled_task(
                     self.__heartbeat,
@@ -173,7 +175,7 @@ class NetworkController:
         check. Therefore, the cancellation is checked __serve_requests()
         """
         if self.__requires_heartbeat_messages:
-            send_heartbeat_message(configuration.NODE_COORDINATOR)
+            send_heartbeat_message(NODE_COORDINATOR)
 
         await self.__register_with_coordinator()
 
@@ -185,7 +187,7 @@ class NetworkController:
             debug("Nodes does not require registration, ignoring.")
             return
 
-        send_register_message(configuration.NODE_COORDINATOR)
+        send_register_message(NODE_COORDINATOR)
         self.__requires_register_with_coordinator = False
         self.__requires_unregister_from_coordinator = True
         self.__requires_heartbeat_messages = True
@@ -199,7 +201,7 @@ class NetworkController:
             debug("Nodes does not require un-registration, ignoring.")
             return
 
-        send_unregister_message(configuration.NODE_COORDINATOR)
+        send_unregister_message(NODE_COORDINATOR)
         self.__requires_unregister_from_coordinator = False
         self.__requires_register_with_coordinator = True
         self.__requires_heartbeat_messages = False
@@ -211,7 +213,7 @@ class NetworkController:
         return trigger(request, self.trigger_callback)
 
 
-def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+def send_message(path: str, host: str = NODE_COORDINATOR,
                  protocol: str = "http", method="GET",
                  data=None, json=None):
     """
@@ -393,9 +395,11 @@ def register(request: Request):
          coordinator configuration is not set.
     POST: Another node wants to register with us.
     """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
+    if NODE_COORDINATOR is None:
+        raise ConfigurationError("No coordinator configured")
+
     if request.method == GET:
-        return Response(request, send_register_message(configuration.NODE_COORDINATOR))
+        return Response(request, send_register_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
         return Response(request, receive_register_message(request))
@@ -408,9 +412,11 @@ def unregister(request: Request):
     GET: Unregister this node from the coordinator.
     POST: Another node wants to unregister from us.
     """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
+    if NODE_COORDINATOR is None:
+        raise ConfigurationError("No coordinator configured")
+
     if request.method == GET:
-        return Response(request, send_unregister_message(configuration.NODE_COORDINATOR))
+        return Response(request, send_unregister_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
         return Response(request, receive_unregister_message(request))
@@ -423,9 +429,11 @@ def heartbeat(request: Request):
     GET: Sends a heartbeat message from this node to the coordinator.
     POST: Another node has sent a heartbeat message to us.
     """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
+    if NODE_COORDINATOR is None:
+        raise ConfigurationError("No coordinator configured")
+
     if request.method == GET:
-        return Response(request, send_heartbeat_message(configuration.NODE_COORDINATOR))
+        return Response(request, send_heartbeat_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
         return Response(request, receive_heartbeat_message(request))

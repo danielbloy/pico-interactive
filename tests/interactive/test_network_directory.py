@@ -1,5 +1,6 @@
 import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
+from pip._internal.exceptions import ConfigurationError
 
 from interactive import network
 from test_network import mock_send_message, validate_methods, MockRequest
@@ -16,10 +17,21 @@ class TestRoutes:
     def send_message_patched(self, monkeypatch):
         monkeypatch.setattr(network, 'send_message', mock_send_message)
 
-    def test_register(self) -> None:
+    def test_register_errors_with_no_coordinator(self) -> None:
+        """
+        Simple validation check.
+        """
+        request = MockRequest(GET, "/register")
+        with pytest.raises(ConfigurationError):
+            # noinspection PyTypeChecker
+            response = network.register(request)
+
+    def test_register(self, monkeypatch) -> None:
         """
         Temporary tests awaiting full implementation of directory service.
         """
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+
         validate_methods({GET, POST, PUT}, "/register", network.register)
 
         request = MockRequest(GET, "/register")
@@ -37,10 +49,21 @@ class TestRoutes:
         assert response._body == network.OK
         assert response._status == OK_200
 
-    def test_unregister(self) -> None:
+    def test_unregister_errors_with_no_coordinator(self) -> None:
+        """
+        Simple validation check.
+        """
+        request = MockRequest(GET, "/unregister")
+        with pytest.raises(ConfigurationError):
+            # noinspection PyTypeChecker
+            response = network.unregister(request)
+
+    def test_unregister(self, monkeypatch) -> None:
         """
         Temporary tests awaiting full implementation of directory service.
         """
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+
         validate_methods({GET, POST, PUT}, "/unregister", network.unregister)
 
         request = MockRequest(GET, "/unregister")
@@ -58,10 +81,21 @@ class TestRoutes:
         assert response._body == network.OK
         assert response._status == OK_200
 
-    def test_heartbeat(self) -> None:
+    def test_heartbeat_errors_with_no_coordinator(self) -> None:
+        """
+        Simple validation check.
+        """
+        request = MockRequest(GET, "/heartbeat")
+        with pytest.raises(ConfigurationError):
+            # noinspection PyTypeChecker
+            response = network.heartbeat(request)
+
+    def test_heartbeat(self, monkeypatch) -> None:
         """
         Temporary tests awaiting full implementation of directory service.
         """
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+        
         validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat)
 
         request = MockRequest(GET, "/heartbeat")

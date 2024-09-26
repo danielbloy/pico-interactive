@@ -186,7 +186,7 @@ class TestNetwork:
         """
         add_task_count: int = 0
 
-        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "127.0.0.1")
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
 
         class TestRunner(Runner):
             def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
@@ -299,7 +299,7 @@ class TestNetwork:
 
         # Now we setup the coordinator variables so we should get a register,
         # unregister and some heartbeat messages.
-        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "123.45.67.89")
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "123.45.67.89")
         monkeypatch.setattr(network, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
 
         called_count = 0
