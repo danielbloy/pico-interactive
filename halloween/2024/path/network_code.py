@@ -68,7 +68,7 @@ def network_trigger() -> None:
 
 
 server = new_server()
-network_controller = NetworkController(server)
+network_controller = NetworkController(server, network_trigger)
 network_controller.register(runner)
 
 setup_memory_reporting(runner)
