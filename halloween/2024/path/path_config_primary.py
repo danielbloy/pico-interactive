@@ -2,8 +2,8 @@
 # This code runs on a Pimoroni Tiny 2040
 import board
 
-BUTTON_PIN = board.GP26
-AUDIO_PIN = board.GP22
+BUTTON_PIN = board.GP29
+AUDIO_PIN = board.GP26
 ULTRASONIC_TRIGGER_PIN = board.GP17
 ULTRASONIC_ECHO_PIN = board.GP16
 
