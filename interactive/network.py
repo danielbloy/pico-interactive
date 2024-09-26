@@ -445,7 +445,7 @@ def lookup_all(request: Request):
     """
     Return all known nodes
     """
-    # TODO: Implement
+    # TODO: Implement by returning JSON.
     if request.method == GET:
         return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
@@ -456,7 +456,7 @@ def lookup_name(request: Request, name: str):
     """
     Returns all known nodes by name.
     """
-    # TODO: Implement
+    # TODO: Implement by returning JSON
     if request.method == GET:
         return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
@@ -467,7 +467,7 @@ def lookup_role(request: Request, role: str):
     """
     Returns all known nodes by role.
     """
-    # TODO: Implement
+    # TODO: Implement by returning JSON
     if request.method == GET:
         return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
