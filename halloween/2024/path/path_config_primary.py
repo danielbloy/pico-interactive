@@ -4,8 +4,6 @@ import board
 
 BUTTON_PIN = board.GP29
 AUDIO_PIN = board.GP26
-ULTRASONIC_TRIGGER_PIN = board.GP17
-ULTRASONIC_ECHO_PIN = board.GP16
 
 SKULL_PINS = [board.GP1, board.GP2, board.GP3, board.GP4, board.GP5, board.GP6]
 PRIMARY_NODE = True
