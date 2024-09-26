@@ -199,6 +199,15 @@ class TestRoutes:
 
         assert message_called_count == 2
 
+    def test_trigger_returns_ok_when_no_trigger(self):
+        """
+        Validates that the trigger return no when no trigger defined.
+        """
+        assert False
+
+    def test_trigger_returns_ok_when_trigger(self):
+        assert False
+
 
 class TestMessages:
 

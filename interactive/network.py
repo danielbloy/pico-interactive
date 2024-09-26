@@ -208,13 +208,7 @@ class NetworkController:
         """
         Call the trigger method if one is specified.
         """
-        if request.method == GET:
-            if self.trigger_callback:
-                self.trigger_callback()
-
-            return Response(request, TRIGGERED)
-
-        return Response(request, NO, status=NOT_FOUND_404)
+        return trigger(request, self.trigger_callback)
 
 
 def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
@@ -334,6 +328,20 @@ def led_state(request: Request, state: str):
     """
     if request.method == GET:
         return Response(request, receive_led_message(request, state.upper()))
+
+    return Response(request, NO, status=NOT_FOUND_404)
+
+
+def trigger(request: Request, trigger_callback: Callable[[], None]):
+    """
+    Calls the trigger
+    """
+    if request.method == GET:
+        if trigger_callback:
+            trigger_callback()
+            return Response(request, TRIGGERED)
+        else:
+            return Response(request, NO)
 
     return Response(request, NO, status=NOT_FOUND_404)
 
