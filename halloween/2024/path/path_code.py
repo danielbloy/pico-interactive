@@ -91,12 +91,12 @@ trigger_loop = new_triggered_task(
 runner.add_task(trigger_loop)
 
 
-async def trigger_display() -> None:
+async def button_press() -> None:
     triggerable.triggered = True
 
 
 button_controller = ButtonController(new_button(BUTTON_PIN))
-button_controller.add_single_press_handler(trigger_display)
+button_controller.add_single_press_handler(button_press)
 button_controller.register(runner)
 
 setup_memory_reporting(runner)

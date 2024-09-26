@@ -1,6 +1,5 @@
 import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
-from pip._internal.exceptions import ConfigurationError
 
 from interactive import network
 from test_network import mock_send_message, validate_methods, MockRequest
@@ -22,7 +21,7 @@ class TestRoutes:
         Simple validation check.
         """
         request = MockRequest(GET, "/register")
-        with pytest.raises(ConfigurationError):
+        with pytest.raises(ValueError):
             # noinspection PyTypeChecker
             response = network.register(request)
 
@@ -54,7 +53,7 @@ class TestRoutes:
         Simple validation check.
         """
         request = MockRequest(GET, "/unregister")
-        with pytest.raises(ConfigurationError):
+        with pytest.raises(ValueError):
             # noinspection PyTypeChecker
             response = network.unregister(request)
 
@@ -86,7 +85,7 @@ class TestRoutes:
         Simple validation check.
         """
         request = MockRequest(GET, "/heartbeat")
-        with pytest.raises(ConfigurationError):
+        with pytest.raises(ValueError):
             # noinspection PyTypeChecker
             response = network.heartbeat(request)
 
@@ -95,7 +94,7 @@ class TestRoutes:
         Temporary tests awaiting full implementation of directory service.
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
-        
+
         validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat)
 
         request = MockRequest(GET, "/heartbeat")

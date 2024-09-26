@@ -1,22 +1,3 @@
-from collections.abc import Callable
-
-from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
-from pip._internal.exceptions import ConfigurationError
-
-from configuration import NODE_COORDINATOR
-from interactive import configuration
-from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
-    NETWORK_HEARTBEAT_FREQUENCY
-from interactive.environment import is_running_on_microcontroller
-from interactive.log import error, debug, info
-from interactive.polyfills.cpu import info as cpu_info
-from interactive.polyfills.cpu import restart as cpu_restart
-from interactive.polyfills.led import onboard_led
-from interactive.polyfills.network import requests
-from interactive.runner import Runner
-from interactive.scheduler import new_scheduled_task, terminate_on_cancel
-
 # Passing params, json etc:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#form-data-parsing
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#url-parameters-and-wildcards
@@ -27,7 +8,25 @@ from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 # Templating of results:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
+from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
+    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
 
+from interactive import configuration
+from interactive.configuration import NODE_COORDINATOR
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
+    NETWORK_HEARTBEAT_FREQUENCY
+from interactive.environment import is_running_on_microcontroller, is_running_on_desktop
+from interactive.log import error, debug, info
+from interactive.polyfills.cpu import info as cpu_info
+from interactive.polyfills.cpu import restart as cpu_restart
+from interactive.polyfills.led import onboard_led
+from interactive.polyfills.network import requests
+from interactive.runner import Runner
+from interactive.scheduler import new_scheduled_task, terminate_on_cancel
+
+# collections.abc is not available in CircuitPython.
+if is_running_on_desktop():
+    from collections.abc import Callable
 
 NO = "NO"
 YES = "YES"
@@ -396,7 +395,7 @@ def register(request: Request):
     POST: Another node wants to register with us.
     """
     if NODE_COORDINATOR is None:
-        raise ConfigurationError("No coordinator configured")
+        raise ValueError("No coordinator configured")
 
     if request.method == GET:
         return Response(request, send_register_message(NODE_COORDINATOR))
@@ -413,7 +412,7 @@ def unregister(request: Request):
     POST: Another node wants to unregister from us.
     """
     if NODE_COORDINATOR is None:
-        raise ConfigurationError("No coordinator configured")
+        raise ValueError("No coordinator configured")
 
     if request.method == GET:
         return Response(request, send_unregister_message(NODE_COORDINATOR))
@@ -430,7 +429,7 @@ def heartbeat(request: Request):
     POST: Another node has sent a heartbeat message to us.
     """
     if NODE_COORDINATOR is None:
-        raise ConfigurationError("No coordinator configured")
+        raise ValueError("No coordinator configured")
 
     if request.method == GET:
         return Response(request, send_heartbeat_message(NODE_COORDINATOR))
