@@ -88,6 +88,29 @@ class TestNetwork:
             # noinspection PyTypeChecker
             NetworkController("")
 
+    def test_creating_with_invalid_callback_errors(self) -> None:
+        """
+        Validates that a NetworkController cannot be constructed with
+        a trigger_callback value that is not a Callable.
+        """
+        server = MockServer()
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            NetworkController(server, "")
+
+    def test_creating_with_valid_callback_is_fine(self) -> None:
+        """
+        Validates that a NetworkController can be constructed with
+        a trigger_callback value that is a Callable.
+        """
+        server = MockServer()
+
+        def trigger():
+            pass
+
+        # noinspection PyTypeChecker
+        NetworkController(server, trigger_callback=trigger)
+
     def test_server_configured_correctly(self) -> None:
         """
         Validates that the server is setup correctly. This ignores that there
@@ -124,6 +147,7 @@ class TestNetwork:
                 route.path == "/lookup/name/<name>" and route.methods == {GET}]
         assert [route for route in server._routes if
                 route.path == "/lookup/role/<role>" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/trigger" and route.methods == {GET}]
 
         # Check the server has started.
         assert not server.stopped

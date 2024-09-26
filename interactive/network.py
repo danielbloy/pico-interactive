@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
 
@@ -30,6 +32,7 @@ YES = "YES"
 OK = "OK"
 ON = "ON"
 OFF = "OFF"
+TRIGGERED = "TRIGGERED"
 
 HEADER_NAME = 'name'  # Name of the sender.
 HEADER_ROLE = 'role'  # Role of the sender.
@@ -57,7 +60,7 @@ class NetworkController:
     Instances of this class will need to register() with a Runner in order to work.
     """
 
-    def __init__(self, server):
+    def __init__(self, server, trigger_callback: Callable[[], None] = None):
 
         if server is None:
             raise ValueError("server cannot be None")
@@ -65,12 +68,17 @@ class NetworkController:
         if not isinstance(server, Server):
             raise ValueError("server must be of type Server")
 
+        if trigger_callback is not None:
+            if not callable(trigger_callback):
+                raise ValueError("trigger_callback must be Callable")
+
         self.__runner = None
         self.__requires_register_with_coordinator = configuration.NODE_COORDINATOR is not None
         self.__requires_unregister_from_coordinator = configuration.NODE_COORDINATOR is not None
         self.__requires_heartbeat_messages = False
 
         self.server = server
+        self.trigger_callback = trigger_callback
 
         server.headers = HEADERS
 
@@ -96,7 +104,8 @@ class NetworkController:
             Route("/lookup/all", GET, lookup_all, append_slash=True),
             Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
             Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
-            # TODO: Trigger route that has a pluggable callback.
+            # Trigger route that will call a user specified callback.
+            Route("/trigger", GET, self.__trigger, append_slash=True),
         ])
 
         server.socket_timeout = 1
@@ -194,6 +203,18 @@ class NetworkController:
         self.__requires_unregister_from_coordinator = False
         self.__requires_register_with_coordinator = True
         self.__requires_heartbeat_messages = False
+
+    def __trigger(self, request: Request):
+        """
+        Call the trigger method if one is specified.
+        """
+        if request.method == GET:
+            if self.trigger_callback:
+                self.trigger_callback()
+
+            return Response(request, TRIGGERED)
+
+        return Response(request, NO, status=NOT_FOUND_404)
 
 
 def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
