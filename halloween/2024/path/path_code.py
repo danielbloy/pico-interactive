@@ -4,7 +4,7 @@ from interactive.animation import Flicker
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.configuration import AUDIO_PIN, BUTTON_PIN, TRIGGER_DURATION
-from interactive.configuration import SKULL_PINS, PRIMARY_NODE
+from interactive.configuration import SKULL_PINS, PRIMARY_NODE, TRIGGER_PIN
 from interactive.memory import setup_memory_reporting
 from interactive.polyfills.animation import BLACK, ORANGE
 from interactive.polyfills.audio import new_mp3_player
@@ -36,12 +36,15 @@ audio_controller.register(runner)
 
 # The event is the skull index to enable
 trigger_events = TriggerTimedEvents()
-trigger_events.add_event(0.0, 0)
-trigger_events.add_event(0.5, 1)
-trigger_events.add_event(1.0, 2)
-trigger_events.add_event(1.5, 3)
-trigger_events.add_event(2.0, 4)
-trigger_events.add_event(2.5, 5)
+trigger_events.add_event(00.30, 0)
+trigger_events.add_event(02.70, 1)
+trigger_events.add_event(05.00, 2)
+trigger_events.add_event(07.30, 3)
+trigger_events.add_event(09.60, 4)
+trigger_events.add_event(11.90, 5)
+trigger_events.add_event(15.00, 11)  # Lion on primary
+trigger_events.add_event(01.50, 21)  # Lion on secondary
+trigger_events.add_event(08.50, 22)  # Dragon on secondary
 
 
 async def start_display() -> None:
@@ -52,9 +55,6 @@ async def start_display() -> None:
 
     if PRIMARY_NODE:
         audio_controller.queue("bells.mp3")
-    else:
-        # TODO: Add in a delay for the lion.
-        audio_controller.queue("lion.mp3")
 
     trigger_events.start()
 
@@ -63,9 +63,22 @@ async def run_display() -> None:
     events = trigger_events.run()
 
     for event in events:
-        pixels[event.event].fill(SKULL_COLOUR)
-        pixels[event.event].brightness = SKULL_BRIGHTNESS
-        pixels[event.event].show()
+        if event.event <= 5:
+            pixels[event.event].fill(SKULL_COLOUR)
+            pixels[event.event].brightness = SKULL_BRIGHTNESS
+            pixels[event.event].show()
+
+        elif event.event == 11:
+            if PRIMARY_NODE:
+                audio_controller.queue("lion.mp3")
+
+        elif event.event == 21:
+            if not PRIMARY_NODE:
+                audio_controller.queue("lion.mp3")
+
+        elif event.event == 22:
+            if not PRIMARY_NODE:
+                audio_controller.queue("dragon.mp3")
 
     for animation in animations:
         animation.animate()
@@ -98,6 +111,10 @@ async def button_press() -> None:
 button_controller = ButtonController(new_button(BUTTON_PIN))
 button_controller.add_single_press_handler(button_press)
 button_controller.register(runner)
+
+trigger_controller = ButtonController(new_button(TRIGGER_PIN))
+trigger_controller.add_single_press_handler(button_press)
+trigger_controller.register(runner)
 
 setup_memory_reporting(runner)
 runner.run()

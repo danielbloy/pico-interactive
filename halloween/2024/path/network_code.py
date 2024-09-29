@@ -21,11 +21,15 @@
 # * The ultrasonic sensor
 # * A network message
 # * A button press (either node)
+import asyncio
+
+from digitalio import Direction, DigitalInOut
 
 from interactive.button import ButtonController
 from interactive.configuration import BUTTON_PIN, TRIGGER_DURATION
+from interactive.configuration import LOCAL_TRIGGER_PIN, REMOTE_TRIGGER_PIN
 from interactive.memory import setup_memory_reporting
-from interactive.network import NetworkController, receive_blink_message
+from interactive.network import NetworkController
 from interactive.polyfills.button import new_button
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
@@ -39,10 +43,21 @@ runner.cancel_on_exception = False
 runner.restart_on_exception = True
 runner.restart_on_completion = False
 
+local = DigitalInOut(LOCAL_TRIGGER_PIN)
+local.direction = Direction.OUTPUT
+local.value = 1
+
+remote = DigitalInOut(REMOTE_TRIGGER_PIN)
+remote.direction = Direction.OUTPUT
+remote.value = 1
+
 
 async def start_display() -> None:
-    # TODO: Press the button on each path node to trigger it
-    receive_blink_message(None)
+    local.value = 0
+    remote.value = 0
+    await asyncio.sleep(0.05)
+    local.value = 1
+    remote.value = 1
 
 
 triggerable = Triggerable()
