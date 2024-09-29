@@ -15,7 +15,7 @@ from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedE
 
 CAULDRON_BRIGHTNESS = 1.0
 CAULDRON_OFF = 0.0
-CAULDRON_SPEED = 1.0  # TODO: Test the speed
+CAULDRON_SPEED = 0.1  # TODO: Test the speed
 CAULDRON_COLOUR = RED  # TODO: Could do different pixels and colours
 
 # Because of memory constraints when using a Pico W CircuitPython image we do not use the
