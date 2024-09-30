@@ -1,3 +1,4 @@
+import asyncio
 import socket
 from collections.abc import Callable, Awaitable
 
@@ -154,6 +155,34 @@ class TestNetwork:
         assert server.start_called_count == 1
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
+
+    def test_server_routes_configured_correctly(self, monkeypatch) -> None:
+        """
+        Validates that the server routes are wired up correctly.
+        """
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
+
+        server = MockServer()
+        controller = NetworkController(server)
+
+        # Now call each of the routes. All we are doing here is validating that they
+        # are wired up correctly and as expected, not that they do anything useful.
+        # Later tests will perform those checks.
+        #
+        # NOTE: This needs to be done in an async loop.
+        async def __execute():
+            for route in server._routes:
+                request = MockRequest(GET, route.path)
+
+                # We need to handle the methods that have parameters differently
+                if (route.path == "/led/<state>"
+                        or route.path == "/lookup/name/<name>"
+                        or route.path == "/lookup/role/<role>"):
+                    route.handler(request, "single parameter")
+                else:
+                    route.handler(request)
+
+        asyncio.run(__execute())
 
     def test_registering_with_runner(self) -> None:
         """
