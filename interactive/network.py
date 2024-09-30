@@ -127,7 +127,7 @@ class NetworkController:
 
         :param runner: the runner to register with.
         """
-        self.directory.register(runner)  # TODO: Test directory has registered.
+        self.directory.register(runner)
         self.__runner = runner
         runner.add_loop_task(self.__serve_requests)
 
