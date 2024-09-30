@@ -158,6 +158,7 @@ class TestNetwork:
     def test_registering_with_runner(self) -> None:
         """
         Validates the NetworkController registers with the Runner, no coordinator.
+        This will register itself and its internal directory controller.
         """
         add_task_count: int = 0
 
@@ -175,7 +176,7 @@ class TestNetwork:
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
-        assert add_task_count == 1
+        assert add_task_count == 2
         assert server.start_called_count == 1
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
@@ -183,6 +184,7 @@ class TestNetwork:
     def test_registering_with_runner_with_coordinator(self, monkeypatch) -> None:
         """
         Validates the NetworkController registers with the Runner and with coordinator.
+        This will also register its internal directory controller.
         """
         add_task_count: int = 0
 
@@ -208,7 +210,7 @@ class TestNetwork:
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
-        assert add_task_count == 2
+        assert add_task_count == 3
         assert server.start_called_count == 1
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0

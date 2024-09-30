@@ -1,6 +1,7 @@
 import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
 
+from directory import DirectoryController
 from interactive import network
 from test_network import mock_send_message, validate_methods, MockRequest
 
@@ -23,7 +24,7 @@ class TestRoutes:
         request = MockRequest(GET, "/register")
         with pytest.raises(ValueError):
             # noinspection PyTypeChecker
-            response = network.register(request)
+            response = network.register(DirectoryController(), request)
 
     def test_register(self, monkeypatch) -> None:
         """
@@ -31,22 +32,26 @@ class TestRoutes:
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
-        validate_methods({GET, POST, PUT}, "/register", network.register)
+        controller = DirectoryController()
+
+        validate_methods({GET, POST, PUT}, "/register", lambda r: network.register(controller, r))
 
         request = MockRequest(GET, "/register")
-        response = network.register(request)
+        response = network.register(controller, request)
         assert response._body == 'registered with coordinator'
         assert response._status == OK_200
 
         request = MockRequest(POST, "/register")
-        response = network.register(request)
+        response = network.register(controller, request)
         assert response._body == network.OK
         assert response._status == OK_200
 
         request = MockRequest(PUT, "/register")
-        response = network.register(request)
+        response = network.register(controller, request)
         assert response._body == network.OK
         assert response._status == OK_200
+
+        assert False
 
     def test_unregister_errors_with_no_coordinator(self) -> None:
         """

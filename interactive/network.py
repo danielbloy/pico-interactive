@@ -11,6 +11,7 @@
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
 
+from directory import DirectoryController
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
@@ -80,6 +81,7 @@ class NetworkController:
 
         self.server = server
         self.trigger_callback = trigger_callback
+        self.directory = DirectoryController()
 
         server.headers = HEADERS
 
@@ -101,12 +103,12 @@ class NetworkController:
             # Trigger route that will call a user specified callback.
             Route("/trigger", GET, self.__trigger, append_slash=True),
             # Directory service routes
-            Route("/register", [GET, POST], register, append_slash=True),
-            Route("/unregister", [GET, POST], unregister, append_slash=True),
-            Route("/heartbeat", [GET, POST], heartbeat, append_slash=True),
-            Route("/lookup/all", GET, lookup_all, append_slash=True),
-            Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
-            Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
+            Route("/register", [GET, POST], lambda r: register(self.directory, r), append_slash=True),
+            Route("/unregister", [GET, POST], lambda r: unregister(self.directory, r), append_slash=True),
+            Route("/heartbeat", [GET, POST], lambda r: heartbeat(self.directory, r), append_slash=True),
+            Route("/lookup/all", GET, lambda r: lookup_all(self.directory, r), append_slash=True),
+            Route("/lookup/name/<name>", GET, lambda r, name: lookup_name(self.directory, r, name), append_slash=True),
+            Route("/lookup/role/<role>", GET, lambda r, role: lookup_role(self.directory, r, role), append_slash=True),
         ])
 
         server.socket_timeout = 1
@@ -125,6 +127,7 @@ class NetworkController:
 
         :param runner: the runner to register with.
         """
+        self.directory.register(runner)  # TODO: Test directory has registered.
         self.__runner = runner
         runner.add_loop_task(self.__serve_requests)
 
@@ -388,12 +391,15 @@ def receive_led_message(request: Request, state: str) -> str:
 # ***** D I R E C T O R Y    S E R V I C E    R O U T E S *****
 ###############################################################
 
-def register(request: Request):
+def register(directory: DirectoryController, request: Request):
     """
     GET: Register this node with the coordinator. Will return an error if the
          coordinator configuration is not set.
     POST: Another node wants to register with us.
     """
+    if directory is None:
+        raise ValueError("No directory controller specified")
+
     if NODE_COORDINATOR is None:
         raise ValueError("No coordinator configured")
 
@@ -401,12 +407,12 @@ def register(request: Request):
         return Response(request, send_register_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
-        return Response(request, receive_register_message(request))
+        return Response(request, receive_register_message(directory, request))
 
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def unregister(request: Request):
+def unregister(directory: DirectoryController, request: Request):
     """
     GET: Unregister this node from the coordinator.
     POST: Another node wants to unregister from us.
@@ -418,12 +424,12 @@ def unregister(request: Request):
         return Response(request, send_unregister_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
-        return Response(request, receive_unregister_message(request))
+        return Response(request, receive_unregister_message(directory, request))
 
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def heartbeat(request: Request):
+def heartbeat(directory: DirectoryController, request: Request):
     """
     GET: Sends a heartbeat message from this node to the coordinator.
     POST: Another node has sent a heartbeat message to us.
@@ -435,12 +441,12 @@ def heartbeat(request: Request):
         return Response(request, send_heartbeat_message(NODE_COORDINATOR))
 
     if request.method in [POST, PUT]:
-        return Response(request, receive_heartbeat_message(request))
+        return Response(request, receive_heartbeat_message(directory, request))
 
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def lookup_all(request: Request):
+def lookup_all(directory: DirectoryController, request: Request):
     """
     Return all known nodes
     """
@@ -451,7 +457,7 @@ def lookup_all(request: Request):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def lookup_name(request: Request, name: str):
+def lookup_name(directory: DirectoryController, request: Request, name: str):
     """
     Returns all known nodes by name.
     """
@@ -462,7 +468,7 @@ def lookup_name(request: Request, name: str):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def lookup_role(request: Request, role: str):
+def lookup_role(directory: DirectoryController, request: Request, role: str):
     """
     Returns all known nodes by role.
     """
@@ -483,7 +489,7 @@ def send_register_message(node: str) -> str:
     return "registered with coordinator"
 
 
-def receive_register_message(request: Request) -> str:
+def receive_register_message(directory: DirectoryController, request: Request) -> str:
     info("Registering node...")
     # TODO
     return OK
@@ -491,7 +497,6 @@ def receive_register_message(request: Request) -> str:
 
 def send_unregister_message(node) -> str:
     info("Unregistering node from coordinator...")
-    # TODO
     # TODO: Remove the invocation of quotes
     # with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
     #    print(response.headers)
@@ -500,7 +505,7 @@ def send_unregister_message(node) -> str:
     return "unregistered from coordinator"
 
 
-def receive_unregister_message(request: Request) -> str:
+def receive_unregister_message(directory: DirectoryController, request: Request) -> str:
     info("Unregistering node...")
     # TODO
     return OK
@@ -512,7 +517,7 @@ def send_heartbeat_message(node: str) -> str:
     return "heartbeat message sent to coordinator"
 
 
-def receive_heartbeat_message(request: Request) -> str:
+def receive_heartbeat_message(directory: DirectoryController, request: Request) -> str:
     info("Received heartbeat message...")
     # TODO
     return "TODO heartbeat message received from node"
