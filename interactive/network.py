@@ -11,11 +11,11 @@
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
 
-from directory import DirectoryController
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
     NETWORK_HEARTBEAT_FREQUENCY
+from interactive.directory import DirectoryController
 from interactive.environment import is_running_on_microcontroller, is_running_on_desktop
 from interactive.log import error, debug, info
 from interactive.polyfills.cpu import info as cpu_info

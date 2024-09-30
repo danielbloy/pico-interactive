@@ -62,7 +62,7 @@ async def run_display() -> None:
             audio_controller.queue("witch-laugh.mp3")
 
         elif event.event == 1:
-            audio_controller.queue("with-thumbs.mp3")
+            audio_controller.queue("witch-thumbs.mp3")
 
 
 async def stop_display() -> None:
