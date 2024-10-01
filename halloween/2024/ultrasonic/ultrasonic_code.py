@@ -4,9 +4,8 @@ from interactive.configuration import TRIGGER_DISTANCE, TRIGGER_DURATION
 from interactive.configuration import ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN
 from interactive.log import critical
 from interactive.memory import setup_memory_reporting
-from interactive.network import NetworkController, receive_blink_message, send_message, TRIGGERED
+from interactive.network import receive_blink_message, send_message, TRIGGERED
 from interactive.polyfills.button import new_button
-from interactive.polyfills.network import new_server
 from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
 from interactive.ultrasonic import UltrasonicController
@@ -39,10 +38,6 @@ ultrasonic = new_ultrasonic(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN)
 controller = UltrasonicController(ultrasonic)
 controller.add_trigger(TRIGGER_DISTANCE, trigger_handler, TRIGGER_DURATION)
 controller.register(runner)
-
-server = new_server()
-network_controller = NetworkController(server)
-network_controller.register(runner)
 
 setup_memory_reporting(runner)
 runner.run()
