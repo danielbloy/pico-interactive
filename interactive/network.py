@@ -13,8 +13,7 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
 
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
-from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
-    NETWORK_HEARTBEAT_FREQUENCY
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HEARTBEAT_FREQUENCY
 from interactive.directory import DirectoryController
 from interactive.environment import is_running_on_microcontroller, is_running_on_desktop
 from interactive.log import debug, info, error
@@ -116,7 +115,7 @@ class NetworkController:
             if is_running_on_microcontroller():
                 server.start(port=NETWORK_PORT_MICROCONTROLLER)
             else:
-                server.start(host=NETWORK_HOST_DESKTOP, port=NETWORK_PORT_DESKTOP)
+                server.start(port=NETWORK_PORT_DESKTOP)
 
     def register(self, runner: Runner) -> None:
         """

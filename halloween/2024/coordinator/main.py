@@ -1,15 +1,11 @@
 # This is designed to run on a PC and perform the multi-node coordination.
 
-import interactive.control
 from interactive.configuration import TRIGGER_DURATION
 from interactive.log import info
 from interactive.network import NetworkController
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents
-
-# Override the localhost IP to use.
-interactive.control.NETWORK_HOST_DESKTOP = "192.168.1.248"
 
 if __name__ == '__main__':
 
