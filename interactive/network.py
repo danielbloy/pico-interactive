@@ -17,7 +17,7 @@ from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKT
     NETWORK_HEARTBEAT_FREQUENCY
 from interactive.directory import DirectoryController
 from interactive.environment import is_running_on_microcontroller, is_running_on_desktop
-from interactive.log import error, debug, info
+from interactive.log import debug, info, error
 from interactive.polyfills.cpu import info as cpu_info
 from interactive.polyfills.cpu import restart as cpu_restart
 from interactive.polyfills.led import onboard_led
@@ -167,7 +167,11 @@ class NetworkController:
                 pass
 
         except OSError as err:
-            error(str(err))
+            # Because on Windows we get annoying BlockingIOErrors when running the network,
+            # we swallow those here as they make all other output difficult to see.
+            ignore = is_running_on_desktop() and type(err) is BlockingIOError
+            if not ignore:
+                error(str(err))
 
     async def __heartbeat(self) -> None:
         """
