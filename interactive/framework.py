@@ -29,7 +29,7 @@ class Interactive:
 
         self.runner.cancel_on_exception = False
         self.runner.restart_on_exception = True
-        self.runner.restart_on_completion = False  # TODO: determine if this also needs enabling.
+        self.runner.restart_on_completion = False
         self.runner.add_loop_task(self.__cancel_operations)
 
         self.server = None
