@@ -24,24 +24,30 @@ if __name__ == '__main__':
     # TODO: Generate events for playing a 90 second loop or something similar.
     trigger_events = TriggerTimedEvents()
     trigger_events.add_event(00.30, 0)
-    trigger_events.add_event(02.70, 1)
 
     trigger_video = VideoFileClip(TRIGGER_VIDEO)
 
 
     async def start_display() -> None:
-        info("Triggered")
-        trigger_video.preview()
+        info("Start display")
 
 
     async def run_display() -> None:
         events = trigger_events.run()
 
+        # TODO: Events are not being generated.
+        # TODO: Also fix this in coordinator.
+
         for event in events:
-            pass  # TODO: Implement
+            print(event)
+            # NOTE: Whilst a video is running, the entire runner() framework will be paused.
+            if event.event == 0:
+                info("Play")
+                trigger_video.preview()
 
 
     async def stop_display() -> None:
+        info("Stop display")
         trigger_events.stop()
 
 
