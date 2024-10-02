@@ -1,7 +1,7 @@
-TRIGGER_DURATION = 5
+TRIGGER_DURATION = 20
 
-REPORT_RAM = True
-REPORT_RAM_PERIOD = 10
+STARTUP_VIDEO = "startup.mp4"
+TRIGGER_VIDEO = "triggered.mp4"
 
 from interactive.log import INFO
 

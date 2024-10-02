@@ -1,29 +1,37 @@
-# From:
-# https://pythonprogramming.altervista.org/play-a-mp4-movie-file-with-pygame-and-moviepy/
+# This is designed to run on a PC and perform the displays of mp4 video files
+# on a screen or projector. When the application starts up, it will play the configured
+# STARTUP_VIDEO which will prepare the pygame window in full screen mode. A trigger event
+# will play the video configured in TRIGGER_VIDEO.
+#
+# Information on moviepy was from:
+# * https://pythonprogramming.altervista.org/play-a-mp4-movie-file-with-pygame-and-moviepy/
+#
+# TODO: Allow the specification of multiple different videos for trigger events.
+# TODO: This should allow for multiple scripted "reels" or purely random displays.
 import pygame
 from moviepy.editor import *
 
-from interactive.configuration import TRIGGER_DURATION
+from interactive.configuration import STARTUP_VIDEO
+from interactive.configuration import TRIGGER_DURATION, TRIGGER_VIDEO
 from interactive.log import info
 from interactive.network import NetworkController
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents
 
-# This is designed to run on a PC and perform the multi-node coordination.
-
 if __name__ == '__main__':
 
+    # TODO: Generate events for playing a 90 second loop or something similar.
     trigger_events = TriggerTimedEvents()
     trigger_events.add_event(00.30, 0)
     trigger_events.add_event(02.70, 1)
 
+    trigger_video = VideoFileClip(TRIGGER_VIDEO)
+
 
     async def start_display() -> None:
         info("Triggered")
-        clip = VideoFileClip('movie.mp4')
-        clip.preview()
-        del clip
+        trigger_video.preview()
 
 
     async def run_display() -> None:
@@ -61,6 +69,13 @@ if __name__ == '__main__':
     server = new_server()
     network_controller = NetworkController(server, network_trigger)
     network_controller.register(runner)
+
+    # Play a startup video which prepares the screen for full sized video.
+    info("Starting up...")
+    startup_video = VideoFileClip(STARTUP_VIDEO)
+    startup_video.preview()
+    del startup_video
+    info("Running...")
 
     runner.run()
 
