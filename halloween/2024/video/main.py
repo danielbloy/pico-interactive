@@ -1,4 +1,7 @@
-# This is designed to run on a PC and perform the multi-node coordination.
+# From:
+# https://pythonprogramming.altervista.org/play-a-mp4-movie-file-with-pygame-and-moviepy/
+import pygame
+from moviepy.editor import *
 
 from interactive.configuration import TRIGGER_DURATION
 from interactive.log import info
@@ -6,6 +9,8 @@ from interactive.network import NetworkController
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents
+
+# This is designed to run on a PC and perform the multi-node coordination.
 
 if __name__ == '__main__':
 
@@ -16,6 +21,9 @@ if __name__ == '__main__':
 
     async def start_display() -> None:
         info("Triggered")
+        clip = VideoFileClip('movie.mp4')
+        clip.preview()
+        del clip
 
 
     async def run_display() -> None:
@@ -55,3 +63,5 @@ if __name__ == '__main__':
     network_controller.register(runner)
 
     runner.run()
+
+    pygame.quit()

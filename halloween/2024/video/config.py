@@ -1,0 +1,8 @@
+TRIGGER_DURATION = 5
+
+REPORT_RAM = True
+REPORT_RAM_PERIOD = 10
+
+from interactive.log import INFO
+
+LOG_LEVEL = INFO
