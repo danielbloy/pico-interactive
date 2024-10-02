@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     async def start_display() -> None:
         info("Start display")
+        trigger_events.start()
 
 
     async def run_display() -> None:
@@ -39,7 +40,6 @@ if __name__ == '__main__':
         # TODO: Also fix this in coordinator.
 
         for event in events:
-            print(event)
             # NOTE: Whilst a video is running, the entire runner() framework will be paused.
             if event.event == 0:
                 info("Play")

@@ -15,7 +15,8 @@ if __name__ == '__main__':
 
 
     async def start_display() -> None:
-        info("Triggered")
+        info("Start display")
+        trigger_events.start()
 
 
     async def run_display() -> None:
@@ -26,6 +27,7 @@ if __name__ == '__main__':
 
 
     async def stop_display() -> None:
+        info("Stop display")
         trigger_events.stop()
 
 
