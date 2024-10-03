@@ -1,4 +1,4 @@
-TRIGGER_DURATION = 30
+TRIGGER_DURATION = 45
 
 from interactive.log import INFO
 

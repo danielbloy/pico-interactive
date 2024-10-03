@@ -52,6 +52,8 @@ async def stop_display() -> None:
     pixels.brightness = CAULDRON_OFF
     pixels.show()
 
+    audio_controller.stop()
+
 
 triggerable = Triggerable()
 

@@ -38,10 +38,8 @@ audio_controller.register(runner)
 trigger_events = TriggerTimedEvents()
 trigger_events.add_event(05.0, 0)
 trigger_events.add_event(15.0, 1)
-trigger_events.add_event(25.0, 0)  # TODO: More different witch things
-trigger_events.add_event(40.0, 0)
-trigger_events.add_event(60.0, 0)
-trigger_events.add_event(80.0, 0)
+trigger_events.add_event(25.0, 0)
+trigger_events.add_event(35.0, 0)
 
 
 async def start_display() -> None:
@@ -71,6 +69,8 @@ async def stop_display() -> None:
     pixels.fill(BLACK)
     pixels.brightness = CAULDRON_OFF
     pixels.show()
+
+    audio_controller.stop()
 
 
 triggerable = Triggerable()

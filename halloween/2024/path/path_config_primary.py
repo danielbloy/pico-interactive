@@ -9,7 +9,7 @@ SKULL_PINS = [board.GP1, board.GP2, board.GP3, board.GP4, board.GP5, board.GP6]
 PRIMARY_NODE = True
 
 TRIGGER_PIN = board.GP29
-TRIGGER_DURATION = 30
+TRIGGER_DURATION = 40
 REPORT_RAM = True
 REPORT_RAM_PERIOD = 10
 
