@@ -16,6 +16,7 @@ WIFI_PASSWORD = "Password"
 
 * TODO: Note about RAM limitations in Pico devices, particularly with Network and sound being the main hogs
 * TODO: Note had to use two devices anyway
+* TODO: Note the bodge about not being able to use directory service due to memory
 * TODO: Note about Pico running on Laptop for TV and Projector.
 * TODO: Note about experimental support for Raspberry Pi (3A+ and Zero 2W)
 * TODO: Note about an required upgrade to the power distribution to use normal 13 Amp cable
