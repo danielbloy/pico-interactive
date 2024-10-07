@@ -2,11 +2,25 @@
 
 This project brings together the ideas behind three projects created in 2023 into
 a single common (easily extensible) framework that can be used with a range of
-CircuitPython boards (though primarily designed for
-[Raspberry Pi Pico](https://thepihut.com/products/raspberry-pi-pico-w?variant=41952994787523)).
+CircuitPython boards (though originally designed
+for [Raspberry Pi Pico](https://thepihut.com/products/raspberry-pi-pico-w?variant=41952994787523)).
 The framework is designed to be used for single board projects used in Coding Clubs
 up to larger interactive display installations that consist of many boards each
-performing in isolation or coordinated over network connections.
+performing in isolation or coordinated over network connections. The framework has
+been tested and works on the following boards:
+
+* Raspberry Pi Pico
+* Raspberry Pi Pico W
+* PCs running Windows (pins via Blinka though beware the limitations on pin performance)
+
+The following devices are also in testing phase for support
+
+* Raspberry Pi 3A+ (pins via Blinka)
+* Raspberry Pi Zero 2 W (pins via Blinka)
+
+The following devices will be added once CircuitPython support is added:
+
+* Pico 2
 
 The basic structure of this project is:
 
