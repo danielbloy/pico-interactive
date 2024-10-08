@@ -1,5 +1,8 @@
+from collections.abc import Callable
+
 import pytest
-from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200
+from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request
+from adafruit_requests import Response
 
 from directory import DirectoryController
 from interactive import network
@@ -17,138 +20,183 @@ class TestRoutes:
     def send_message_patched(self, monkeypatch):
         monkeypatch.setattr(network, 'send_message', mock_send_message)
 
-    def test_register_errors_with_no_coordinator(self) -> None:
+    @staticmethod
+    def check_directory_method_conforms(
+            monkeypatch, route: str, func: Callable[[Request, DirectoryController], Response]) -> None:
         """
-        Simple validation check.
+        Simple validation checks that the register, unregister and heartbeat
+        functions should follow.
         """
-        request = MockRequest(GET, "/register")
+        # When there is a coordinator nothing should error; except when there is no directory specified.
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+        validate_methods({GET, POST, PUT}, route, func, DirectoryController())
+
+        # Should always error if no directory controller is specified.
         with pytest.raises(ValueError):
-            # noinspection PyTypeChecker
-            response = network.register(DirectoryController(), request)
+            func(MockRequest(GET, route), None)
+
+        func(MockRequest(GET, route), DirectoryController())
+        func(MockRequest(PUT, route), DirectoryController())
+        func(MockRequest(POST, route), DirectoryController())
+
+        # When there is no coordinator should error but only if it is a POST or PUT
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', None)
+
+        # Should always error if no directory controller is specified.
+        with pytest.raises(ValueError):
+            func(MockRequest(GET, route), None)
+
+        func(MockRequest(GET, route), DirectoryController())
+
+        with pytest.raises(ValueError):
+            func(MockRequest(PUT, route), DirectoryController())
+
+        with pytest.raises(ValueError):
+            func(MockRequest(POST, route), DirectoryController())
+
+    def test_register_errors_correctly(self, monkeypatch) -> None:
+        """
+        Runs the basic validation checks expected of the three main directory methods.
+        """
+        self.check_directory_method_conforms(monkeypatch, "/register", network.register)
 
     def test_register(self, monkeypatch) -> None:
         """
-        Temporary tests awaiting full implementation of directory service.
+        TODO
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
         controller = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/register", lambda r: network.register(controller, r))
+        validate_methods({GET, POST, PUT}, "/register", network.register, controller)
 
         request = MockRequest(GET, "/register")
-        response = network.register(controller, request)
+        response = network.register(request, controller)
         assert response._body == 'registered with coordinator'
         assert response._status == OK_200
 
         request = MockRequest(POST, "/register")
-        response = network.register(controller, request)
+        response = network.register(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
         request = MockRequest(PUT, "/register")
-        response = network.register(controller, request)
+        response = network.register(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
-        assert False
+        assert False  # Need to intercept network message and also validate directory.
 
-    def test_unregister_errors_with_no_coordinator(self) -> None:
+    def test_unregister_errors_correctly(self, monkeypatch) -> None:
         """
-        Simple validation check.
+        Runs the basic validation checks expected of the three main directory methods.
         """
-        request = MockRequest(GET, "/unregister")
-        with pytest.raises(ValueError):
-            # noinspection PyTypeChecker
-            response = network.unregister(request)
+        self.check_directory_method_conforms(monkeypatch, "/unregister", network.unregister)
 
     def test_unregister(self, monkeypatch) -> None:
         """
-        Temporary tests awaiting full implementation of directory service.
+        TODO
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
-        validate_methods({GET, POST, PUT}, "/unregister", network.unregister)
+        controller = DirectoryController()
+
+        validate_methods({GET, POST, PUT}, "/unregister", network.unregister, controller)
 
         request = MockRequest(GET, "/unregister")
-        response = network.unregister(request)
+        response = network.unregister(request, controller)
         assert response._body == 'unregistered from coordinator'
         assert response._status == OK_200
 
         request = MockRequest(POST, "/unregister")
-        response = network.unregister(request)
+        response = network.unregister(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
         request = MockRequest(PUT, "/unregister")
-        response = network.unregister(request)
+        response = network.unregister(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
-    def test_heartbeat_errors_with_no_coordinator(self) -> None:
+        assert False  # Need to intercept network message and also validate directory.
+
+    def test_heartbeat_errors_correctly(self, monkeypatch) -> None:
         """
-        Simple validation check.
+        Runs the basic validation checks expected of the three main directory methods.
         """
-        request = MockRequest(GET, "/heartbeat")
-        with pytest.raises(ValueError):
-            # noinspection PyTypeChecker
-            response = network.heartbeat(request)
+        self.check_directory_method_conforms(monkeypatch, "/heartbeat", network.heartbeat)
 
     def test_heartbeat(self, monkeypatch) -> None:
         """
-        Temporary tests awaiting full implementation of directory service.
+        TODO
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
-        validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat)
+        controller = DirectoryController()
+
+        validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat, controller)
 
         request = MockRequest(GET, "/heartbeat")
-        response = network.heartbeat(request)
+        response = network.heartbeat(request, controller)
         assert response._body == 'heartbeat message sent to coordinator'
         assert response._status == OK_200
 
         request = MockRequest(POST, "/heartbeat")
-        response = network.heartbeat(request)
+        response = network.heartbeat(request, controller)
         assert response._body == 'TODO heartbeat message received from node'
         assert response._status == OK_200
 
         request = MockRequest(PUT, "/heartbeat")
-        response = network.heartbeat(request)
+        response = network.heartbeat(request, controller)
         assert response._body == 'TODO heartbeat message received from node'
         assert response._status == OK_200
+
+        assert False  # Need to intercept network message and also validate directory.
 
     def test_lookup_all(self) -> None:
         """
         Validates that lookup_all() returns NOT_IMPLEMENTED_501 with no additional headers.
         """
-        validate_methods({GET}, "/lookup/all", network.lookup_all)
+        controller = DirectoryController()
+
+        validate_methods({GET}, "/lookup/all", network.lookup_all, controller)
 
         request = MockRequest(GET, "/lookup/all")
-        response = network.lookup_all(request)
+        response = network.lookup_all(request, controller)
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
+
+        assert False  # Need to intercept network message and also validate directory.
 
     def test_lookup_name(self) -> None:
         """
         Validates that lookup_name() returns NOT_IMPLEMENTED_501 with no additional headers.
         """
-        validate_methods({GET}, "/lookup/name/<name>", network.lookup_name, "NAME")
+        controller = DirectoryController()
+
+        validate_methods({GET}, "/lookup/name/<name>", network.lookup_name, controller, "NAME")
 
         request = MockRequest(GET, "/lookup/name/<name>")
-        response = network.lookup_name(request, "")
+        response = network.lookup_name(request, controller, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
+
+        assert False  # Need to intercept network message and also validate directory.
 
     def test_lookup_role(self) -> None:
         """
         Validates that lookup_role() returns NOT_IMPLEMENTED_501 with no additional headers.
         """
-        validate_methods({GET}, "/lookup/role/<role>", network.lookup_role, "ROLE")
+        controller = DirectoryController()
+
+        validate_methods({GET}, "/lookup/role/<role>", network.lookup_role, controller, "ROLE")
 
         request = MockRequest(GET, "/lookup/role/<role>")
-        response = network.lookup_role(request, "")
+        response = network.lookup_role(request, controller, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
+
+        assert False  # Need to intercept network message and also validate directory.
 
 
 class TestMessages:
