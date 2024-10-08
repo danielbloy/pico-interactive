@@ -62,7 +62,9 @@ class TestRoutes:
 
     def test_register(self, monkeypatch) -> None:
         """
-        TODO
+        Validates that the register message responds to GET, PUT and POST requests
+        along with the required validation and that the correct message handling functions
+        are called; this assumes success each time.
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
@@ -70,22 +72,41 @@ class TestRoutes:
 
         validate_methods({GET, POST, PUT}, "/register", network.register, controller)
 
+        # This registers the node with the coordinator; we validate the message is sent.
         request = MockRequest(GET, "/register")
         response = network.register(request, controller)
         assert response._body == 'registered with coordinator'
         assert response._status == OK_200
 
+        # TODO: Validate that the message is sent and a valid response is returned.
+        assert len(controller._directory) == 0
+
+        # TODO: Validate that a new item was registered
         request = MockRequest(POST, "/register")
         response = network.register(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
+        # TODO: Lookup name as well
+        assert len(controller._directory) == 1
+
+        # TODO: Validate that a second item was registered
+        request = MockRequest(POST, "/register")
+        response = network.register(request, controller)
+        assert response._body == network.OK
+        assert response._status == OK_200
+
+        # TODO: Lookup name as well
+        assert len(controller._directory) == 2
+
+        # TODO: Validate that the first item was registered, but this time updated.
         request = MockRequest(PUT, "/register")
         response = network.register(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
-        assert False  # Need to intercept network message and also validate directory.
+        # TODO: Lookup name as well
+        assert len(controller._directory) == 2
 
     def test_unregister_errors_correctly(self, monkeypatch) -> None:
         """
@@ -95,7 +116,9 @@ class TestRoutes:
 
     def test_unregister(self, monkeypatch) -> None:
         """
-        TODO
+        Validates that the unregister message responds to GET, PUT and POST requests
+        along with the required validation and that the correct message handling functions
+        are called; this assumes success each time.
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
@@ -108,17 +131,46 @@ class TestRoutes:
         assert response._body == 'unregistered from coordinator'
         assert response._status == OK_200
 
+        # TODO: Validate that the message is sent and a valid response is returned.
+        assert len(controller._directory) == 0
+
+        # TODO: Validate unregister from an empty directory
         request = MockRequest(POST, "/unregister")
         response = network.unregister(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
+        assert len(controller._directory) == 0
+
+        # Add some entries
+        controller.register_endpoint("a.b.c.d", "node1", "role1")
+        controller.register_endpoint("1.2.3.4", "node2", "role2")
+        assert len(controller._directory) == 2
+
+        # TODO: Unregister an unknown endpoint
         request = MockRequest(PUT, "/unregister")
         response = network.unregister(request, controller)
         assert response._body == network.OK
         assert response._status == OK_200
 
-        assert False  # Need to intercept network message and also validate directory.
+        assert len(controller._directory) == 2
+
+        # TODO: Unregister unknown endpoint
+        request = MockRequest(PUT, "/unregister")
+        response = network.unregister(request, controller)
+        assert response._body == network.OK
+        assert response._status == OK_200
+
+        # TODO: Lookup the other name to validate the correct item was removed.
+        assert len(controller._directory) == 1
+
+        # TODO: Unregister the same  endpoint
+        request = MockRequest(PUT, "/unregister")
+        response = network.unregister(request, controller)
+        assert response._body == network.OK
+        assert response._status == OK_200
+
+        assert len(controller._directory) == 1
 
     def test_heartbeat_errors_correctly(self, monkeypatch) -> None:
         """
@@ -128,7 +180,9 @@ class TestRoutes:
 
     def test_heartbeat(self, monkeypatch) -> None:
         """
-        TODO
+        Validates that the heartbeat message responds to GET, PUT and POST requests
+        along with the required validation and that the correct message handling functions
+        are called; this assumes success each time.
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
@@ -140,6 +194,9 @@ class TestRoutes:
         response = network.heartbeat(request, controller)
         assert response._body == 'heartbeat message sent to coordinator'
         assert response._status == OK_200
+
+        # TODO: Validate that the message is sent and a valid response is returned.
+        assert len(controller._directory) == 0
 
         request = MockRequest(POST, "/heartbeat")
         response = network.heartbeat(request, controller)
@@ -205,8 +262,45 @@ class TestMessages:
     def send_message_patched(self, monkeypatch):
         monkeypatch.setattr(network, 'send_message', mock_send_message)
 
+    @staticmethod
+    def check_receive_method_conforms(
+            route: str, func: Callable[[Request, DirectoryController], Response],
+            requires_address: bool = True, requires_role: bool = True) -> None:
+        """
+        Simple validation checks that the register, unregister and heartbeat
+        receive functions should follow.
+        """
+        # Should always error if no request  is specified.
+        with pytest.raises(ValueError):
+            func(None, DirectoryController())
+
+        # Should always error if no directory controller is specified.
+        with pytest.raises(ValueError):
+            func(MockRequest(GET, route), None)
+
+        # TODO Should always error if no name is provided in the body
+        with pytest.raises(ValueError):
+            func(MockRequest(POST, route), DirectoryController())
+
+        # TODO Might error if no address is provided in the body
+        if requires_address:
+            with pytest.raises(ValueError):
+                func(MockRequest(POST, route), DirectoryController())
+        else:
+            func(MockRequest(POST, route), DirectoryController())
+
+        # TODO Might error if no role is provided in the body
+        if requires_address:
+            with pytest.raises(ValueError):
+                func(MockRequest(POST, route), DirectoryController())
+        else:
+            func(MockRequest(POST, route), DirectoryController())
+
     def test_send_register_message(self) -> None:
         assert network.send_register_message(None) == "registered with coordinator"
+
+    def test_receive_register_errors_correctly(self) -> None:
+        self.check_receive_method_conforms("/register", network.receive_register_message)
 
     def test_receive_register_message(self) -> None:
         assert network.receive_register_message(None) == network.OK
@@ -214,11 +308,17 @@ class TestMessages:
     def test_send_unregister_message(self) -> None:
         assert network.send_unregister_message(None) == "unregistered from coordinator"
 
+    def test_receive_unregister_errors_correctly(self) -> None:
+        self.check_receive_method_conforms("/unregister", network.receive_unregister_message, False, False)
+
     def test_receive_unregister_message(self) -> None:
         assert network.receive_unregister_message(None) == network.OK
 
     def test_send_heartbeat_message(self) -> None:
         assert network.send_heartbeat_message(None) == "heartbeat message sent to coordinator"
+
+    def test_receive_heartbeat_errors_correctly(self) -> None:
+        self.check_receive_method_conforms("/heartbeat", network.receive_heartbeat_message)
 
     def test_receive_heartbeat_message(self) -> None:
         assert network.receive_heartbeat_message(None) == "TODO heartbeat message received from node"

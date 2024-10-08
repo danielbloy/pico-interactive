@@ -395,8 +395,15 @@ def receive_led_message(request: Request, state: str) -> str:
 ###############################################################
 
 
-def directory_method(request: Request, directory: DirectoryController, get_func, post_func):
+def __standard_directory_method(
+        request: Request, directory: DirectoryController,
+        get_func: Callable[str, str],
+        post_func: Callable[[Request, DirectoryController], Response]):
     """
+    The register, unregister and heartbeat messages all have exactly the
+    same form, the only difference being the operations. This function
+    wraps up the logic which validates the arguments and properties that
+    are required.
     """
     if directory is None:
         raise ValueError("No directory controller specified")
@@ -408,7 +415,7 @@ def directory_method(request: Request, directory: DirectoryController, get_func,
         if NODE_COORDINATOR is None:
             raise ValueError("No coordinator configured")
 
-        return Response(request, post_func(directory, request))
+        return post_func(request, directory)
 
     return Response(request, NO, status=NOT_FOUND_404)
 
@@ -419,7 +426,7 @@ def register(request: Request, directory: DirectoryController):
          coordinator configuration is not set.
     POST, PUT: Another node wants to register with us.
     """
-    return directory_method(request, directory, send_register_message, receive_register_message)
+    return __standard_directory_method(request, directory, send_register_message, receive_register_message)
 
 
 def unregister(request: Request, directory: DirectoryController):
@@ -427,7 +434,7 @@ def unregister(request: Request, directory: DirectoryController):
     GET: Unregister this node from the coordinator.
     POST, PUT: Another node wants to unregister from us.
     """
-    return directory_method(request, directory, send_unregister_message, receive_unregister_message)
+    return __standard_directory_method(request, directory, send_unregister_message, receive_unregister_message)
 
 
 def heartbeat(request: Request, directory: DirectoryController):
@@ -435,7 +442,7 @@ def heartbeat(request: Request, directory: DirectoryController):
     GET: Sends a heartbeat message from this node to the coordinator.
     POST, PUT: Another node has sent a heartbeat message to us.
     """
-    return directory_method(request, directory, send_heartbeat_message, receive_heartbeat_message)
+    return __standard_directory_method(request, directory, send_heartbeat_message, receive_heartbeat_message)
 
 
 def lookup_all(request: Request, directory: DirectoryController):
@@ -476,18 +483,55 @@ def lookup_role(request: Request, directory: DirectoryController, role: str):
 ###################################################################
 
 def send_register_message(node: str) -> str:
+    """
+    TODO: comments
+    """
     info("Registering node with coordinator...")
+    # TODO: test Failure
     # TODO
     return "registered with coordinator"
 
 
-def receive_register_message(request: Request, directory: DirectoryController) -> str:
+def receive_register_message(request: Request, directory: DirectoryController) -> Response:
+    """
+    Registers the details about the provided node with the given directory controller.
+    The format of the expected body JSON is:
+
+    {
+        "ip": "1.2.3.4",
+        "name": "node_name",
+        "role": "node_role"
+    }
+    """
     info("Registering node...")
-    # TODO
-    return OK
+
+    if request is None:
+        raise ValueError("No request specified")
+
+    if directory is None:
+        raise ValueError("No directory controller specified")
+
+    nodes = request.json()
+    for i, node in enumerate(nodes):
+        if not "ip" in node:
+            return Response(request, "NO_IP_ADDRESS_SPECIFIED")
+
+        if not "name" in node:
+            return Response(request, "NO_NAME_SPECIFIED")
+
+        if not "role" in node:
+            return Response(request, "NO_ROLE_SPECIFIED")
+
+        directory.register_endpoint(node["ip"], node["name"], node["role"])
+        info(f'Registered node: {node["name"]}, role: {node["role"]}, ip: {node["ip"]}')
+
+    return Response(request, OK)
 
 
-def send_unregister_message(node) -> str:
+def send_unregister_message(node: str) -> str:
+    """
+    TODO: comments
+    """
     info("Unregistering node from coordinator...")
     # TODO: Remove the invocation of quotes
     # with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
@@ -497,19 +541,47 @@ def send_unregister_message(node) -> str:
     return "unregistered from coordinator"
 
 
-def receive_unregister_message(request: Request, directory: DirectoryController) -> str:
+def receive_unregister_message(request: Request, directory: DirectoryController) -> Response:
+    """
+    Simply unregisters the node. If it does not exist, no error is thrown.
+    """
     info("Unregistering node...")
-    # TODO
-    return OK
+
+    if request is None:
+        raise ValueError("No request specified")
+
+    if directory is None:
+        raise ValueError("No directory controller specified")
+
+    nodes = request.json()
+    for i, node in enumerate(nodes):
+        if not "name" in node:
+            return Response(request, "NO_NAME_SPECIFIED")
+
+        directory.unregister_endpoint(node["name"])
+        info(f'unregistered node: {node["name"]}')
+
+    return Response(request, OK)
 
 
 def send_heartbeat_message(node: str) -> str:
+    """
+    TODO: comments
+    """
     info("Sending heartbeat message to coordinator...")
     # TODO
     return "heartbeat message sent to coordinator"
 
 
-def receive_heartbeat_message(request: Request, directory: DirectoryController) -> str:
+def receive_heartbeat_message(request: Request, directory: DirectoryController) -> Response:
+    """
+    This simply re-routes to register as it is effectively the same.
+
+    FUTURE: We could at some future point put in an optimisation here to
+            lookup whether an item has already been registered. If such
+            a case, we would already have the ip, name and role so as long
+            as at least one of ip or name was registered, the other data
+            would become optional.
+    """
     info("Received heartbeat message...")
-    # TODO
-    return "TODO heartbeat message received from node"
+    return receive_register_message(request, directory)
