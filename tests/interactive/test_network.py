@@ -4,7 +4,7 @@ from collections.abc import Callable, Awaitable
 
 import pytest
 from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501, NOT_FOUND_404, PUT, DELETE, \
-    PATCH, HEAD, OPTIONS, TRACE, CONNECT
+    PATCH, HEAD, OPTIONS, TRACE, CONNECT, BAD_REQUEST_400
 
 import interactive.control as control
 import interactive.network as network
@@ -36,7 +36,7 @@ class MockServer(Server):
 
 
 class MockRequest(Request):
-    def __init__(self, method, route: str, body: str = None):
+    def __init__(self, method, route: str, body: str = ""):
         server = MockServer()
         raw_request = bytes(
             f"{method} {route} HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: test-framework\r\nAccept: */*\r\n\r\n{body}",
@@ -54,7 +54,9 @@ def validate_methods(valid_methods, route, fn, *args) -> None:
         response = fn(request, *args)
 
         if method in valid_methods:
-            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501
+            # Bad request is allowed here as it generally means the body data is not formatted correctly
+            # and as we don't pass in a body we expect it to fail.
+            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501 or response._status == BAD_REQUEST_400
         else:
             assert response._body == network.NO
             assert response._status == NOT_FOUND_404

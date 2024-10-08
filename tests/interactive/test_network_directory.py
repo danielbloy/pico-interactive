@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 import pytest
-from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request
+from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request, BAD_REQUEST_400
 from adafruit_requests import Response
 
 from directory import DirectoryController
@@ -27,32 +27,31 @@ class TestRoutes:
         Simple validation checks that the register, unregister and heartbeat
         functions should follow.
         """
+        json_body = '{"name":"daniel", "role":"programmer", "ip":"a.b.c.d"}'
         # When there is a coordinator nothing should error; except when there is no directory specified.
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
         validate_methods({GET, POST, PUT}, route, func, DirectoryController())
 
         # Should always error if no directory controller is specified.
         with pytest.raises(ValueError):
-            func(MockRequest(GET, route), None)
+            func(MockRequest(GET, route, body=json_body), None)
 
-        func(MockRequest(GET, route), DirectoryController())
-        func(MockRequest(PUT, route), DirectoryController())
-        func(MockRequest(POST, route), DirectoryController())
+        func(MockRequest(GET, route, body=json_body), DirectoryController())
+        func(MockRequest(PUT, route, body=json_body), DirectoryController())
+        func(MockRequest(POST, route, body=json_body), DirectoryController())
 
         # When there is no coordinator should error but only if it is a POST or PUT
         monkeypatch.setattr(network, 'NODE_COORDINATOR', None)
 
         # Should always error if no directory controller is specified.
         with pytest.raises(ValueError):
-            func(MockRequest(GET, route), None)
-
-        func(MockRequest(GET, route), DirectoryController())
+            func(MockRequest(GET, route, body=json_body), None)
 
         with pytest.raises(ValueError):
-            func(MockRequest(PUT, route), DirectoryController())
+            func(MockRequest(GET, route, body=json_body), DirectoryController())
 
-        with pytest.raises(ValueError):
-            func(MockRequest(POST, route), DirectoryController())
+        func(MockRequest(PUT, route, body=json_body), DirectoryController())
+        func(MockRequest(POST, route, body=json_body), DirectoryController())
 
     def test_register_errors_correctly(self, monkeypatch) -> None:
         """
@@ -278,23 +277,34 @@ class TestMessages:
         with pytest.raises(ValueError):
             func(MockRequest(GET, route), None)
 
-        # TODO Should always error if no name is provided in the body
-        with pytest.raises(ValueError):
-            func(MockRequest(POST, route), DirectoryController())
+        # Should always error if no body is specified or body is invalid json
+        response = func(MockRequest(GET, route, body="invalid json"), DirectoryController())
+        assert response._body == "FAILED_TO_PARSE_BODY"
+        assert response._status == BAD_REQUEST_400
 
-        # TODO Might error if no address is provided in the body
-        if requires_address:
-            with pytest.raises(ValueError):
-                func(MockRequest(POST, route), DirectoryController())
-        else:
-            func(MockRequest(POST, route), DirectoryController())
+        # Should always error if no name is provided in the body
+        response = func(MockRequest(POST, route, body='{"ip":"i", "role":"r"}'), DirectoryController())
+        assert response._body == "NO_NAME_SPECIFIED"
+        assert response._status == BAD_REQUEST_400
 
-        # TODO Might error if no role is provided in the body
+        # Might error if no address is provided in the body
+        response = func(MockRequest(POST, route, body='{"name":"n", "role":"r"}'), DirectoryController())
         if requires_address:
-            with pytest.raises(ValueError):
-                func(MockRequest(POST, route), DirectoryController())
+            assert response._body == "NO_IP_ADDRESS_SPECIFIED"
+            assert response._status == BAD_REQUEST_400
         else:
-            func(MockRequest(POST, route), DirectoryController())
+            assert response._body == network.OK
+            assert response._status == OK_200
+
+        print("a")
+        # Might error if no role is provided in the body
+        response = func(MockRequest(POST, route, body='{"name":"n", "ip":"i"}'), DirectoryController())
+        if requires_role:
+            assert response._body == "NO_ROLE_SPECIFIED"
+            assert response._status == BAD_REQUEST_400
+        else:
+            assert response._body == network.OK
+            assert response._status == OK_200
 
     def test_send_register_message(self) -> None:
         assert network.send_register_message(None) == "registered with coordinator"
@@ -329,103 +339,5 @@ class TestMessages:
 # print(f"QPARAMS .. : '{request.query_params}'")
 # print(f"HTTPV .... : '{request.http_version}'")
 # print(f"HEADERS .. : '{request.headers}'")
+# print(f"BODY ..... : '{request.body}'")
 # print(f"RAW ...... : '{request.raw_request}'")
-
-
-# C:\Users\danie>curl --verbose http://127.0.0.1:5001/index.html
-# *   Trying 127.0.0.1:5001...
-# * Connected to 127.0.0.1 (127.0.0.1) port 5001
-# > GET /index.html HTTP/1.1
-# > Host: 127.0.0.1:5001
-# > User-Agent: curl/8.8.0
-# > Accept: */*
-# >
-# * Request completely sent off
-# < HTTP/1.1 200 OK
-# < name: <hostname>
-# < role: <host role>
-# < content-type: text/html
-# < content-length: 345
-# < connection: close
-# <
-# <!DOCTYPE html>
-# <html lang="en">
-# <head>
-#     <meta charset="UTF-8">
-#     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-#     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-#     <title>Pico Interactive</title>
-# </head>
-# <body>
-# <p>Hello from the <strong>CircuitPython HTTP Server!</strong></p>
-# </body>
-# </html>
-# * Closing connection
-
-# Server
-# <Request "GET /index.html">
-# METHOD ... : 'GET'
-# PATH ..... : '/index.html'
-# QPARAMS .. : ''
-# HTTPV .... : 'HTTP/1.1'
-# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
-# RAW ...... : 'b'GET /index.html HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''
-
-
-# C:\Users\danie>  curl --verbose http://127.0.0.1:5001/register -X POST -H "Content-Type: application/json" -d "{\"key1\":\"value1\", \"key2\":\"value2\"}"
-# Note: Unnecessary use of -X or --request, POST is already inferred.
-# *   Trying 127.0.0.1:5001...
-# * Connected to 127.0.0.1 (127.0.0.1) port 5001
-# > POST /register HTTP/1.1
-# > Host: 127.0.0.1:5001
-# > User-Agent: curl/8.8.0
-# > Accept: */*
-# > Content-Type: application/json
-# > Content-Length: 34
-# >
-# * upload completely sent off: 34 bytes
-# < HTTP/1.1 200 OK
-# < name: <hostname>
-# < role: <host role>
-# < content-type: text/plain
-# < content-length: 2
-# < connection: close
-# <
-# OK* Closing connection
-
-# Server
-# <Request "POST /register">
-# METHOD ... : 'POST'
-# PATH ..... : '/register'
-# QPARAMS .. : ''
-# HTTPV .... : 'HTTP/1.1'
-# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*'], 'content-type': ['application/json'], 'content-length': ['34']}>'
-# RAW ...... : 'b'POST /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\nContent-Type: application/json\r\nContent-Length: 34\r\n\r\n{"key1":"value1", "key2":"value2"}''
-
-
-# C:\Users\danie>curl --verbose http://127.0.0.1:5001/register
-# *   Trying 127.0.0.1:5001...
-# * Connected to 127.0.0.1 (127.0.0.1) port 5001
-# > GET /register HTTP/1.1
-# > Host: 127.0.0.1:5001
-# > User-Agent: curl/8.8.0
-# > Accept: */*
-# >
-# < HTTP/1.1 200 OK
-# < name: <hostname>
-# < role: <host role>
-# < content-type: text/plain
-# < content-length: 27
-# < connection: close
-# <
-# registered with coordinator* we are done reading and this is set to close, stop send
-# * Closing connection
-
-# Server
-# <Request "GET /register">
-# METHOD ... : 'GET'
-# PATH ..... : '/register'
-# QPARAMS .. : ''
-# HTTPV .... : 'HTTP/1.1'
-# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
-# RAW ...... : 'b'GET /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''

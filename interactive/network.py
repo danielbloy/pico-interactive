@@ -9,7 +9,7 @@
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
+    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404, BAD_REQUEST_400
 
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
@@ -397,7 +397,7 @@ def receive_led_message(request: Request, state: str) -> str:
 
 def __standard_directory_method(
         request: Request, directory: DirectoryController,
-        get_func: Callable[str, str],
+        get_func: Callable[[str], str],
         post_func: Callable[[Request, DirectoryController], Response]):
     """
     The register, unregister and heartbeat messages all have exactly the
@@ -409,12 +409,12 @@ def __standard_directory_method(
         raise ValueError("No directory controller specified")
 
     if request.method == GET:
-        return Response(request, get_func(NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
         if NODE_COORDINATOR is None:
             raise ValueError("No coordinator configured")
 
+        return Response(request, get_func(NODE_COORDINATOR))
+
+    if request.method in [POST, PUT]:
         return post_func(request, directory)
 
     return Response(request, NO, status=NOT_FOUND_404)
@@ -511,19 +511,22 @@ def receive_register_message(request: Request, directory: DirectoryController) -
     if directory is None:
         raise ValueError("No directory controller specified")
 
-    nodes = request.json()
-    for i, node in enumerate(nodes):
-        if not "ip" in node:
-            return Response(request, "NO_IP_ADDRESS_SPECIFIED")
+    try:
+        data = request.json()
+        if "ip" not in data:
+            return Response(request, "NO_IP_ADDRESS_SPECIFIED", status=BAD_REQUEST_400)
 
-        if not "name" in node:
-            return Response(request, "NO_NAME_SPECIFIED")
+        if "name" not in data:
+            return Response(request, "NO_NAME_SPECIFIED", status=BAD_REQUEST_400)
 
-        if not "role" in node:
-            return Response(request, "NO_ROLE_SPECIFIED")
+        if "role" not in data:
+            return Response(request, "NO_ROLE_SPECIFIED", status=BAD_REQUEST_400)
 
-        directory.register_endpoint(node["ip"], node["name"], node["role"])
-        info(f'Registered node: {node["name"]}, role: {node["role"]}, ip: {node["ip"]}')
+        directory.register_endpoint(data["ip"], data["name"], data["role"])
+        info(f'Registered node: {data["name"]}, role: {data["role"]}, ip: {data["ip"]}')
+
+    except Exception as e:
+        return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
 
     return Response(request, OK)
 
@@ -544,6 +547,10 @@ def send_unregister_message(node: str) -> str:
 def receive_unregister_message(request: Request, directory: DirectoryController) -> Response:
     """
     Simply unregisters the node. If it does not exist, no error is thrown.
+    The format of the expected body JSON is:
+    {
+        "name": "node_name"
+    }
     """
     info("Unregistering node...")
 
@@ -553,13 +560,16 @@ def receive_unregister_message(request: Request, directory: DirectoryController)
     if directory is None:
         raise ValueError("No directory controller specified")
 
-    nodes = request.json()
-    for i, node in enumerate(nodes):
-        if not "name" in node:
-            return Response(request, "NO_NAME_SPECIFIED")
+    try:
+        data = request.json()
+        if not "name" in data:
+            return Response(request, "NO_NAME_SPECIFIED", status=BAD_REQUEST_400)
 
-        directory.unregister_endpoint(node["name"])
-        info(f'unregistered node: {node["name"]}')
+        directory.unregister_endpoint(data["name"])
+        info(f'unregistered node: {data["name"]}')
+
+    except Exception as e:
+        return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
 
     return Response(request, OK)
 
