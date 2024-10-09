@@ -61,14 +61,13 @@ the end of this readme for more information about the license.
 
 * [x] Recreate originals/christmas in demo
 * [ ] Recreate originals/light_jars in demo
-* [ ] Recreate originals/halloween
-    * [ ] Migrate code from path node
+* [x] Recreate originals/halloween
+    * [x] Migrate code from path node
     * [ ] Implement spider node
     * [ ] Implement thunder node
-    * [ ] Implement coordinator node that runs on the laptop
-    * [ ] Implement node communications
-    * [ ] Migrate Witch node
-    * [ ] Implement Pixie node
+    * [x] Implement coordinator node that runs on the laptop
+    * [x] Implement node communications
+    * [x] Migrate Witch node
 
 ## List of outstanding tasks for the basic framework
 
@@ -122,17 +121,6 @@ the end of this readme for more information about the license.
 * [ ] Add UART support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
-* [ ] Add OLED Display support, including cycling through screen pages
-    * [ ] Works on CircuitPython
-    * [ ] Works with Blinka
-* [ ] OLED display pages available for:
-    * [ ] NeoPixels
-    * [ ] LEDs
-    * [ ] Ultrasonic
-    * [ ] AudioBoard
-    * [ ] UART
-    * [ ] Wi-Fi
-    * [ ] Messaging/discovery/coordination
 * [ ] Make a pico-interactive release (
   see [Creating and sharing a CircuitPython library](https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library?view=all#mpy-2982472-11)):
     * [ ] Compile to`.mpy` files

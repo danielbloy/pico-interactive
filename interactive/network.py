@@ -10,6 +10,7 @@
 #
 
 # TODO: Extract the directory service out as it is not often needed and uses lots of RAM
+# TODO: Implement lookup functions.
 # TODO: Implement Inspect
 
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
