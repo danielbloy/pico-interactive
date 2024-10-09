@@ -68,45 +68,61 @@ class TestRoutes:
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
-        controller = DirectoryController()
+        directory = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/register", network.register, controller)
+        validate_methods({GET, POST, PUT}, "/register", network.register, directory)
 
         # This registers the node with the coordinator; we validate the message is sent.
         request = MockRequest(GET, "/register")
-        response = network.register(request, controller)
+        response = network.register(request, directory)
         assert response._body == 'registered with coordinator'
         assert response._status == OK_200
-
         # TODO: Validate that the message is sent and a valid response is returned.
-        assert len(controller._directory) == 0
+        assert len(directory._directory) == 0
 
-        # TODO: Validate that a new item was registered
-        request = MockRequest(POST, "/register")
-        response = network.register(request, controller)
+        # Validate that a new item was registered
+        request = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        response = network.register(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
+        assert len(directory._directory) == 1
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
+        expiry_time = directory._directory["node_1"].expiry_time
 
-        # TODO: Lookup name as well
-        assert len(controller._directory) == 1
-
-        # TODO: Validate that a second item was registered
-        request = MockRequest(POST, "/register")
-        response = network.register(request, controller)
+        # Validate that a second item was registered
+        request = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        response = network.register(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
+        assert len(directory._directory) == 2
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
+        assert "node_2" in directory._directory
+        assert directory._directory["node_2"].name == "node_2"
+        assert directory._directory["node_2"].role == "role_2"
+        assert directory._directory["node_2"].ip == "6.7.8.9"
 
-        # TODO: Lookup name as well
-        assert len(controller._directory) == 2
-
-        # TODO: Validate that the first item was registered, but this time updated.
-        request = MockRequest(PUT, "/register")
-        response = network.register(request, controller)
+        # Validate that the first item was registered, but this time updated.
+        time.sleep(0.05)
+        request = MockRequest(PUT, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        response = network.register(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
-
-        # TODO: Lookup name as well
-        assert len(controller._directory) == 2
+        assert len(directory._directory) == 2
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
+        assert directory._directory["node_1"].expiry_time > expiry_time
+        assert "node_2" in directory._directory
+        assert directory._directory["node_2"].name == "node_2"
+        assert directory._directory["node_2"].role == "role_2"
+        assert directory._directory["node_2"].ip == "6.7.8.9"
 
     def test_unregister_errors_correctly(self, monkeypatch) -> None:
         """
@@ -186,29 +202,60 @@ class TestRoutes:
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
-        controller = DirectoryController()
+        directory = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat, controller)
+        validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat, directory)
 
         request = MockRequest(GET, "/heartbeat")
-        response = network.heartbeat(request, controller)
+        response = network.heartbeat(request, directory)
         assert response._body == 'heartbeat message sent to coordinator'
         assert response._status == OK_200
-
         # TODO: Validate that the message is sent and a valid response is returned.
-        assert len(controller._directory) == 0
+        assert len(directory._directory) == 0
 
-        request = MockRequest(POST, "/heartbeat")
-        response = network.heartbeat(request, controller)
-        assert response._body == 'TODO heartbeat message received from node'
+        # Validate that a new item was registered after a heartbeat
+        request = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        response = network.register(request, directory)
+        assert response._body == network.OK
         assert response._status == OK_200
+        assert len(directory._directory) == 1
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
+        expiry_time = directory._directory["node_1"].expiry_time
 
-        request = MockRequest(PUT, "/heartbeat")
-        response = network.heartbeat(request, controller)
-        assert response._body == 'TODO heartbeat message received from node'
+        # Validate that a second item was registered after a heartbeat
+        request = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        response = network.register(request, directory)
+        assert response._body == network.OK
         assert response._status == OK_200
+        assert len(directory._directory) == 2
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
+        assert "node_2" in directory._directory
+        assert directory._directory["node_2"].name == "node_2"
+        assert directory._directory["node_2"].role == "role_2"
+        assert directory._directory["node_2"].ip == "6.7.8.9"
 
-        assert False  # Need to intercept network message and also validate directory.
+        # Validate that the first item has its time updated.
+        time.sleep(0.05)
+        request = MockRequest(PUT, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        response = network.register(request, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        assert len(directory._directory) == 2
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
+        assert directory._directory["node_1"].expiry_time > expiry_time
+        assert "node_2" in directory._directory
+        assert directory._directory["node_2"].name == "node_2"
+        assert directory._directory["node_2"].role == "role_2"
+        assert directory._directory["node_2"].ip == "6.7.8.9"
 
     def test_lookup_all(self) -> None:
         """
@@ -339,7 +386,7 @@ class TestMessages:
         expiry_time = directory._directory["node_1"].expiry_time
 
         # Receive the same registration again; no change in state except time.
-        time.sleep(0.1)
+        time.sleep(0.05)
         response = network.receive_register_message(node_1, directory)
         assert response._body == network.OK
         assert response._status == OK_200
