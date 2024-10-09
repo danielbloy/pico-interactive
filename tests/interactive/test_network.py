@@ -8,7 +8,6 @@ from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMEN
 
 import interactive.control as control
 import interactive.network as network
-from interactive import configuration
 from interactive.configuration import NODE_NAME, NODE_ROLE
 from interactive.network import NetworkController, HEADER_NAME, HEADER_ROLE
 from interactive.runner import Runner
@@ -60,15 +59,6 @@ def validate_methods(valid_methods, route, fn, *args) -> None:
         else:
             assert response._body == network.NO
             assert response._status == NOT_FOUND_404
-
-
-# This is used to mock out the network.send_message function to avoid us actually sending
-# network calls during the tests.
-def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
-                      protocol: str = "http", method="GET",
-                      data=None, json=None):
-    pass
-    # TODO: This needs to return a valid response object.
 
 
 class TestNetwork:

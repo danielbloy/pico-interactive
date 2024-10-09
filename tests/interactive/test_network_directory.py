@@ -1,13 +1,49 @@
+import json as json_module
 import time
 from collections.abc import Callable
+from types import TracebackType
+from typing import Optional, Type
 
 import pytest
-from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request, BAD_REQUEST_400
+from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request, BAD_REQUEST_400, Status
 from adafruit_requests import Response
 
 from directory import DirectoryController
 from interactive import network
-from test_network import mock_send_message, validate_methods, MockRequest
+from network import YES
+from test_network import validate_methods, MockRequest
+
+# This is used to mock out the network.send_message function to avoid us actually sending
+# network calls during the tests.
+msg_url: str = ""
+msg_data: str = ""
+msg_json: str = ""
+
+
+class MockResponse:
+    def __init__(self, status: Status) -> None:
+        self.encoding = "utf-8"
+        self._status = status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type: Optional[Type[type]], exc_value: Optional[BaseException],
+                 traceback: Optional[TracebackType]) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+def mock_send_message(path: str, host: str = "<default>", protocol: str = "http", method="GET", data=None,
+                      json=None) -> Response:
+    global msg_url, msg_data, msg_json
+    msg_url = f"{method} {protocol}://{host}/{path}"
+    msg_data = data
+    msg_json = json_module.dumps(json)
+
+    return MockResponse(OK_200)
 
 
 class TestRoutes:
@@ -20,6 +56,10 @@ class TestRoutes:
     @pytest.fixture(autouse=True)
     def send_message_patched(self, monkeypatch):
         monkeypatch.setattr(network, 'send_message', mock_send_message)
+
+    @pytest.fixture(autouse=True)
+    def fix_ip_address(self, monkeypatch):
+        monkeypatch.setattr(network, 'get_ip', lambda: "w.x.y.z")
 
     @staticmethod
     def check_directory_method_conforms(
@@ -66,6 +106,7 @@ class TestRoutes:
         along with the required validation and that the correct message handling functions
         are called; this assumes success each time.
         """
+        global msg_url, msg_data, msg_json
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
         directory = DirectoryController()
@@ -75,9 +116,11 @@ class TestRoutes:
         # This registers the node with the coordinator; we validate the message is sent.
         request = MockRequest(GET, "/register")
         response = network.register(request, directory)
-        assert response._body == 'registered with coordinator'
+        assert response._body == YES
         assert response._status == OK_200
-        # TODO: Validate that the message is sent and a valid response is returned.
+        assert msg_url == "GET http://node//register"
+        assert msg_data == None
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
         assert len(directory._directory) == 0
 
         # Validate that a new item was registered
@@ -136,6 +179,7 @@ class TestRoutes:
         along with the required validation and that the correct message handling functions
         are called; this assumes success each time.
         """
+        global msg_url, msg_data, msg_json
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
         directory = DirectoryController()
@@ -144,9 +188,11 @@ class TestRoutes:
 
         request = MockRequest(GET, "/unregister")
         response = network.unregister(request, directory)
-        assert response._body == 'unregistered from coordinator'
+        assert response._body == YES
         assert response._status == OK_200
-        # TODO: Validate that the message is sent and a valid response is returned.
+        assert msg_url == "GET http://node//unregister"
+        assert msg_data == None
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
         assert len(directory._directory) == 0
 
         # Validate unregister from an empty directory
@@ -202,6 +248,7 @@ class TestRoutes:
         along with the required validation and that the correct message handling functions
         are called; this assumes success each time.
         """
+        global msg_url, msg_data, msg_json
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
         directory = DirectoryController()
@@ -210,9 +257,11 @@ class TestRoutes:
 
         request = MockRequest(GET, "/heartbeat")
         response = network.heartbeat(request, directory)
-        assert response._body == 'heartbeat message sent to coordinator'
+        assert response._body == YES
         assert response._status == OK_200
-        # TODO: Validate that the message is sent and a valid response is returned.
+        assert msg_url == "GET http://node//heartbeat"
+        assert msg_data == None
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
         assert len(directory._directory) == 0
 
         # Validate that a new item was registered after a heartbeat
@@ -272,8 +321,6 @@ class TestRoutes:
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
 
-        assert False  # Need to intercept network message and also validate directory.
-
     def test_lookup_name(self) -> None:
         """
         Validates that lookup_name() returns NOT_IMPLEMENTED_501 with no additional headers.
@@ -286,8 +333,6 @@ class TestRoutes:
         response = network.lookup_name(request, controller, "")
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
-
-        assert False  # Need to intercept network message and also validate directory.
 
     def test_lookup_role(self) -> None:
         """
@@ -302,14 +347,16 @@ class TestRoutes:
         assert response._body == network.NO
         assert response._status == NOT_IMPLEMENTED_501
 
-        assert False  # Need to intercept network message and also validate directory.
-
 
 class TestMessages:
 
     @pytest.fixture(autouse=True)
     def send_message_patched(self, monkeypatch):
         monkeypatch.setattr(network, 'send_message', mock_send_message)
+
+    @pytest.fixture(autouse=True)
+    def fix_ip_address(self, monkeypatch):
+        monkeypatch.setattr(network, 'get_ip', lambda: "w.x.y.z")
 
     @staticmethod
     def check_receive_method_conforms(
@@ -357,7 +404,13 @@ class TestMessages:
             assert response._status == OK_200
 
     def test_send_register_message(self) -> None:
-        assert network.send_register_message(None) == "registered with coordinator"
+        """
+        Very simple test to check the correct format is being sent.
+        """
+        assert network.send_register_message("coordinator") == YES
+        assert msg_url == "GET http://coordinator//register"
+        assert msg_data == None
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
 
     def test_receive_register_errors_correctly(self) -> None:
         """
@@ -414,7 +467,13 @@ class TestMessages:
         assert directory._directory["node_2"].ip == "6.7.8.9"
 
     def test_send_unregister_message(self) -> None:
-        assert network.send_unregister_message(None) == "unregistered from coordinator"
+        """
+        Very simple test to check the correct format is being sent.
+        """
+        assert network.send_unregister_message("coordinator") == YES
+        assert msg_url == "GET http://coordinator//unregister"
+        assert msg_data == None
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
 
     def test_receive_unregister_errors_correctly(self) -> None:
         """
@@ -477,7 +536,13 @@ class TestMessages:
         assert directory._directory["node_2"].ip == "6.7.8.9"
 
     def test_send_heartbeat_message(self) -> None:
-        assert network.send_heartbeat_message(None) == "heartbeat message sent to coordinator"
+        """
+        Very simple test to check the correct format is being sent.
+        """
+        assert network.send_heartbeat_message("coordinator") == YES
+        assert msg_url == "GET http://coordinator//heartbeat"
+        assert msg_data == None
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
 
     def test_receive_heartbeat_errors_correctly(self) -> None:
         """

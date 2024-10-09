@@ -10,9 +10,10 @@
 #
 
 # TODO: Extract the directory service out as it is not often needed and uses lots of RAM
+# TODO: Implement Inspect
 
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404, BAD_REQUEST_400
+    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404, BAD_REQUEST_400, OK_200
 
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
@@ -23,7 +24,7 @@ from interactive.log import debug, info, error
 from interactive.polyfills.cpu import info as cpu_info
 from interactive.polyfills.cpu import restart as cpu_restart
 from interactive.polyfills.led import onboard_led
-from interactive.polyfills.network import requests
+from interactive.polyfills.network import requests, get_ip
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 
@@ -223,7 +224,7 @@ class NetworkController:
 
 def send_message(path: str, host: str = NODE_COORDINATOR,
                  protocol: str = "http", method="GET",
-                 data=None, json=None):
+                 data=None, json=None) -> Response:
     """
     Sends a message with the provided payload to the specified node, ensuring headers are included.
     """
@@ -487,12 +488,21 @@ def lookup_role(request: Request, directory: DirectoryController, role: str):
 
 def send_register_message(node: str) -> str:
     """
-    TODO: comments
+    Sends a register message to the specified node.
     """
-    info("Registering node with coordinator...")
-    # TODO: test Failure
-    # TODO
-    return "registered with coordinator"
+    info(f"Registering with {node}...")
+
+    try:
+        data = configuration.details()
+        data["ip"] = get_ip()
+        with send_message(host=node, path='/register', json=data) as response:
+            if response._status == OK_200:
+                return YES
+            else:
+                return NO
+
+    except Exception as e:
+        return NO
 
 
 def receive_register_message(request: Request, directory: DirectoryController) -> Response:
@@ -536,15 +546,21 @@ def receive_register_message(request: Request, directory: DirectoryController) -
 
 def send_unregister_message(node: str) -> str:
     """
-    TODO: comments
+    Sends an unregister message to the specified node.
     """
-    info("Unregistering node from coordinator...")
-    # TODO: Remove the invocation of quotes
-    # with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
-    #    print(response.headers)
-    #    print(response.text)
+    info(f"Registering from {node}...")
 
-    return "unregistered from coordinator"
+    try:
+        data = configuration.details()
+        data["ip"] = get_ip()
+        with send_message(host=node, path='/unregister', json=data) as response:
+            if response._status == OK_200:
+                return YES
+            else:
+                return NO
+
+    except:
+        return NO
 
 
 def receive_unregister_message(request: Request, directory: DirectoryController) -> Response:
@@ -579,11 +595,21 @@ def receive_unregister_message(request: Request, directory: DirectoryController)
 
 def send_heartbeat_message(node: str) -> str:
     """
-    TODO: comments
+    Sends a heartbeat message to the specified node.
     """
-    info("Sending heartbeat message to coordinator...")
-    # TODO
-    return "heartbeat message sent to coordinator"
+    info(f"Heartbeat with {node}...")
+
+    try:
+        data = configuration.details()
+        data["ip"] = get_ip()
+        with send_message(host=node, path='/heartbeat', json=data) as response:
+            if response._status == OK_200:
+                return YES
+            else:
+                return NO
+
+    except:
+        return NO
 
 
 def receive_heartbeat_message(request: Request, directory: DirectoryController) -> Response:
