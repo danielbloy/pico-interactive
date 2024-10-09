@@ -1,9 +1,9 @@
 import time
 from collections.abc import Callable, Awaitable
 
-import directory
-from control import DIRECTORY_EXPIRY_DURATION
-from directory import DirectoryController
+import interactive.directory as directory
+from interactive.control import DIRECTORY_EXPIRY_DURATION
+from interactive.directory import DirectoryController
 from interactive.runner import Runner
 
 
