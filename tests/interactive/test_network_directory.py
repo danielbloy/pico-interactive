@@ -322,8 +322,8 @@ class TestMessages:
         Validates the register method correctly extracts the JSON data and
         registers the node with the directory.
         """
-        node_1 = MockRequest(POST, "/register/", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        node_2 = MockRequest(POST, "/register/", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        node_1 = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        node_2 = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
 
         directory = DirectoryController()
 
@@ -372,27 +372,60 @@ class TestMessages:
         Validates the unregister method correctly errors when the network request
         is incorrectly formed or missing data.
         """
-        unknown_node = MockRequest(POST, "/register/", body='{"name":"unknown", "role":"role_unknown", "ip":"a.b.c.d"}')
-        node_1 = MockRequest(POST, "/register/", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        node_2 = MockRequest(POST, "/register/", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
-        # TODO: Receive an unregister with an empty directory
-
-        # TODO: Add some entries
-
-        # TODO: Receive an unregister for an unknown node
-
-        # TODO: Receive an unregister for a known node
-
-        # TODO: Receive another unregister for the same node just unregistered
-
-        self.check_receive_method_conforms("/unregister", network.receive_unregister_message, False, False)
+        self.check_receive_method_conforms("/unregister", network.receive_unregister_message, requires_address=False,
+                                           requires_role=False)
 
     def test_receive_unregister_message(self) -> None:
         """
         Validates the unregister method correctly extracts the JSON data and
         unregisters the node with the directory.
         """
-        assert network.receive_unregister_message(None) == network.OK
+        unknown = MockRequest(POST, "/unregister", body='{"name":"unknown", "role":"role_unknown", "ip":"a.b.c.d"}')
+        node_1 = MockRequest(POST, "/unregister", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        node_2 = MockRequest(POST, "/unregister", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+
+        directory = DirectoryController()
+
+        # Receive an unregister with an empty directory
+        response = network.receive_unregister_message(node_1, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        assert len(directory._directory) == 0
+
+        # Add some entries
+        response = network.receive_register_message(node_1, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        response = network.receive_register_message(node_2, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        assert len(directory._directory) == 2
+
+        # Receive an unregister for an unknown node
+        response = network.receive_unregister_message(unknown, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        assert len(directory._directory) == 2
+
+        # Receive an unregister for a known node
+        response = network.receive_unregister_message(node_1, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        assert len(directory._directory) == 1
+        assert "node_2" in directory._directory
+        assert directory._directory["node_2"].name == "node_2"
+        assert directory._directory["node_2"].role == "role_2"
+        assert directory._directory["node_2"].ip == "6.7.8.9"
+
+        # Receive another unregister for the same node just unregistered
+        response = network.receive_unregister_message(node_1, directory)
+        assert response._body == network.OK
+        assert response._status == OK_200
+        assert len(directory._directory) == 1
+        assert "node_2" in directory._directory
+        assert directory._directory["node_2"].name == "node_2"
+        assert directory._directory["node_2"].role == "role_2"
+        assert directory._directory["node_2"].ip == "6.7.8.9"
 
     def test_send_heartbeat_message(self) -> None:
         assert network.send_heartbeat_message(None) == "heartbeat message sent to coordinator"
@@ -409,8 +442,8 @@ class TestMessages:
         Validates the heartbeat method correctly extracts the JSON data and
         registers the node with the directory.
         """
-        node_1 = MockRequest(POST, "/register/", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        node_2 = MockRequest(POST, "/register/", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        node_1 = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        node_2 = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
 
         directory = DirectoryController()
 

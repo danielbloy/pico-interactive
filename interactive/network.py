@@ -8,6 +8,9 @@
 # Templating of results:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
+
+# TODO: Extract the directory service out as it is not often needed and uses lots of RAM
+
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404, BAD_REQUEST_400
 
