@@ -138,55 +138,57 @@ class TestRoutes:
         """
         monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
 
-        controller = DirectoryController()
+        directory = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/unregister", network.unregister, controller)
+        validate_methods({GET, POST, PUT}, "/unregister", network.unregister, directory)
 
         request = MockRequest(GET, "/unregister")
-        response = network.unregister(request, controller)
+        response = network.unregister(request, directory)
         assert response._body == 'unregistered from coordinator'
         assert response._status == OK_200
-
         # TODO: Validate that the message is sent and a valid response is returned.
-        assert len(controller._directory) == 0
+        assert len(directory._directory) == 0
 
-        # TODO: Validate unregister from an empty directory
-        request = MockRequest(POST, "/unregister")
-        response = network.unregister(request, controller)
+        # Validate unregister from an empty directory
+        request = MockRequest(POST, "/unregister", body='{"name":"node_1"}')
+        response = network.unregister(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
-
-        assert len(controller._directory) == 0
+        assert len(directory._directory) == 0
 
         # Add some entries
-        controller.register_endpoint("a.b.c.d", "node1", "role1")
-        controller.register_endpoint("1.2.3.4", "node2", "role2")
-        assert len(controller._directory) == 2
+        directory.register_endpoint("1.2.3.4", "node_1", "role_1")
+        directory.register_endpoint("6.7.8.9", "node_2", "role_2")
+        assert len(directory._directory) == 2
 
-        # TODO: Unregister an unknown endpoint
-        request = MockRequest(PUT, "/unregister")
-        response = network.unregister(request, controller)
+        # Unregister an unknown endpoint
+        request = MockRequest(PUT, "/unregister", body='{"name":"node_3"}')
+        response = network.unregister(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
+        assert len(directory._directory) == 2
 
-        assert len(controller._directory) == 2
-
-        # TODO: Unregister unknown endpoint
-        request = MockRequest(PUT, "/unregister")
-        response = network.unregister(request, controller)
+        # Unregister a known endpoint
+        request = MockRequest(PUT, "/unregister", body='{"name":"node_2"}')
+        response = network.unregister(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
+        assert len(directory._directory) == 1
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
 
-        # TODO: Lookup the other name to validate the correct item was removed.
-        assert len(controller._directory) == 1
-
-        # TODO: Unregister the same  endpoint
-        request = MockRequest(PUT, "/unregister")
-        response = network.unregister(request, controller)
+        # Unregister the same endpoint
+        request = MockRequest(PUT, "/unregister", body='{"name":"node_2"}')
+        response = network.unregister(request, directory)
         assert response._body == network.OK
         assert response._status == OK_200
-
-        assert len(controller._directory) == 1
+        assert len(directory._directory) == 1
+        assert "node_1" in directory._directory
+        assert directory._directory["node_1"].name == "node_1"
+        assert directory._directory["node_1"].role == "role_1"
+        assert directory._directory["node_1"].ip == "1.2.3.4"
 
     def test_heartbeat_errors_correctly(self, monkeypatch) -> None:
         """
