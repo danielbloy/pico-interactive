@@ -21,8 +21,13 @@ BUTTON_SHORT_DURATION_MS = 200
 # The timeframe to consider a button being pressed should register as a long press.
 BUTTON_LONG_DURATION_MS = 2000
 
+# * * * * *    D I R E C T O R Y    * * * * *
+# How long a registered name lasts before expiry
+DIRECTORY_EXPIRY_DURATION = 120  # 2 minutes
+# The frequency that the directory controller will check for name expiry (every 2 minutes)
+DIRECTORY_EXPIRY_FREQUENCY = 1 / DIRECTORY_EXPIRY_DURATION
+
 # * * * * *    N E T W O R K    * * * * *
 NETWORK_PORT_MICROCONTROLLER = 80
 NETWORK_PORT_DESKTOP = 5001
-NETWORK_HOST_DESKTOP = "127.0.0.1"
-NETWORK_HEARTBEAT_FREQUENCY = 1 / 60  # every 60 seconds.
+NETWORK_HEARTBEAT_FREQUENCY = 1 / (DIRECTORY_EXPIRY_DURATION / 2)  # every 60 seconds.

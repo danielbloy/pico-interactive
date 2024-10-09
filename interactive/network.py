@@ -1,18 +1,3 @@
-from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404
-
-from interactive import configuration
-from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HOST_DESKTOP, \
-    NETWORK_HEARTBEAT_FREQUENCY
-from interactive.environment import is_running_on_microcontroller
-from interactive.log import error, debug, info
-from interactive.polyfills.cpu import info as cpu_info
-from interactive.polyfills.cpu import restart as cpu_restart
-from interactive.polyfills.led import onboard_led
-from interactive.polyfills.network import requests
-from interactive.runner import Runner
-from interactive.scheduler import new_scheduled_task, terminate_on_cancel
-
 # Passing params, json etc:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#form-data-parsing
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#url-parameters-and-wildcards
@@ -24,12 +9,36 @@ from interactive.scheduler import new_scheduled_task, terminate_on_cancel
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
 
+# TODO: Extract the directory service out as it is not often needed and uses lots of RAM
+# TODO: Implement lookup functions.
+# TODO: Implement Inspect
+
+from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
+    POST, PUT, Request, NOT_IMPLEMENTED_501, NOT_FOUND_404, BAD_REQUEST_400, OK_200
+
+from interactive import configuration
+from interactive.configuration import NODE_COORDINATOR
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, NETWORK_HEARTBEAT_FREQUENCY
+from interactive.directory import DirectoryController
+from interactive.environment import is_running_on_microcontroller, is_running_on_desktop
+from interactive.log import debug, info, error
+from interactive.polyfills.cpu import info as cpu_info
+from interactive.polyfills.cpu import restart as cpu_restart
+from interactive.polyfills.led import onboard_led
+from interactive.polyfills.network import requests, get_ip
+from interactive.runner import Runner
+from interactive.scheduler import new_scheduled_task, terminate_on_cancel
+
+# collections.abc is not available in CircuitPython.
+if is_running_on_desktop():
+    from collections.abc import Callable
 
 NO = "NO"
 YES = "YES"
 OK = "OK"
 ON = "ON"
 OFF = "OFF"
+TRIGGERED = "TRIGGERED"
 
 HEADER_NAME = 'name'  # Name of the sender.
 HEADER_ROLE = 'role'  # Role of the sender.
@@ -57,7 +66,7 @@ class NetworkController:
     Instances of this class will need to register() with a Runner in order to work.
     """
 
-    def __init__(self, server):
+    def __init__(self, server, trigger_callback: Callable[[], None] = None):
 
         if server is None:
             raise ValueError("server cannot be None")
@@ -65,12 +74,18 @@ class NetworkController:
         if not isinstance(server, Server):
             raise ValueError("server must be of type Server")
 
+        if trigger_callback is not None:
+            if not callable(trigger_callback):
+                raise ValueError("trigger_callback must be Callable")
+
         self.__runner = None
-        self.__requires_register_with_coordinator = configuration.NODE_COORDINATOR is not None
-        self.__requires_unregister_from_coordinator = configuration.NODE_COORDINATOR is not None
+        self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
+        self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
         self.__requires_heartbeat_messages = False
 
         self.server = server
+        self.trigger_callback = trigger_callback
+        self.directory = DirectoryController()
 
         server.headers = HEADERS
 
@@ -89,13 +104,15 @@ class NetworkController:
             Route("/blink", GET, led_blink, append_slash=True),
             Route("/led/blink", GET, led_blink, append_slash=True),
             Route("/led/<state>", [GET, POST], led_state, append_slash=True),
+            # Trigger route that will call a user specified callback.
+            Route("/trigger", GET, self.__trigger, append_slash=True),
             # Directory service routes
-            Route("/register", [GET, POST], register, append_slash=True),
-            Route("/unregister", [GET, POST], unregister, append_slash=True),
-            Route("/heartbeat", [GET, POST], heartbeat, append_slash=True),
-            Route("/lookup/all", GET, lookup_all, append_slash=True),
-            Route("/lookup/name/<name>", GET, lookup_name, append_slash=True),
-            Route("/lookup/role/<role>", GET, lookup_role, append_slash=True),
+            Route("/register", [GET, POST], lambda req: register(req, self.directory), append_slash=True),
+            Route("/unregister", [GET, POST], lambda req: unregister(req, self.directory), append_slash=True),
+            Route("/heartbeat", [GET, POST], lambda req: heartbeat(req, self.directory), append_slash=True),
+            Route("/lookup/all", GET, lambda req: lookup_all(req, self.directory), append_slash=True),
+            Route("/lookup/name/<name>", GET, lambda req, n: lookup_name(req, self.directory, n), append_slash=True),
+            Route("/lookup/role/<role>", GET, lambda req, r: lookup_role(req, self.directory, r), append_slash=True),
         ])
 
         server.socket_timeout = 1
@@ -103,7 +120,7 @@ class NetworkController:
             if is_running_on_microcontroller():
                 server.start(port=NETWORK_PORT_MICROCONTROLLER)
             else:
-                server.start(host=NETWORK_HOST_DESKTOP, port=NETWORK_PORT_DESKTOP)
+                server.start(port=NETWORK_PORT_DESKTOP)
 
     def register(self, runner: Runner) -> None:
         """
@@ -114,11 +131,12 @@ class NetworkController:
 
         :param runner: the runner to register with.
         """
+        self.directory.register(runner)
         self.__runner = runner
         runner.add_loop_task(self.__serve_requests)
 
         # Only setup the heartbeat task if we have a coordinator.
-        if configuration.NODE_COORDINATOR:
+        if NODE_COORDINATOR:
             scheduled_task = (
                 new_scheduled_task(
                     self.__heartbeat,
@@ -153,7 +171,11 @@ class NetworkController:
                 pass
 
         except OSError as err:
-            error(str(err))
+            # Because on Windows we get annoying BlockingIOErrors when running the network,
+            # we swallow those here as they make all other output difficult to see.
+            ignore = is_running_on_desktop() and type(err) is BlockingIOError
+            if not ignore:
+                error(str(err))
 
     async def __heartbeat(self) -> None:
         """
@@ -163,7 +185,7 @@ class NetworkController:
         check. Therefore, the cancellation is checked __serve_requests()
         """
         if self.__requires_heartbeat_messages:
-            send_heartbeat_message(configuration.NODE_COORDINATOR)
+            send_heartbeat_message(NODE_COORDINATOR)
 
         await self.__register_with_coordinator()
 
@@ -175,7 +197,7 @@ class NetworkController:
             debug("Nodes does not require registration, ignoring.")
             return
 
-        send_register_message(configuration.NODE_COORDINATOR)
+        send_register_message(NODE_COORDINATOR)
         self.__requires_register_with_coordinator = False
         self.__requires_unregister_from_coordinator = True
         self.__requires_heartbeat_messages = True
@@ -189,15 +211,21 @@ class NetworkController:
             debug("Nodes does not require un-registration, ignoring.")
             return
 
-        send_unregister_message(configuration.NODE_COORDINATOR)
+        send_unregister_message(NODE_COORDINATOR)
         self.__requires_unregister_from_coordinator = False
         self.__requires_register_with_coordinator = True
         self.__requires_heartbeat_messages = False
 
+    def __trigger(self, request: Request):
+        """
+        Call the trigger method if one is specified.
+        """
+        return trigger(request, self.trigger_callback)
 
-def send_message(path: str, host: str = configuration.NODE_COORDINATOR,
+
+def send_message(path: str, host: str = NODE_COORDINATOR,
                  protocol: str = "http", method="GET",
-                 data=None, json=None):
+                 data=None, json=None) -> Response:
     """
     Sends a message with the provided payload to the specified node, ensuring headers are included.
     """
@@ -316,9 +344,23 @@ def led_state(request: Request, state: str):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-##############################################################
-# ***** G E N E R AL    S E R V I C E    M E S S A G E S *****
-##############################################################
+def trigger(request: Request, trigger_callback: Callable[[], None]):
+    """
+    Calls the trigger
+    """
+    if request.method == GET:
+        if trigger_callback:
+            trigger_callback()
+            return Response(request, TRIGGERED)
+        else:
+            return Response(request, NO)
+
+    return Response(request, NO, status=NOT_FOUND_404)
+
+
+###############################################################
+# ***** G E N E R A L    S E R V I C E    M E S S A G E S *****
+###############################################################
 
 onboard_led = onboard_led()
 
@@ -357,79 +399,84 @@ def receive_led_message(request: Request, state: str) -> str:
 # ***** D I R E C T O R Y    S E R V I C E    R O U T E S *****
 ###############################################################
 
-def register(request: Request):
+
+def __standard_directory_method(
+        request: Request, directory: DirectoryController,
+        get_func: Callable[[str], str],
+        post_func: Callable[[Request, DirectoryController], Response]):
+    """
+    The register, unregister and heartbeat messages all have exactly the
+    same form, the only difference being the operations. This function
+    wraps up the logic which validates the arguments and properties that
+    are required.
+    """
+    if directory is None:
+        raise ValueError("No directory controller specified")
+
+    if request.method == GET:
+        if NODE_COORDINATOR is None:
+            raise ValueError("No coordinator configured")
+
+        return Response(request, get_func(NODE_COORDINATOR))
+
+    if request.method in [POST, PUT]:
+        return post_func(request, directory)
+
+    return Response(request, NO, status=NOT_FOUND_404)
+
+
+def register(request: Request, directory: DirectoryController):
     """
     GET: Register this node with the coordinator. Will return an error if the
          coordinator configuration is not set.
-    POST: Another node wants to register with us.
+    POST, PUT: Another node wants to register with us.
     """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
-    if request.method == GET:
-        return Response(request, send_register_message(configuration.NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
-        return Response(request, receive_register_message(request))
-
-    return Response(request, NO, status=NOT_FOUND_404)
+    return __standard_directory_method(request, directory, send_register_message, receive_register_message)
 
 
-def unregister(request: Request):
+def unregister(request: Request, directory: DirectoryController):
     """
     GET: Unregister this node from the coordinator.
-    POST: Another node wants to unregister from us.
+    POST, PUT: Another node wants to unregister from us.
     """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
-    if request.method == GET:
-        return Response(request, send_unregister_message(configuration.NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
-        return Response(request, receive_unregister_message(request))
-
-    return Response(request, NO, status=NOT_FOUND_404)
+    return __standard_directory_method(request, directory, send_unregister_message, receive_unregister_message)
 
 
-def heartbeat(request: Request):
+def heartbeat(request: Request, directory: DirectoryController):
     """
     GET: Sends a heartbeat message from this node to the coordinator.
-    POST: Another node has sent a heartbeat message to us.
+    POST, PUT: Another node has sent a heartbeat message to us.
     """
-    # TODO: what to do if configuration.NODE_COORDINATOR is None
-    if request.method == GET:
-        return Response(request, send_heartbeat_message(configuration.NODE_COORDINATOR))
-
-    if request.method in [POST, PUT]:
-        return Response(request, receive_heartbeat_message(request))
-
-    return Response(request, NO, status=NOT_FOUND_404)
+    return __standard_directory_method(request, directory, send_heartbeat_message, receive_heartbeat_message)
 
 
-def lookup_all(request: Request):
+def lookup_all(request: Request, directory: DirectoryController):
     """
     Return all known nodes
     """
-    # TODO: Implement
+    # TODO: Implement by returning JSON.
     if request.method == GET:
         return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def lookup_name(request: Request, name: str):
+def lookup_name(request: Request, directory: DirectoryController, name: str):
     """
     Returns all known nodes by name.
     """
-    # TODO: Implement
+    # TODO: Implement by returning JSON
     if request.method == GET:
         return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def lookup_role(request: Request, role: str):
+def lookup_role(request: Request, directory: DirectoryController, role: str):
     """
     Returns all known nodes by role.
     """
-    # TODO: Implement
+    # TODO: Implement by returning JSON
     if request.method == GET:
         return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
@@ -441,41 +488,140 @@ def lookup_role(request: Request, role: str):
 ###################################################################
 
 def send_register_message(node: str) -> str:
-    info("Registering node with coordinator...")
-    # TODO
-    return "registered with coordinator"
+    """
+    Sends a register message to the specified node.
+    """
+    info(f"Registering with {node}...")
+
+    try:
+        data = configuration.details()
+        data["ip"] = get_ip()
+        with send_message(host=node, path='/register', json=data) as response:
+            if response._status == OK_200:
+                return YES
+            else:
+                return NO
+
+    except Exception as e:
+        return NO
 
 
-def receive_register_message(request: Request) -> str:
+def receive_register_message(request: Request, directory: DirectoryController) -> Response:
+    """
+    Registers the details about the provided node with the given directory controller.
+    The format of the expected body JSON is:
+
+    {
+        "ip": "1.2.3.4",
+        "name": "node_name",
+        "role": "node_role"
+    }
+    """
     info("Registering node...")
-    # TODO
-    return OK
+
+    if request is None:
+        raise ValueError("No request specified")
+
+    if directory is None:
+        raise ValueError("No directory controller specified")
+
+    try:
+        data = request.json()
+        if "ip" not in data:
+            return Response(request, "NO_IP_ADDRESS_SPECIFIED", status=BAD_REQUEST_400)
+
+        if "name" not in data:
+            return Response(request, "NO_NAME_SPECIFIED", status=BAD_REQUEST_400)
+
+        if "role" not in data:
+            return Response(request, "NO_ROLE_SPECIFIED", status=BAD_REQUEST_400)
+
+        directory.register_endpoint(data["ip"], data["name"], data["role"])
+        info(f'Registered node: {data["name"]}, role: {data["role"]}, ip: {data["ip"]}')
+
+    except Exception as e:
+        return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
+
+    return Response(request, OK)
 
 
-def send_unregister_message(node) -> str:
-    info("Unregistering node from coordinator...")
-    # TODO
-    # TODO: Remove the invocation of quotes
-    # with send_message(protocol='https', host='www.adafruit.com', path='api/quotes.php') as response:
-    #    print(response.headers)
-    #    print(response.text)
+def send_unregister_message(node: str) -> str:
+    """
+    Sends an unregister message to the specified node.
+    """
+    info(f"Registering from {node}...")
 
-    return "unregistered from coordinator"
+    try:
+        data = configuration.details()
+        data["ip"] = get_ip()
+        with send_message(host=node, path='/unregister', json=data) as response:
+            if response._status == OK_200:
+                return YES
+            else:
+                return NO
+
+    except:
+        return NO
 
 
-def receive_unregister_message(request: Request) -> str:
+def receive_unregister_message(request: Request, directory: DirectoryController) -> Response:
+    """
+    Simply unregisters the node. If it does not exist, no error is thrown.
+    The format of the expected body JSON is:
+    {
+        "name": "node_name"
+    }
+    """
     info("Unregistering node...")
-    # TODO
-    return OK
+
+    if request is None:
+        raise ValueError("No request specified")
+
+    if directory is None:
+        raise ValueError("No directory controller specified")
+
+    try:
+        data = request.json()
+        if not "name" in data:
+            return Response(request, "NO_NAME_SPECIFIED", status=BAD_REQUEST_400)
+
+        directory.unregister_endpoint(data["name"])
+        info(f'unregistered node: {data["name"]}')
+
+    except Exception as e:
+        return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
+
+    return Response(request, OK)
 
 
 def send_heartbeat_message(node: str) -> str:
-    info("Sending heartbeat message to coordinator...")
-    # TODO
-    return "heartbeat message sent to coordinator"
+    """
+    Sends a heartbeat message to the specified node.
+    """
+    info(f"Heartbeat with {node}...")
+
+    try:
+        data = configuration.details()
+        data["ip"] = get_ip()
+        with send_message(host=node, path='/heartbeat', json=data) as response:
+            if response._status == OK_200:
+                return YES
+            else:
+                return NO
+
+    except:
+        return NO
 
 
-def receive_heartbeat_message(request: Request) -> str:
+def receive_heartbeat_message(request: Request, directory: DirectoryController) -> Response:
+    """
+    This simply re-routes to register as it is effectively the same.
+
+    FUTURE: We could at some future point put in an optimisation here to
+            lookup whether an item has already been registered. If such
+            a case, we would already have the ip, name and role so as long
+            as at least one of ip or name was registered, the other data
+            would become optional.
+    """
     info("Received heartbeat message...")
-    # TODO
-    return "TODO heartbeat message received from node"
+    return receive_register_message(request, directory)

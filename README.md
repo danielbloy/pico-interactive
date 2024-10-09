@@ -2,11 +2,25 @@
 
 This project brings together the ideas behind three projects created in 2023 into
 a single common (easily extensible) framework that can be used with a range of
-CircuitPython boards (though primarily designed for
-[Raspberry Pi Pico](https://thepihut.com/products/raspberry-pi-pico-w?variant=41952994787523)).
+CircuitPython boards (though originally designed
+for [Raspberry Pi Pico](https://thepihut.com/products/raspberry-pi-pico-w?variant=41952994787523)).
 The framework is designed to be used for single board projects used in Coding Clubs
 up to larger interactive display installations that consist of many boards each
-performing in isolation or coordinated over network connections.
+performing in isolation or coordinated over network connections. The framework has
+been tested and works on the following boards:
+
+* Raspberry Pi Pico
+* Raspberry Pi Pico W
+* PCs running Windows (pins via Blinka though beware the limitations on pin performance)
+
+The following devices are also in testing phase for support
+
+* Raspberry Pi 3A+ (pins via Blinka)
+* Raspberry Pi Zero 2 W (pins via Blinka)
+
+The following devices will be added once CircuitPython support is added:
+
+* Pico 2
 
 The basic structure of this project is:
 
@@ -47,14 +61,13 @@ the end of this readme for more information about the license.
 
 * [x] Recreate originals/christmas in demo
 * [ ] Recreate originals/light_jars in demo
-* [ ] Recreate originals/halloween
-    * [ ] Migrate code from path node
+* [x] Recreate originals/halloween
+    * [x] Migrate code from path node
     * [ ] Implement spider node
     * [ ] Implement thunder node
-    * [ ] Implement coordinator node that runs on the laptop
-    * [ ] Implement node communications
-    * [ ] Migrate Witch node
-    * [ ] Implement Pixie node
+    * [x] Implement coordinator node that runs on the laptop
+    * [x] Implement node communications
+    * [x] Migrate Witch node
 
 ## List of outstanding tasks for the basic framework
 
@@ -101,24 +114,13 @@ the end of this readme for more information about the license.
 * [ ] Add current time of day support via Wi-Fi
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
-* [ ] Add support for network node information page: index, inspect, cpu-information
-* [ ] Add support for standard messages: alive, name, role, blink, led on/off, restart
-* [ ] Add support for network directory via coordinator node (PC/Raspberry Pi) (register/unregister, heartbeat etc.)
+* [x] Add support for network node information page: index, inspect, cpu-information
+* [x] Add support for standard messages: alive, name, role, blink, led on/off, restart, trigger
+* [x] Add support for network directory via coordinator node (PC/Raspberry Pi) (register/unregister, heartbeat etc.)
 * [ ] Add support for custom messages on nodes
 * [ ] Add UART support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
-* [ ] Add OLED Display support, including cycling through screen pages
-    * [ ] Works on CircuitPython
-    * [ ] Works with Blinka
-* [ ] OLED display pages available for:
-    * [ ] NeoPixels
-    * [ ] LEDs
-    * [ ] Ultrasonic
-    * [ ] AudioBoard
-    * [ ] UART
-    * [ ] Wi-Fi
-    * [ ] Messaging/discovery/coordination
 * [ ] Make a pico-interactive release (
   see [Creating and sharing a CircuitPython library](https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library?view=all#mpy-2982472-11)):
     * [ ] Compile to`.mpy` files

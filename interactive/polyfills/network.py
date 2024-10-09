@@ -43,6 +43,10 @@ if is_running_on_microcontroller():
     requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 
+    def get_ip():
+        return wifi.radio.ipv4_address
+
+
 else:
     import socket
     import toml
@@ -54,11 +58,28 @@ else:
 
     pool = socket
 
+    import socket
+
 
     def __hide() -> None:
         """This is not expected to be needed but stops PyCharm removing the import"""
         request: requests.Request
         del request
+
+
+    def get_ip():
+        # from https://stackoverflow.com/a/28950776
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.254.254.254', 1))
+            IP = s.getsockname()[0]
+        except:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
 
 def new_server(debug: bool = False) -> Server:

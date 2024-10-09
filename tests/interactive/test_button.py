@@ -77,16 +77,16 @@ class TestButtonController:
         controller = ButtonController(button)
 
         # This should be fine.
-        controller.add_single_click_handler(None)
+        controller.add_single_press_handler(None)
 
         async def handler():
             pass
 
         # This will also be fine.
-        controller.add_single_click_handler(handler)
+        controller.add_single_press_handler(handler)
 
         # This will also be fine.
-        controller.add_single_click_handler(None)
+        controller.add_single_press_handler(None)
 
     def test_adding_multi_click_handler(self) -> None:
         """
@@ -97,16 +97,16 @@ class TestButtonController:
         controller = ButtonController(button)
 
         # This should be fine.
-        controller.add_multi_click_handler(None)
+        controller.add_multi_press_handler(None)
 
         async def handler():
             pass
 
         # This will also be fine.
-        controller.add_multi_click_handler(handler)
+        controller.add_multi_press_handler(handler)
 
         # This will also be fine.
-        controller.add_multi_click_handler(None)
+        controller.add_multi_press_handler(None)
 
     def test_adding_long_press_handler(self) -> None:
         """
@@ -171,8 +171,8 @@ class TestButtonController:
 
     def test_running_with_only_single_click_handler(self) -> None:
         """
-        Validates that running with just the single-click handler only
-        raises single-click events.
+        Validates that running with just the single-press handler only
+        raises single-ress events.
         """
         called_count: int = 0
 
@@ -190,10 +190,10 @@ class TestButtonController:
         runner = Runner()
         button = MockButton()
         controller = ButtonController(button)
-        controller.add_single_click_handler(single_click)
+        controller.add_single_press_handler(single_click)
         controller.register(runner)
 
-        # First we run generating all events except single-clicks
+        # First we run generating all events except single-press
         button.short_count_pattern = [0, 2, 3]
         button.long_press_pattern = [True, False]
         runner.run(callback)
@@ -214,8 +214,8 @@ class TestButtonController:
 
     def test_running_with_only_multi_click_handler(self) -> None:
         """
-        Validates that running with just the multi-click handler only
-        raises multi-click events.
+        Validates that running with just the multi-press handler only
+        raises multi-press events.
         """
         called_count: int = 0
 
@@ -233,10 +233,10 @@ class TestButtonController:
         runner = Runner()
         button = MockButton()
         controller = ButtonController(button)
-        controller.add_multi_click_handler(multi_click)
+        controller.add_multi_press_handler(multi_click)
         controller.register(runner)
 
-        # First we run generating all events except multi-clicks
+        # First we run generating all events except multi-press
         button.short_count_pattern = [0, 1]
         button.long_press_pattern = [True, False]
         runner.run(callback)
@@ -331,8 +331,8 @@ class TestButtonController:
         runner = Runner()
         button = MockButton()
         controller = ButtonController(button)
-        controller.add_single_click_handler(single_click)
-        controller.add_multi_click_handler(multi_click)
+        controller.add_single_press_handler(single_click)
+        controller.add_multi_press_handler(multi_click)
         controller.add_long_press_handler(long_press)
         controller.register(runner)
 
@@ -347,7 +347,7 @@ class TestButtonController:
         assert multi_click_count == 0
         assert long_press_count == 0
 
-        # Now we run generating just single-click events
+        # Now we run generating just single-press events
         called_count = 0
         button.update_count = 0
         button.short_count_pattern = [0, 1]
@@ -362,7 +362,7 @@ class TestButtonController:
         assert multi_click_count == 0
         assert long_press_count == 0
 
-        # Now we run generating just multi-click events
+        # Now we run generating just multi-press events
         called_count = 0
         button.update_count = 0
         button.short_count_pattern = [0, 2, 3]

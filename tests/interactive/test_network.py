@@ -1,13 +1,13 @@
+import asyncio
 import socket
 from collections.abc import Callable, Awaitable
 
 import pytest
 from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501, NOT_FOUND_404, PUT, DELETE, \
-    PATCH, HEAD, OPTIONS, TRACE, CONNECT
+    PATCH, HEAD, OPTIONS, TRACE, CONNECT, BAD_REQUEST_400
 
 import interactive.control as control
 import interactive.network as network
-from interactive import configuration
 from interactive.configuration import NODE_NAME, NODE_ROLE
 from interactive.network import NetworkController, HEADER_NAME, HEADER_ROLE
 from interactive.runner import Runner
@@ -35,7 +35,7 @@ class MockServer(Server):
 
 
 class MockRequest(Request):
-    def __init__(self, method, route: str, body: str = None):
+    def __init__(self, method, route: str, body: str = ""):
         server = MockServer()
         raw_request = bytes(
             f"{method} {route} HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: test-framework\r\nAccept: */*\r\n\r\n{body}",
@@ -53,19 +53,12 @@ def validate_methods(valid_methods, route, fn, *args) -> None:
         response = fn(request, *args)
 
         if method in valid_methods:
-            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501
+            # Bad request is allowed here as it generally means the body data is not formatted correctly
+            # and as we don't pass in a body we expect it to fail.
+            assert response._status == OK_200 or response._status == NOT_IMPLEMENTED_501 or response._status == BAD_REQUEST_400
         else:
             assert response._body == network.NO
             assert response._status == NOT_FOUND_404
-
-
-# This is used to mock out the network.send_message function to avoid us actually sending
-# network calls during the tests.
-def mock_send_message(path: str, host: str = configuration.NODE_COORDINATOR,
-                      protocol: str = "http", method="GET",
-                      data=None, json=None):
-    pass
-    # TODO: This needs to return a valid response object.
 
 
 class TestNetwork:
@@ -87,6 +80,29 @@ class TestNetwork:
         with pytest.raises(ValueError):
             # noinspection PyTypeChecker
             NetworkController("")
+
+    def test_creating_with_invalid_callback_errors(self) -> None:
+        """
+        Validates that a NetworkController cannot be constructed with
+        a trigger_callback value that is not a Callable.
+        """
+        server = MockServer()
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            NetworkController(server, "")
+
+    def test_creating_with_valid_callback_is_fine(self) -> None:
+        """
+        Validates that a NetworkController can be constructed with
+        a trigger_callback value that is a Callable.
+        """
+        server = MockServer()
+
+        def trigger():
+            pass
+
+        # noinspection PyTypeChecker
+        NetworkController(server, trigger_callback=trigger)
 
     def test_server_configured_correctly(self) -> None:
         """
@@ -124,6 +140,7 @@ class TestNetwork:
                 route.path == "/lookup/name/<name>" and route.methods == {GET}]
         assert [route for route in server._routes if
                 route.path == "/lookup/role/<role>" and route.methods == {GET}]
+        assert [route for route in server._routes if route.path == "/trigger" and route.methods == {GET}]
 
         # Check the server has started.
         assert not server.stopped
@@ -131,9 +148,38 @@ class TestNetwork:
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
 
+    def test_server_routes_configured_correctly(self, monkeypatch) -> None:
+        """
+        Validates that the server routes are wired up correctly.
+        """
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
+
+        server = MockServer()
+        controller = NetworkController(server)
+
+        # Now call each of the routes. All we are doing here is validating that they
+        # are wired up correctly and as expected, not that they do anything useful.
+        # Later tests will perform those checks.
+        #
+        # NOTE: This needs to be done in an async loop.
+        async def __execute():
+            for route in server._routes:
+                request = MockRequest(GET, route.path)
+
+                # We need to handle the methods that have parameters differently
+                if (route.path == "/led/<state>"
+                        or route.path == "/lookup/name/<name>"
+                        or route.path == "/lookup/role/<role>"):
+                    route.handler(request, "single parameter")
+                else:
+                    route.handler(request)
+
+        asyncio.run(__execute())
+
     def test_registering_with_runner(self) -> None:
         """
         Validates the NetworkController registers with the Runner, no coordinator.
+        This will register itself and its internal directory controller.
         """
         add_task_count: int = 0
 
@@ -151,7 +197,7 @@ class TestNetwork:
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
-        assert add_task_count == 1
+        assert add_task_count == 2
         assert server.start_called_count == 1
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
@@ -159,10 +205,11 @@ class TestNetwork:
     def test_registering_with_runner_with_coordinator(self, monkeypatch) -> None:
         """
         Validates the NetworkController registers with the Runner and with coordinator.
+        This will also register its internal directory controller.
         """
         add_task_count: int = 0
 
-        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "127.0.0.1")
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
 
         class TestRunner(Runner):
             def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
@@ -184,7 +231,7 @@ class TestNetwork:
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
-        assert add_task_count == 2
+        assert add_task_count == 3
         assert server.start_called_count == 1
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
@@ -275,7 +322,7 @@ class TestNetwork:
 
         # Now we setup the coordinator variables so we should get a register,
         # unregister and some heartbeat messages.
-        monkeypatch.setattr(configuration, 'NODE_COORDINATOR', "123.45.67.89")
+        monkeypatch.setattr(network, 'NODE_COORDINATOR', "123.45.67.89")
         monkeypatch.setattr(network, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
 
         called_count = 0
@@ -294,110 +341,3 @@ class TestNetwork:
         assert heartbeat_called_count < 5
         assert register_called_count == 1
         assert unregister_called_count == 1
-
-# print(request)
-# print(f"METHOD ... : '{request.method}'")
-# print(f"PATH ..... : '{request.path}'")
-# print(f"QPARAMS .. : '{request.query_params}'")
-# print(f"HTTPV .... : '{request.http_version}'")
-# print(f"HEADERS .. : '{request.headers}'")
-# print(f"RAW ...... : '{request.raw_request}'")
-
-
-# C:\Users\danie>curl --verbose http://127.0.0.1:5001/index.html
-# *   Trying 127.0.0.1:5001...
-# * Connected to 127.0.0.1 (127.0.0.1) port 5001
-# > GET /index.html HTTP/1.1
-# > Host: 127.0.0.1:5001
-# > User-Agent: curl/8.8.0
-# > Accept: */*
-# >
-# * Request completely sent off
-# < HTTP/1.1 200 OK
-# < name: <hostname>
-# < role: <host role>
-# < content-type: text/html
-# < content-length: 345
-# < connection: close
-# <
-# <!DOCTYPE html>
-# <html lang="en">
-# <head>
-#     <meta charset="UTF-8">
-#     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-#     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-#     <title>Pico Interactive</title>
-# </head>
-# <body>
-# <p>Hello from the <strong>CircuitPython HTTP Server!</strong></p>
-# </body>
-# </html>
-# * Closing connection
-
-# Server
-# <Request "GET /index.html">
-# METHOD ... : 'GET'
-# PATH ..... : '/index.html'
-# QPARAMS .. : ''
-# HTTPV .... : 'HTTP/1.1'
-# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
-# RAW ...... : 'b'GET /index.html HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''
-
-
-# C:\Users\danie>  curl --verbose http://127.0.0.1:5001/register -X POST -H "Content-Type: application/json" -d "{\"key1\":\"value1\", \"key2\":\"value2\"}"
-# Note: Unnecessary use of -X or --request, POST is already inferred.
-# *   Trying 127.0.0.1:5001...
-# * Connected to 127.0.0.1 (127.0.0.1) port 5001
-# > POST /register HTTP/1.1
-# > Host: 127.0.0.1:5001
-# > User-Agent: curl/8.8.0
-# > Accept: */*
-# > Content-Type: application/json
-# > Content-Length: 34
-# >
-# * upload completely sent off: 34 bytes
-# < HTTP/1.1 200 OK
-# < name: <hostname>
-# < role: <host role>
-# < content-type: text/plain
-# < content-length: 2
-# < connection: close
-# <
-# OK* Closing connection
-
-# Server
-# <Request "POST /register">
-# METHOD ... : 'POST'
-# PATH ..... : '/register'
-# QPARAMS .. : ''
-# HTTPV .... : 'HTTP/1.1'
-# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*'], 'content-type': ['application/json'], 'content-length': ['34']}>'
-# RAW ...... : 'b'POST /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\nContent-Type: application/json\r\nContent-Length: 34\r\n\r\n{"key1":"value1", "key2":"value2"}''
-
-
-# C:\Users\danie>curl --verbose http://127.0.0.1:5001/register
-# *   Trying 127.0.0.1:5001...
-# * Connected to 127.0.0.1 (127.0.0.1) port 5001
-# > GET /register HTTP/1.1
-# > Host: 127.0.0.1:5001
-# > User-Agent: curl/8.8.0
-# > Accept: */*
-# >
-# < HTTP/1.1 200 OK
-# < name: <hostname>
-# < role: <host role>
-# < content-type: text/plain
-# < content-length: 27
-# < connection: close
-# <
-# registered with coordinator* we are done reading and this is set to close, stop send
-# * Closing connection
-
-# Server
-# <Request "GET /register">
-# METHOD ... : 'GET'
-# PATH ..... : '/register'
-# QPARAMS .. : ''
-# HTTPV .... : 'HTTP/1.1'
-# HEADERS .. : '<Headers {'host': ['127.0.0.1:5001'], 'user-agent': ['curl/8.8.0'], 'accept': ['*/*']}>'
-# RAW ...... : 'b'GET /register HTTP/1.1\r\nHost: 127.0.0.1:5001\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n''

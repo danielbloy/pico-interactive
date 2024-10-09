@@ -6,6 +6,7 @@ from adafruit_httpserver import GET, Request, OK_200
 from interactive import configuration
 from interactive import network
 from interactive.polyfills import cpu
+from network import NO, TRIGGERED
 from test_network import validate_methods, MockRequest
 
 
@@ -198,6 +199,39 @@ class TestRoutes:
         assert len(response._headers) == 0
 
         assert message_called_count == 2
+
+    def test_trigger_returns_no_when_no_trigger_defined(self):
+        """
+        Validates that the trigger returns NO when no trigger defined.
+        """
+        validate_methods({GET}, "/trigger", network.trigger, None)
+
+        request = MockRequest(GET, "/trigger")
+        response = network.trigger(request, None)
+        assert response._body == NO
+        assert response._status == OK_200
+        assert len(response._headers) == 0
+
+    def test_trigger_returns_ok_when_trigger_defined(self):
+        """
+        Validates that the trigger returns ok and the trigger is called when
+        a trigger is defined.
+        """
+        callback_called_count = 0
+
+        def callback() -> None:
+            nonlocal callback_called_count
+            callback_called_count += 1
+
+        validate_methods({GET}, "/trigger", network.trigger, callback)
+        assert callback_called_count == 1
+
+        request = MockRequest(GET, "/trigger")
+        response = network.trigger(request, callback)
+        assert response._body == TRIGGERED
+        assert response._status == OK_200
+        assert len(response._headers) == 0
+        assert callback_called_count == 2
 
 
 class TestMessages:

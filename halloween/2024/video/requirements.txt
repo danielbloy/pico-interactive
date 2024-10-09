@@ -1,0 +1,3 @@
+# These requirements are those that are over and above what is needed for pico-interactive.
+pygame~=2.6.1
+moviepy~=1.0.3

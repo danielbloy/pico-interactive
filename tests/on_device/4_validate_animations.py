@@ -22,7 +22,8 @@ BUTTON_PIN = None
 LED_YELLOW = None
 LED_GREEN = None
 LED_RED = None
-PIXELS_PIN = None
+PIXELS_PIN = None  # This is the single onboard NeoPixel connector
+PIXELS_MULTI_PINS = None  # This is a list of all additional NeoPixel connectors on the board.
 
 if are_pins_available():
     # noinspection PyPackageRequirements
@@ -33,6 +34,9 @@ if are_pins_available():
     LED_GREEN = board.GP5
     LED_RED = board.GP1
     PIXELS_PIN = board.GP28
+    # Uncomment if testing one of the Halloween boards; the pins conflict with the LEDs
+    PIXELS_MULTI_PINS = []
+    # PIXELS_MULTI_PINS = [board.GP5, board.GP6, board.GP7, board.GP8, board.GP9, board.GP10]
 
 if __name__ == '__main__':
 
@@ -86,11 +90,17 @@ if __name__ == '__main__':
     ]
     animation = AnimationSequence(*animations, advance_interval=5)
 
+    pixels_multi = [new_pixels(pin, 8, brightness=0.5) for pin in PIXELS_MULTI_PINS]
+    animations_multi = [Flicker(pixels, speed=0.1, color=RED, spacing=2) for pixels in pixels_multi]
+
 
     async def animate_pixels() -> None:
         if not runner.cancel:
             if animation:
                 animation.animate()
+
+            for animation_multi in animations_multi:
+                animation_multi.animate()
 
 
     runner.add_loop_task(animate_pixels)
@@ -113,8 +123,8 @@ if __name__ == '__main__':
 
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
-    button_controller.add_single_click_handler(single_click_handler)
-    button_controller.add_multi_click_handler(multi_click_handler)
+    button_controller.add_single_press_handler(single_click_handler)
+    button_controller.add_multi_press_handler(multi_click_handler)
     button_controller.add_long_press_handler(long_press_handler)
     button_controller.register(runner)
 
@@ -139,6 +149,12 @@ if __name__ == '__main__':
             animation.freeze()
             pixels.fill(BLACK)
             pixels.write()
+
+            for animation_multi in animations_multi:
+                animation_multi.freeze()
+            for pixel_multi in pixels_multi:
+                pixel_multi.fill(BLACK)
+                pixel_multi.write()
 
 
     if REPORT_RAM:

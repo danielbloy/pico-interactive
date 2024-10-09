@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
-    button_controller.add_single_click_handler(single_click_handler)
+    button_controller.add_single_press_handler(single_click_handler)
     button_controller.register(runner)
 
     audio = new_mp3_player(AUDIO_PIN, AUDIO_FILE)

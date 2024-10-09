@@ -14,7 +14,7 @@
 #  curl --verbose http://127.0.0.1:5001/cpu-information
 #  curl --verbose http://127.0.0.1:5001/inspect
 #  curl --verbose http://127.0.0.1:5001/register
-#  curl --verbose http://127.0.0.1:5001/register -X POST -d "{\"key1\":\"value1\", \"key2\":\"value2\"}" -H "Content-Type: application/json"
+#  curl --verbose http://127.0.0.1:5001/register -X POST -d "{\"name\":\"daniel\", \"role\":\"programmer\", \"ip\":\"a.b.c.d\"}" -H "Content-Type: application/json"
 #  curl --verbose http://127.0.0.1:5001/register -X PUT
 #  curl --verbose http://127.0.0.1:5001/unregister
 #  curl --verbose http://127.0.0.1:5001/unregister -X POST -d "{\"key1\":\"value1\", \"key2\":\"value2\"}" -H "Content-Type: application/json"
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
-    button_controller.add_single_click_handler(single_click_handler)
+    button_controller.add_single_press_handler(single_click_handler)
     button_controller.register(runner)
 
     server = new_server(debug=False)
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     network_controller.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 10
+    finish = time.monotonic() + 100
 
 
     async def callback() -> None:
