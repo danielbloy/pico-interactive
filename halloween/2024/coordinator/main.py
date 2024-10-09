@@ -23,7 +23,7 @@ if __name__ == '__main__':
         events = trigger_events.run()
 
         for event in events:
-            pass  # TODO: Implement
+            pass  # TODO: Implement, performing all separate network requests asynchronously.
 
 
     async def stop_display() -> None:
