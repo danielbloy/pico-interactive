@@ -8,9 +8,9 @@ import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request, BAD_REQUEST_400, Status
 from adafruit_requests import Response
 
-from directory import DirectoryController
 from interactive import network
-from network import YES
+from interactive.directory import DirectoryController
+from interactive.network import YES
 from test_network import validate_methods, MockRequest
 
 # This is used to mock out the network.send_message function to avoid us actually sending

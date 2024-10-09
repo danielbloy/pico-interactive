@@ -5,8 +5,8 @@ from adafruit_httpserver import GET, Request, OK_200
 
 from interactive import configuration
 from interactive import network
+from interactive.network import NO, TRIGGERED
 from interactive.polyfills import cpu
-from network import NO, TRIGGERED
 from test_network import validate_methods, MockRequest
 
 
