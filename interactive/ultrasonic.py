@@ -111,7 +111,7 @@ class UltrasonicController:
             # if we have a trigger that can trigger.
             expired_triggers = [trigger for trigger in self.__triggers if now >= trigger.expiry_time]
             if len(expired_triggers) <= 0:
-                debug(f"No triggers are available for triggering, skipping.")
+                debug("No triggers are available for triggering, skipping.")
                 return
 
             self.__last_distance = self.__ultrasonic.distance
