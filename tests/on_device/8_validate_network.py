@@ -69,9 +69,11 @@ if __name__ == '__main__':
     server = new_server(debug=False)
     network_controller = NetworkController(server)
     network_controller.register(runner)
+    directory = DirectoryService(network_controller)
+    directory.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 100
+    finish = time.monotonic() + 10
 
 
     async def callback() -> None:
