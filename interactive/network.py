@@ -82,7 +82,20 @@ class NetworkController:
         server.headers = HEADERS
 
         # Setup standard handlers for built-in messages.
-        server.add_routes([
+        server.add_routes(self.get_routes())
+
+        server.socket_timeout = 1
+        if server.stopped:
+            if is_running_on_microcontroller():
+                server.start(port=NETWORK_PORT_MICROCONTROLLER)
+            else:
+                server.start(port=NETWORK_PORT_DESKTOP)
+
+    def get_routes(self) -> [Route]:
+        """
+        The built-in routes supported by the NetworkController.
+        """
+        return [
             # General service routes.
             Route("/", GET, index),
             Route("/index.html", GET, index),
@@ -98,14 +111,7 @@ class NetworkController:
             Route("/led/<state>", [GET, POST], led_state, append_slash=True),
             # Trigger route that will call a user specified callback.
             Route("/trigger", GET, self.__trigger, append_slash=True),
-        ])
-
-        server.socket_timeout = 1
-        if server.stopped:
-            if is_running_on_microcontroller():
-                server.start(port=NETWORK_PORT_MICROCONTROLLER)
-            else:
-                server.start(port=NETWORK_PORT_DESKTOP)
+        ]
 
     def register(self, runner: Runner) -> None:
         """

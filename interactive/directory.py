@@ -8,7 +8,7 @@ from interactive.configuration import NODE_COORDINATOR
 from interactive.control import DIRECTORY_EXPIRY_DURATION, DIRECTORY_EXPIRY_FREQUENCY, NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_desktop
 from interactive.log import info, debug
-from interactive.network import YES, NO, send_message, OK
+from interactive.network import YES, NO, send_message, OK, NetworkController
 from interactive.polyfills.network import get_ip
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
@@ -175,17 +175,20 @@ class DirectoryService:
 
     Instances of this class will need to register() with a Runner in
     order to work.
-
     """
 
-    def __init__(self):
+    def __init__(self, network: NetworkController):
         self.__runner = None
         self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
         self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
         self.__requires_heartbeat_messages = False
         self.directory = DirectoryController()
+        network.server.add_routes(self.get_routes())
 
     def get_routes(self) -> [Route]:
+        """
+        The built-in routes supported by the DirectoryService.
+        """
         return [
             # Directory service routes
             Route("/register", [GET, POST], lambda req: register(req, self.directory), append_slash=True),
@@ -195,8 +198,6 @@ class DirectoryService:
             Route("/lookup/name/<name>", GET, lambda req, n: lookup_name(req, self.directory, n), append_slash=True),
             Route("/lookup/role/<role>", GET, lambda req, r: lookup_role(req, self.directory, r), append_slash=True),
         ]
-
-    # TODO: Need to do cleanup and unregistration. Maybe a method to register service with network.
 
     def register(self, runner: Runner) -> None:
         """
