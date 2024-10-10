@@ -17,7 +17,7 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP
-from interactive.environment import is_running_on_microcontroller, is_running_on_desktop
+from interactive.environment import is_running_on_microcontroller, is_running_on_desktop, is_running_in_ci
 from interactive.log import error
 from interactive.polyfills.cpu import info as cpu_info
 from interactive.polyfills.cpu import restart as cpu_restart
@@ -88,6 +88,8 @@ class NetworkController:
         if server.stopped:
             if is_running_on_microcontroller():
                 server.start(port=NETWORK_PORT_MICROCONTROLLER)
+            elif is_running_in_ci():
+                server.start(host="127.0.0.1", port=NETWORK_PORT_DESKTOP)
             else:
                 server.start(port=NETWORK_PORT_DESKTOP)
 
