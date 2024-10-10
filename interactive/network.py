@@ -8,8 +8,7 @@
 # Templating of results:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
-
-# TODO: Implement Inspect
+from random import randint
 
 from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
     POST, Request, NOT_FOUND_404
@@ -24,6 +23,8 @@ from interactive.polyfills.cpu import restart as cpu_restart
 from interactive.polyfills.led import onboard_led
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
+
+# TODO: Implement Inspect
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
@@ -89,7 +90,7 @@ class NetworkController:
             if is_running_on_microcontroller():
                 server.start(port=NETWORK_PORT_MICROCONTROLLER)
             elif is_running_in_ci():
-                server.start(host="127.0.0.1", port=NETWORK_PORT_DESKTOP)
+                server.start(host="127.0.0.1", port=randint(5001, 50000))
             else:
                 server.start(port=NETWORK_PORT_DESKTOP)
 
