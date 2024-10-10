@@ -7,7 +7,7 @@ from adafruit_httpserver import GET, POST
 import interactive.directory as directory
 from interactive.control import RUNNER_DEFAULT_CALLBACK_FREQUENCY
 from interactive.directory import DirectoryService
-from runner import Runner
+from interactive.runner import Runner
 from test_directory_messages import mock_send_message
 from test_network import MockRequest
 
