@@ -113,7 +113,7 @@ class Runner:
                 *tasks)
 
         except asyncio.CancelledError:
-            error(f'Caught CancelledError exception cancelling tasks!')
+            error('Caught CancelledError exception cancelling tasks!')
 
         except Exception as e:
             error(f'Caught the following exception cancelling tasks: {e}!')

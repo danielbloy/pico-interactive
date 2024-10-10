@@ -385,7 +385,7 @@ def send_register_message(node: str) -> str:
             else:
                 return NO
 
-    except Exception as e:
+    except:
         return NO
 
 
@@ -422,7 +422,7 @@ def receive_register_message(request: Request, directory: DirectoryController) -
         directory.register_endpoint(data["ip"], data["name"], data["role"])
         info(f'Registered node: {data["name"]}, role: {data["role"]}, ip: {data["ip"]}')
 
-    except Exception as e:
+    except:
         return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
 
     return Response(request, OK)
@@ -465,13 +465,13 @@ def receive_unregister_message(request: Request, directory: DirectoryController)
 
     try:
         data = request.json()
-        if not "name" in data:
+        if "name" not in data:
             return Response(request, "NO_NAME_SPECIFIED", status=BAD_REQUEST_400)
 
         directory.unregister_endpoint(data["name"])
         info(f'unregistered node: {data["name"]}')
 
-    except Exception as e:
+    except:
         return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
 
     return Response(request, OK)
