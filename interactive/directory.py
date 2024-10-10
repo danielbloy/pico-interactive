@@ -19,7 +19,14 @@ if is_running_on_desktop():
 
 
 # TODO: Implement lookup functions.
-
+# print(request)
+# print(f"METHOD ... : '{request.method}'")
+# print(f"PATH ..... : '{request.path}'")
+# print(f"QPARAMS .. : '{request.query_params}'")
+# print(f"HTTPV .... : '{request.http_version}'")
+# print(f"HEADERS .. : '{request.headers}'")
+# print(f"BODY ..... : '{request.body}'")
+# print(f"RAW ...... : '{request.raw_request}'")
 
 class DirectoryController:
     """

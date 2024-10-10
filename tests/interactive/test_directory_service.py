@@ -183,12 +183,3 @@ class TestDirectoryService:
         assert heartbeat_called_count < 5
         assert register_called_count == 1
         assert unregister_called_count == 1
-
-# print(request)
-# print(f"METHOD ... : '{request.method}'")
-# print(f"PATH ..... : '{request.path}'")
-# print(f"QPARAMS .. : '{request.query_params}'")
-# print(f"HTTPV .... : '{request.http_version}'")
-# print(f"HEADERS .. : '{request.headers}'")
-# print(f"BODY ..... : '{request.body}'")
-# print(f"RAW ...... : '{request.raw_request}'")
