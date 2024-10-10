@@ -6,7 +6,6 @@ import pytest
 from adafruit_httpserver import Server, GET, POST, Request, OK_200, NOT_IMPLEMENTED_501, NOT_FOUND_404, PUT, DELETE, \
     PATCH, HEAD, OPTIONS, TRACE, CONNECT, BAD_REQUEST_400
 
-import interactive.control as control
 import interactive.network as network
 from interactive.configuration import NODE_NAME, NODE_ROLE
 from interactive.network import NetworkController, HEADER_NAME, HEADER_ROLE
@@ -106,7 +105,7 @@ class TestNetwork:
 
     def test_server_configured_correctly(self) -> None:
         """
-        Validates that the server is setup correctly. This ignores that there
+        Validates  the server is setup correctly. This ignores that there
         may be a coordinator or not.
         """
         server = MockServer()
@@ -120,7 +119,7 @@ class TestNetwork:
 
         # Check there are some routes. We check for the presence of some of the well
         # known standard ones.
-        assert len(server._routes) >= 17
+        assert len(server._routes) == 13
         assert [route for route in server._routes if route.path == "/" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/index.html" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/inspect" and route.methods == {GET}]
@@ -132,14 +131,6 @@ class TestNetwork:
         assert [route for route in server._routes if route.path == "/blink" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/led/blink" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/led/<state>" and route.methods == {GET, POST}]
-        assert [route for route in server._routes if route.path == "/register" and route.methods == {GET, POST}]
-        assert [route for route in server._routes if route.path == "/unregister" and route.methods == {GET, POST}]
-        assert [route for route in server._routes if route.path == "/heartbeat" and route.methods == {GET, POST}]
-        assert [route for route in server._routes if route.path == "/lookup/all" and route.methods == {GET}]
-        assert [route for route in server._routes if
-                route.path == "/lookup/name/<name>" and route.methods == {GET}]
-        assert [route for route in server._routes if
-                route.path == "/lookup/role/<role>" and route.methods == {GET}]
         assert [route for route in server._routes if route.path == "/trigger" and route.methods == {GET}]
 
         # Check the server has started.
@@ -148,14 +139,12 @@ class TestNetwork:
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
 
-    def test_server_routes_configured_correctly(self, monkeypatch) -> None:
+    def test_server_routes_configured_correctly(self) -> None:
         """
         Validates that the server routes are wired up correctly.
         """
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
-
         server = MockServer()
-        controller = NetworkController(server)
+        NetworkController(server)
 
         # Now call each of the routes. All we are doing here is validating that they
         # are wired up correctly and as expected, not that they do anything useful.
@@ -167,9 +156,7 @@ class TestNetwork:
                 request = MockRequest(GET, route.path)
 
                 # We need to handle the methods that have parameters differently
-                if (route.path == "/led/<state>"
-                        or route.path == "/lookup/name/<name>"
-                        or route.path == "/lookup/role/<role>"):
+                if route.path == "/led/<state>":
                     route.handler(request, "single parameter")
                 else:
                     route.handler(request)
@@ -179,7 +166,7 @@ class TestNetwork:
     def test_registering_with_runner(self) -> None:
         """
         Validates the NetworkController registers with the Runner, no coordinator.
-        This will register itself and its internal directory controller.
+        This will register itself only.
         """
         add_task_count: int = 0
 
@@ -188,50 +175,12 @@ class TestNetwork:
                 nonlocal add_task_count
                 add_task_count += 1
 
-            def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
-                nonlocal add_task_count
-                add_task_count += 1
-
         runner = TestRunner()
         server = MockServer()
         controller = NetworkController(server)
         assert add_task_count == 0
         controller.register(runner)
-        assert add_task_count == 2
-        assert server.start_called_count == 1
-        assert server.stop_called_count == 0
-        assert server.poll_called_count == 0
-
-    def test_registering_with_runner_with_coordinator(self, monkeypatch) -> None:
-        """
-        Validates the NetworkController registers with the Runner and with coordinator.
-        This will also register its internal directory controller.
-        """
-        add_task_count: int = 0
-
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
-
-        class TestRunner(Runner):
-            def add_loop_task(self, task: Callable[[], Awaitable[None]]) -> None:
-                nonlocal add_task_count
-                add_task_count += 1
-
-            def add_task(self, task: Callable[[], Awaitable[None]]) -> None:
-                nonlocal add_task_count
-                add_task_count += 1
-
-        # Monkey patch register out as we don't actually want to perform the register.
-        def register(request):
-            pass
-
-        monkeypatch.setattr(network, 'register', register)
-
-        runner = TestRunner()
-        server = MockServer()
-        controller = NetworkController(server)
-        assert add_task_count == 0
-        controller.register(runner)
-        assert add_task_count == 3
+        assert add_task_count == 1
         assert server.start_called_count == 1
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
@@ -258,86 +207,3 @@ class TestNetwork:
         assert server.start_called_count == 1
         assert server.stop_called_count == 1
         assert server.poll_called_count > 5
-
-    def test_heartbeats(self, monkeypatch) -> None:
-        """
-        Validates that the register, unregister and heartbeat messages are not sent
-        when there is no coordinator set (the default).
-
-        Also validates that the register, unregister and heartbeat messages are sent
-        at the correct points and intervals when a coordinator is set.
-        """
-        heartbeat_called_count = 0
-        register_called_count = 0
-        unregister_called_count = 0
-
-        def heartbeat(node):
-            nonlocal heartbeat_called_count, register_called_count, unregister_called_count
-            assert node == "123.45.67.89"
-            assert register_called_count == 1
-            assert unregister_called_count == 0
-            heartbeat_called_count += 1
-
-        def register(node):
-            nonlocal heartbeat_called_count, register_called_count, unregister_called_count
-            assert node == "123.45.67.89"
-            assert register_called_count == 0
-            assert heartbeat_called_count == 0
-            assert unregister_called_count == 0
-            register_called_count += 1
-
-        def unregister(node):
-            nonlocal heartbeat_called_count, register_called_count, unregister_called_count
-            assert node == "123.45.67.89"
-            assert register_called_count == 1
-            assert unregister_called_count == 0
-            assert heartbeat_called_count > 1
-            unregister_called_count += 1
-
-        monkeypatch.setattr(network, 'send_heartbeat_message', heartbeat)
-        monkeypatch.setattr(network, 'send_register_message', register)
-        monkeypatch.setattr(network, 'send_unregister_message', unregister)
-
-        called_count: int = 0
-
-        async def callback():
-            nonlocal called_count
-            called_count += 1
-            runner.cancel = called_count >= 5
-
-        runner = Runner()
-        server = MockServer()
-        controller = NetworkController(server)
-        controller.register(runner)
-        runner.run(callback)
-
-        assert called_count == 5
-        assert server.start_called_count == 1
-        assert server.stop_called_count == 1
-        assert server.poll_called_count > 5
-
-        assert heartbeat_called_count == 0
-        assert register_called_count == 0
-        assert unregister_called_count == 0
-
-        # Now we setup the coordinator variables so we should get a register,
-        # unregister and some heartbeat messages.
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "123.45.67.89")
-        monkeypatch.setattr(network, 'NETWORK_HEARTBEAT_FREQUENCY', control.RUNNER_DEFAULT_CALLBACK_FREQUENCY)
-
-        called_count = 0
-
-        runner = Runner()
-        server = MockServer()
-        controller = NetworkController(server)
-        controller.register(runner)
-        runner.run(callback)
-
-        assert called_count == 5
-        assert server.start_called_count == 1
-        assert server.stop_called_count == 1
-        assert server.poll_called_count > 5
-
-        assert heartbeat_called_count < 5
-        assert register_called_count == 1
-        assert unregister_called_count == 1
