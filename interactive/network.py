@@ -125,13 +125,6 @@ class NetworkController:
             if not self.server.stopped:
                 self.server.stop()
 
-            # TODO: Need some way for a service to do cleanup- Maybe registerservice provides a cancellation function.
-
-            # This has to be done here as __heartbeat() is wrapped by
-            # a task scheduler which checks for cancellation and
-            # prevents client code running in such a scenario.
-            await self.__unregister_from_coordinator()
-
             return
 
         try:

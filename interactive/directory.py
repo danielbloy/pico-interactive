@@ -205,9 +205,12 @@ class DirectoryService:
         * One for the DirectoryController to handle detail expiration.
         * One to manage the registration of the node with a coordinator, including sending
           regular heartbeat messages.
+        * One to unregister when the task is cancelled.
         """
         self.__runner = runner
         self.directory.register(runner)
+
+        runner.add_loop_task(self.__handle_cancellation)
 
         # Only setup the heartbeat task if we have a coordinator.
         if NODE_COORDINATOR:
@@ -217,6 +220,16 @@ class DirectoryService:
                     terminate_on_cancel(self.__runner),
                     NETWORK_HEARTBEAT_FREQUENCY))
             runner.add_task(scheduled_task)
+
+    async def __handle_cancellation(self) -> None:
+        """
+        Handles unregistering with the coordinator during shutdown.
+        """
+        if self.__runner.cancel:
+            # This has to be done here as __heartbeat() is wrapped by
+            # a task scheduler which checks for cancellation and
+            # prevents client code running in such a scenario.
+            await self.__unregister_from_coordinator()
 
     async def __heartbeat(self) -> None:
         """
