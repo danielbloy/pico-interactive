@@ -45,7 +45,8 @@ class Interactive:
         self.directory_service = None
         if config.directory:
             from interactive.directory import DirectoryService
-            self.directory_service = DirectoryService(self.network_controller)
+            self.directory_service = DirectoryService()
+            self.network_controller.server.add_routes(self.directory_service.get_routes())
             self.directory_service.register(self.runner)
 
         self.button = None

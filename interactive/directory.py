@@ -8,7 +8,7 @@ from interactive.configuration import NODE_COORDINATOR
 from interactive.control import DIRECTORY_EXPIRY_DURATION, DIRECTORY_EXPIRY_FREQUENCY, NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_desktop
 from interactive.log import info, debug
-from interactive.network import YES, NO, send_message, OK, NetworkController
+from interactive.network import YES, NO, send_message, OK
 from interactive.polyfills.network import get_ip
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
@@ -177,13 +177,12 @@ class DirectoryService:
     order to work.
     """
 
-    def __init__(self, network: NetworkController):
+    def __init__(self):
         self.__runner = None
         self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
         self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
         self.__requires_heartbeat_messages = False
         self.directory = DirectoryController()
-        network.server.add_routes(self.get_routes())
 
     def get_routes(self) -> [Route]:
         """
