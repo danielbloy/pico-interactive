@@ -71,6 +71,7 @@ class Config:
         self.garbage_collect = False
         self.garbage_collect_period = 9999
         self.network = False
+        self.directory = False
         self.button_pin = None
         self.button_single_press = None
         self.button_multi_press = None
@@ -89,26 +90,27 @@ class Config:
     def __str__(self):
         return f"""
           Ram:
-            Report ............ : {self.report_ram}
-            Period ............ : {self.report_ram_period} seconds
+            Report ............. : {self.report_ram}
+            Period ............. : {self.report_ram_period} seconds
           Garbage Collection:
-            Force ............. : {self.garbage_collect}
-            Period ............ : {self.garbage_collect_period} seconds
+            Force .............. : {self.garbage_collect}
+            Period ............. : {self.garbage_collect_period} seconds
           Network:
-            Enabled ........... : {self.network}
+            Enabled ............ : {self.network}
+            Directory Service .. : {self.directory}
           Button: 
-            Pin ............... : {self.button_pin}
+            Pin ................ : {self.button_pin}
           Buzzer: 
-            Pin ............... : {self.buzzer_pin}
-            Volume ............ : {self.buzzer_volume}
+            Pin ................ : {self.buzzer_pin}
+            Volume ............. : {self.buzzer_volume}
           Audio:
-            Pin ............... : {self.audio_pin}
+            Pin ................ : {self.audio_pin}
           Ultrasonic Sensor:
-            Trigger ........... : {self.ultrasonic_trigger_pin}
-            Echo .............. : {self.ultrasonic_echo_pin}
+            Trigger ............ : {self.ultrasonic_trigger_pin}
+            Echo ............... : {self.ultrasonic_echo_pin}
           Trigger:
-            Distance .......... : {self.trigger_distance} cm
-            Duration .......... : {self.trigger_duration} seconds
+            Distance ........... : {self.trigger_distance} cm
+            Duration ........... : {self.trigger_duration} seconds
           """
 
     def log(self, level):
@@ -116,13 +118,16 @@ class Config:
             log(level, s)
 
 
-def get_node_config(network=False, button=True, buzzer=True, audio=True, ultrasonic=True, trigger=True) -> Config:
+def get_node_config(network=False, directory=False, button=True, buzzer=True, audio=True, ultrasonic=True,
+                    trigger=True) -> Config:
     if REPORT_RAM:
         report_memory_usage("get_node_config")
 
     config = Config()
 
-    config.network = network
+    if network:
+        config.network = True
+        config.directory = directory  # Only allow the directory service if the network is enabled.
 
     if REPORT_RAM:
         config.report_ram = True

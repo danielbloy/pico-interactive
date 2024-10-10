@@ -42,6 +42,12 @@ class Interactive:
             self.network_controller = NetworkController(self.server)
             self.network_controller.register(self.runner)
 
+        self.directory_service = None
+        if config.directory:
+            from interactive.directory import DirectoryService
+            self.directory_service = DirectoryService(self.network_controller)
+            self.directory_service.register(self.runner)
+
         self.button = None
         self.button_controller = None
 

@@ -38,6 +38,15 @@ class TestNode:
         config = configuration.get_node_config(network=True)
         assert config.network
 
+        assert not defaults.directory
+        # Can't enable the directory service if the network is not enabled.
+        config = configuration.get_node_config(network=False, directory=True)
+        assert not config.directory
+        config = configuration.get_node_config(network=True)
+        assert not config.directory
+        config = configuration.get_node_config(network=True, directory=True)
+        assert config.directory
+
         config = configuration.get_node_config(button=False)
         assert config.button_pin == defaults.button_pin
 
