@@ -75,9 +75,6 @@ class NetworkController:
                 raise ValueError("trigger_callback must be Callable")
 
         self.__runner = None
-        self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
-        self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
-        self.__requires_heartbeat_messages = False
 
         self.server = server
         self.trigger_callback = trigger_callback

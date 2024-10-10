@@ -180,6 +180,9 @@ class DirectoryService:
 
     def __init__(self):
         self.__runner = None
+        self.__requires_register_with_coordinator = NODE_COORDINATOR is not None
+        self.__requires_unregister_from_coordinator = NODE_COORDINATOR is not None
+        self.__requires_heartbeat_messages = False
         self.directory = DirectoryController()
 
     def get_routes(self) -> [Route]:

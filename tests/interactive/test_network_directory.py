@@ -8,9 +8,12 @@ import pytest
 from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request, BAD_REQUEST_400, Status
 from adafruit_requests import Response
 
-from interactive import network
-from interactive.directory import DirectoryController
-from interactive.network import YES
+from interactive import directory
+from interactive.directory import DirectoryController, lookup_all, lookup_name
+from interactive.directory import receive_register_message, receive_unregister_message, receive_heartbeat_message
+from interactive.directory import register, unregister, heartbeat, lookup_role
+from interactive.directory import send_register_message, send_unregister_message, send_heartbeat_message
+from interactive.network import YES, OK, NO
 from test_network import validate_methods, MockRequest
 
 # This is used to mock out the network.send_message function to avoid us actually sending
@@ -55,11 +58,11 @@ class TestRoutes:
 
     @pytest.fixture(autouse=True)
     def send_message_patched(self, monkeypatch):
-        monkeypatch.setattr(network, 'send_message', mock_send_message)
+        monkeypatch.setattr(directory, 'send_message', mock_send_message)
 
     @pytest.fixture(autouse=True)
     def fix_ip_address(self, monkeypatch):
-        monkeypatch.setattr(network, 'get_ip', lambda: "w.x.y.z")
+        monkeypatch.setattr(directory, 'get_ip', lambda: "w.x.y.z")
 
     @staticmethod
     def check_directory_method_conforms(
@@ -70,7 +73,7 @@ class TestRoutes:
         """
         json_body = '{"name":"daniel", "role":"programmer", "ip":"a.b.c.d"}'
         # When there is a coordinator nothing should error; except when there is no directory specified.
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+        monkeypatch.setattr(directory, 'NODE_COORDINATOR', "node")
         validate_methods({GET, POST, PUT}, route, func, DirectoryController())
 
         # Should always error if no directory controller is specified.
@@ -82,7 +85,7 @@ class TestRoutes:
         func(MockRequest(POST, route, body=json_body), DirectoryController())
 
         # When there is no coordinator should error but only if it is a POST or PUT
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', None)
+        monkeypatch.setattr(directory, 'NODE_COORDINATOR', None)
 
         # Should always error if no directory controller is specified.
         with pytest.raises(ValueError):
@@ -98,7 +101,7 @@ class TestRoutes:
         """
         Runs the basic validation checks expected of the three main directory methods.
         """
-        self.check_directory_method_conforms(monkeypatch, "/register", network.register)
+        self.check_directory_method_conforms(monkeypatch, "/register", register)
 
     def test_register(self, monkeypatch) -> None:
         """
@@ -107,71 +110,71 @@ class TestRoutes:
         are called; this assumes success each time.
         """
         global msg_url, msg_data, msg_json
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+        monkeypatch.setattr(directory, 'NODE_COORDINATOR', "node")
 
-        directory = DirectoryController()
+        controller = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/register", network.register, directory)
+        validate_methods({GET, POST, PUT}, "/register", register, controller)
 
         # This registers the node with the coordinator; we validate the message is sent.
         request = MockRequest(GET, "/register")
-        response = network.register(request, directory)
+        response = register(request, controller)
         assert response._body == YES
         assert response._status == OK_200
         assert msg_url == "GET http://node//register"
         assert msg_data == None
         assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
-        assert len(directory._directory) == 0
+        assert len(controller._directory) == 0
 
         # Validate that a new item was registered
         request = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        response = network.register(request, directory)
-        assert response._body == network.OK
+        response = register(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        expiry_time = directory._directory["node_1"].expiry_time
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        expiry_time = controller._directory["node_1"].expiry_time
 
         # Validate that a second item was registered
         request = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
-        response = network.register(request, directory)
-        assert response._body == network.OK
+        response = register(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 2
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
         # Validate that the first item was registered, but this time updated.
         time.sleep(0.05)
         request = MockRequest(PUT, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        response = network.register(request, directory)
-        assert response._body == network.OK
+        response = register(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert directory._directory["node_1"].expiry_time > expiry_time
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 2
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].expiry_time > expiry_time
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
     def test_unregister_errors_correctly(self, monkeypatch) -> None:
         """
         Runs the basic validation checks expected of the three main directory methods.
         """
-        self.check_directory_method_conforms(monkeypatch, "/unregister", network.unregister)
+        self.check_directory_method_conforms(monkeypatch, "/unregister", unregister)
 
     def test_unregister(self, monkeypatch) -> None:
         """
@@ -180,67 +183,67 @@ class TestRoutes:
         are called; this assumes success each time.
         """
         global msg_url, msg_data, msg_json
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+        monkeypatch.setattr(directory, 'NODE_COORDINATOR', "node")
 
-        directory = DirectoryController()
+        controller = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/unregister", network.unregister, directory)
+        validate_methods({GET, POST, PUT}, "/unregister", unregister, controller)
 
         request = MockRequest(GET, "/unregister")
-        response = network.unregister(request, directory)
+        response = unregister(request, controller)
         assert response._body == YES
         assert response._status == OK_200
         assert msg_url == "GET http://node//unregister"
         assert msg_data == None
         assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
-        assert len(directory._directory) == 0
+        assert len(controller._directory) == 0
 
         # Validate unregister from an empty directory
         request = MockRequest(POST, "/unregister", body='{"name":"node_1"}')
-        response = network.unregister(request, directory)
-        assert response._body == network.OK
+        response = unregister(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 0
+        assert len(controller._directory) == 0
 
         # Add some entries
-        directory.register_endpoint("1.2.3.4", "node_1", "role_1")
-        directory.register_endpoint("6.7.8.9", "node_2", "role_2")
-        assert len(directory._directory) == 2
+        controller.register_endpoint("1.2.3.4", "node_1", "role_1")
+        controller.register_endpoint("6.7.8.9", "node_2", "role_2")
+        assert len(controller._directory) == 2
 
         # Unregister an unknown endpoint
         request = MockRequest(PUT, "/unregister", body='{"name":"node_3"}')
-        response = network.unregister(request, directory)
-        assert response._body == network.OK
+        response = unregister(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
+        assert len(controller._directory) == 2
 
         # Unregister a known endpoint
         request = MockRequest(PUT, "/unregister", body='{"name":"node_2"}')
-        response = network.unregister(request, directory)
-        assert response._body == network.OK
+        response = unregister(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
 
         # Unregister the same endpoint
         request = MockRequest(PUT, "/unregister", body='{"name":"node_2"}')
-        response = network.unregister(request, directory)
-        assert response._body == network.OK
+        response = unregister(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
 
     def test_heartbeat_errors_correctly(self, monkeypatch) -> None:
         """
         Runs the basic validation checks expected of the three main directory methods.
         """
-        self.check_directory_method_conforms(monkeypatch, "/heartbeat", network.heartbeat)
+        self.check_directory_method_conforms(monkeypatch, "/heartbeat", heartbeat)
 
     def test_heartbeat(self, monkeypatch) -> None:
         """
@@ -249,64 +252,64 @@ class TestRoutes:
         are called; this assumes success each time.
         """
         global msg_url, msg_data, msg_json
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "node")
+        monkeypatch.setattr(directory, 'NODE_COORDINATOR', "node")
 
-        directory = DirectoryController()
+        controller = DirectoryController()
 
-        validate_methods({GET, POST, PUT}, "/heartbeat", network.heartbeat, directory)
+        validate_methods({GET, POST, PUT}, "/heartbeat", heartbeat, controller)
 
         request = MockRequest(GET, "/heartbeat")
-        response = network.heartbeat(request, directory)
+        response = heartbeat(request, controller)
         assert response._body == YES
         assert response._status == OK_200
         assert msg_url == "GET http://node//heartbeat"
         assert msg_data == None
         assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
-        assert len(directory._directory) == 0
+        assert len(controller._directory) == 0
 
         # Validate that a new item was registered after a heartbeat
         request = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        response = network.register(request, directory)
-        assert response._body == network.OK
+        response = register(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        expiry_time = directory._directory["node_1"].expiry_time
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        expiry_time = controller._directory["node_1"].expiry_time
 
         # Validate that a second item was registered after a heartbeat
         request = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
-        response = network.register(request, directory)
-        assert response._body == network.OK
+        response = register(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 2
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
         # Validate that the first item has its time updated.
         time.sleep(0.05)
         request = MockRequest(PUT, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        response = network.register(request, directory)
-        assert response._body == network.OK
+        response = register(request, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert directory._directory["node_1"].expiry_time > expiry_time
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 2
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].expiry_time > expiry_time
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
     def test_lookup_all(self) -> None:
         """
@@ -314,11 +317,11 @@ class TestRoutes:
         """
         controller = DirectoryController()
 
-        validate_methods({GET}, "/lookup/all", network.lookup_all, controller)
+        validate_methods({GET}, "/lookup/all", lookup_all, controller)
 
         request = MockRequest(GET, "/lookup/all")
-        response = network.lookup_all(request, controller)
-        assert response._body == network.NO
+        response = lookup_all(request, controller)
+        assert response._body == NO
         assert response._status == NOT_IMPLEMENTED_501
 
     def test_lookup_name(self) -> None:
@@ -327,11 +330,11 @@ class TestRoutes:
         """
         controller = DirectoryController()
 
-        validate_methods({GET}, "/lookup/name/<name>", network.lookup_name, controller, "NAME")
+        validate_methods({GET}, "/lookup/name/<name>", lookup_name, controller, "NAME")
 
         request = MockRequest(GET, "/lookup/name/<name>")
-        response = network.lookup_name(request, controller, "")
-        assert response._body == network.NO
+        response = lookup_name(request, controller, "")
+        assert response._body == NO
         assert response._status == NOT_IMPLEMENTED_501
 
     def test_lookup_role(self) -> None:
@@ -340,11 +343,11 @@ class TestRoutes:
         """
         controller = DirectoryController()
 
-        validate_methods({GET}, "/lookup/role/<role>", network.lookup_role, controller, "ROLE")
+        validate_methods({GET}, "/lookup/role/<role>", lookup_role, controller, "ROLE")
 
         request = MockRequest(GET, "/lookup/role/<role>")
-        response = network.lookup_role(request, controller, "")
-        assert response._body == network.NO
+        response = lookup_role(request, controller, "")
+        assert response._body == NO
         assert response._status == NOT_IMPLEMENTED_501
 
 
@@ -352,11 +355,11 @@ class TestMessages:
 
     @pytest.fixture(autouse=True)
     def send_message_patched(self, monkeypatch):
-        monkeypatch.setattr(network, 'send_message', mock_send_message)
+        monkeypatch.setattr(directory, 'send_message', mock_send_message)
 
     @pytest.fixture(autouse=True)
     def fix_ip_address(self, monkeypatch):
-        monkeypatch.setattr(network, 'get_ip', lambda: "w.x.y.z")
+        monkeypatch.setattr(directory, 'get_ip', lambda: "w.x.y.z")
 
     @staticmethod
     def check_receive_method_conforms(
@@ -390,7 +393,7 @@ class TestMessages:
             assert response._body == "NO_IP_ADDRESS_SPECIFIED"
             assert response._status == BAD_REQUEST_400
         else:
-            assert response._body == network.OK
+            assert response._body == OK
             assert response._status == OK_200
 
         print("a")
@@ -400,14 +403,14 @@ class TestMessages:
             assert response._body == "NO_ROLE_SPECIFIED"
             assert response._status == BAD_REQUEST_400
         else:
-            assert response._body == network.OK
+            assert response._body == OK
             assert response._status == OK_200
 
     def test_send_register_message(self) -> None:
         """
         Very simple test to check the correct format is being sent.
         """
-        assert network.send_register_message("coordinator") == YES
+        assert send_register_message("coordinator") == YES
         assert msg_url == "GET http://coordinator//register"
         assert msg_data == None
         assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
@@ -417,7 +420,7 @@ class TestMessages:
         Validates the register method correctly errors when the network request
         is incorrectly formed or missing data.
         """
-        self.check_receive_method_conforms("/register", network.receive_register_message)
+        self.check_receive_method_conforms("/register", receive_register_message)
 
     def test_receive_register_message(self) -> None:
         """
@@ -427,50 +430,50 @@ class TestMessages:
         node_1 = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
         node_2 = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
 
-        directory = DirectoryController()
+        controller = DirectoryController()
 
         # Receive a registration with an empty directory.
-        response = network.receive_register_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_register_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        expiry_time = directory._directory["node_1"].expiry_time
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        expiry_time = controller._directory["node_1"].expiry_time
 
         # Receive the same registration again; no change in state except time.
         time.sleep(0.05)
-        response = network.receive_register_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_register_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert directory._directory["node_1"].expiry_time > expiry_time
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].expiry_time > expiry_time
 
         # Receive a new registration.
-        response = network.receive_register_message(node_2, directory)
-        assert response._body == network.OK
+        response = receive_register_message(node_2, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 2
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
     def test_send_unregister_message(self) -> None:
         """
         Very simple test to check the correct format is being sent.
         """
-        assert network.send_unregister_message("coordinator") == YES
+        assert send_unregister_message("coordinator") == YES
         assert msg_url == "GET http://coordinator//unregister"
         assert msg_data == None
         assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
@@ -480,7 +483,7 @@ class TestMessages:
         Validates the unregister method correctly errors when the network request
         is incorrectly formed or missing data.
         """
-        self.check_receive_method_conforms("/unregister", network.receive_unregister_message, requires_address=False,
+        self.check_receive_method_conforms("/unregister", receive_unregister_message, requires_address=False,
                                            requires_role=False)
 
     def test_receive_unregister_message(self) -> None:
@@ -492,54 +495,54 @@ class TestMessages:
         node_1 = MockRequest(POST, "/unregister", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
         node_2 = MockRequest(POST, "/unregister", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
 
-        directory = DirectoryController()
+        controller = DirectoryController()
 
         # Receive an unregister with an empty directory
-        response = network.receive_unregister_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_unregister_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 0
+        assert len(controller._directory) == 0
 
         # Add some entries
-        response = network.receive_register_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_register_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        response = network.receive_register_message(node_2, directory)
-        assert response._body == network.OK
+        response = receive_register_message(node_2, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
+        assert len(controller._directory) == 2
 
         # Receive an unregister for an unknown node
-        response = network.receive_unregister_message(unknown, directory)
-        assert response._body == network.OK
+        response = receive_unregister_message(unknown, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
+        assert len(controller._directory) == 2
 
         # Receive an unregister for a known node
-        response = network.receive_unregister_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_unregister_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 1
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
         # Receive another unregister for the same node just unregistered
-        response = network.receive_unregister_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_unregister_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 1
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
     def test_send_heartbeat_message(self) -> None:
         """
         Very simple test to check the correct format is being sent.
         """
-        assert network.send_heartbeat_message("coordinator") == YES
+        assert send_heartbeat_message("coordinator") == YES
         assert msg_url == "GET http://coordinator//heartbeat"
         assert msg_data == None
         assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
@@ -549,7 +552,7 @@ class TestMessages:
         Validates the heartbeat method correctly errors when the network request
         is incorrectly formed or missing data.
         """
-        self.check_receive_method_conforms("/heartbeat", network.receive_heartbeat_message)
+        self.check_receive_method_conforms("/heartbeat", receive_heartbeat_message)
 
     def test_receive_heartbeat_message(self) -> None:
         """
@@ -559,44 +562,44 @@ class TestMessages:
         node_1 = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
         node_2 = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
 
-        directory = DirectoryController()
+        controller = DirectoryController()
 
         # Receive a heartbeat with an empty directory.
-        response = network.receive_heartbeat_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_heartbeat_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        expiry_time = directory._directory["node_1"].expiry_time
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        expiry_time = controller._directory["node_1"].expiry_time
 
         # Receive the same heartbeat again; no change in state except time.
         time.sleep(0.1)
-        response = network.receive_heartbeat_message(node_1, directory)
-        assert response._body == network.OK
+        response = receive_heartbeat_message(node_1, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 1
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert directory._directory["node_1"].expiry_time > expiry_time
+        assert len(controller._directory) == 1
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].expiry_time > expiry_time
 
         # Receive a new heartbeat.
-        response = network.receive_heartbeat_message(node_2, directory)
-        assert response._body == network.OK
+        response = receive_heartbeat_message(node_2, controller)
+        assert response._body == OK
         assert response._status == OK_200
-        assert len(directory._directory) == 2
-        assert "node_1" in directory._directory
-        assert directory._directory["node_1"].name == "node_1"
-        assert directory._directory["node_1"].role == "role_1"
-        assert directory._directory["node_1"].ip == "1.2.3.4"
-        assert "node_2" in directory._directory
-        assert directory._directory["node_2"].name == "node_2"
-        assert directory._directory["node_2"].role == "role_2"
-        assert directory._directory["node_2"].ip == "6.7.8.9"
+        assert len(controller._directory) == 2
+        assert "node_1" in controller._directory
+        assert controller._directory["node_1"].name == "node_1"
+        assert controller._directory["node_1"].role == "role_1"
+        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert "node_2" in controller._directory
+        assert controller._directory["node_2"].name == "node_2"
+        assert controller._directory["node_2"].role == "role_2"
+        assert controller._directory["node_2"].ip == "6.7.8.9"
 
 # print(request)
 # print(f"METHOD ... : '{request.method}'")
