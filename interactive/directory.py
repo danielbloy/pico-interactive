@@ -393,7 +393,6 @@ def receive_register_message(request: Request, directory: DirectoryController) -
     """
     Registers the details about the provided node with the given directory controller.
     The format of the expected body JSON is:
-
     {
         "ip": "1.2.3.4",
         "name": "node_name",
