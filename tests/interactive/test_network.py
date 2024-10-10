@@ -105,7 +105,7 @@ class TestNetwork:
 
     def test_server_configured_correctly(self) -> None:
         """
-        Validates that the server is setup correctly. This ignores that there
+        Validates  the server is setup correctly. This ignores that there
         may be a coordinator or not.
         """
         server = MockServer()
@@ -139,14 +139,12 @@ class TestNetwork:
         assert server.stop_called_count == 0
         assert server.poll_called_count == 0
 
-    def test_server_routes_configured_correctly(self, monkeypatch) -> None:
+    def test_server_routes_configured_correctly(self) -> None:
         """
         Validates that the server routes are wired up correctly.
         """
-        monkeypatch.setattr(network, 'NODE_COORDINATOR', "127.0.0.1")
-
         server = MockServer()
-        controller = NetworkController(server)
+        NetworkController(server)
 
         # Now call each of the routes. All we are doing here is validating that they
         # are wired up correctly and as expected, not that they do anything useful.
@@ -158,9 +156,7 @@ class TestNetwork:
                 request = MockRequest(GET, route.path)
 
                 # We need to handle the methods that have parameters differently
-                if (route.path == "/led/<state>"
-                        or route.path == "/lookup/name/<name>"
-                        or route.path == "/lookup/role/<role>"):
+                if route.path == "/led/<state>":
                     route.handler(request, "single parameter")
                 else:
                     route.handler(request)
