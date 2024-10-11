@@ -47,8 +47,7 @@ HEADERS = {
 }
 
 
-# TODO: Write tests. Also note that in CI this could be an issue in testing the JSON results
-def get_port() -> int:
+def _get_port() -> int:
     if is_running_in_ci():
         return randint(5001, 50000)
     elif is_running_on_microcontroller():
@@ -57,17 +56,19 @@ def get_port() -> int:
         return NETWORK_PORT_DESKTOP
 
 
-# TODO: Write tests?
-def get_host():
+def _get_host():
     if is_running_in_ci():
         return "127.0.0.1"
     else:
         return get_ip()
 
 
-# TODO: Write tests?
 def get_address() -> str:
-    return f"{get_host()}:{get_port()}"
+    """
+    Returns the address of this node including the port that is being
+    listened on.
+    """
+    return f"{_get_host()}:{_get_port()}"
 
 
 class NetworkController:
@@ -111,7 +112,7 @@ class NetworkController:
 
         server.socket_timeout = 1
         if server.stopped:
-            server.start(host=get_host(), port=get_port())
+            server.start(host=_get_host(), port=_get_port())
 
     def get_routes(self) -> [Route]:
         """
