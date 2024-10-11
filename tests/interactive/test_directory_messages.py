@@ -62,7 +62,7 @@ class TestRoutes:
 
     @pytest.fixture(autouse=True)
     def fix_ip_address(self, monkeypatch):
-        monkeypatch.setattr(directory, 'get_ip', lambda: "w.x.y.z")
+        monkeypatch.setattr(directory, 'get_address', lambda: "w.x.y.z")
 
     @staticmethod
     def check_directory_method_conforms(
@@ -71,7 +71,7 @@ class TestRoutes:
         Simple validation checks that the register, unregister and heartbeat
         functions should follow.
         """
-        json_body = '{"name":"daniel", "role":"programmer", "ip":"a.b.c.d"}'
+        json_body = '{"name":"daniel", "role":"programmer", "address":"a.b.c.d"}'
         # When there is a coordinator nothing should error; except when there is no directory specified.
         monkeypatch.setattr(directory, 'NODE_COORDINATOR', "node")
         validate_methods({GET, POST, PUT}, route, func, DirectoryController())
@@ -123,11 +123,11 @@ class TestRoutes:
         assert response._status == OK_200
         assert msg_url == "GET http://node//register"
         assert msg_data == None
-        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "address": "w.x.y.z"}'
         assert len(controller._directory) == 0
 
         # Validate that a new item was registered
-        request = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        request = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
         response = register(request, controller)
         assert response._body == OK
         assert response._status == OK_200
@@ -135,11 +135,11 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         expiry_time = controller._directory["node_1"].expiry_time
 
         # Validate that a second item was registered
-        request = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        request = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "address":"6.7.8.9"}')
         response = register(request, controller)
         assert response._body == OK
         assert response._status == OK_200
@@ -147,15 +147,15 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
         # Validate that the first item was registered, but this time updated.
         time.sleep(0.05)
-        request = MockRequest(PUT, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        request = MockRequest(PUT, "/register", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
         response = register(request, controller)
         assert response._body == OK
         assert response._status == OK_200
@@ -163,12 +163,12 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert controller._directory["node_1"].expiry_time > expiry_time
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
     def test_unregister_errors_correctly(self, monkeypatch) -> None:
         """
@@ -195,7 +195,7 @@ class TestRoutes:
         assert response._status == OK_200
         assert msg_url == "GET http://node//unregister"
         assert msg_data == None
-        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "address": "w.x.y.z"}'
         assert len(controller._directory) == 0
 
         # Validate unregister from an empty directory
@@ -226,7 +226,7 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
 
         # Unregister the same endpoint
         request = MockRequest(PUT, "/unregister", body='{"name":"node_2"}')
@@ -237,7 +237,7 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
 
     def test_heartbeat_errors_correctly(self, monkeypatch) -> None:
         """
@@ -264,11 +264,11 @@ class TestRoutes:
         assert response._status == OK_200
         assert msg_url == "GET http://node//heartbeat"
         assert msg_data == None
-        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "address": "w.x.y.z"}'
         assert len(controller._directory) == 0
 
         # Validate that a new item was registered after a heartbeat
-        request = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        request = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
         response = register(request, controller)
         assert response._body == OK
         assert response._status == OK_200
@@ -276,11 +276,11 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         expiry_time = controller._directory["node_1"].expiry_time
 
         # Validate that a second item was registered after a heartbeat
-        request = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        request = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "address":"6.7.8.9"}')
         response = register(request, controller)
         assert response._body == OK
         assert response._status == OK_200
@@ -288,15 +288,15 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
         # Validate that the first item has its time updated.
         time.sleep(0.05)
-        request = MockRequest(PUT, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
+        request = MockRequest(PUT, "/heartbeat", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
         response = register(request, controller)
         assert response._body == OK
         assert response._status == OK_200
@@ -304,12 +304,12 @@ class TestRoutes:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert controller._directory["node_1"].expiry_time > expiry_time
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
     def test_lookup_all(self) -> None:
         """
@@ -359,7 +359,7 @@ class TestMessages:
 
     @pytest.fixture(autouse=True)
     def fix_ip_address(self, monkeypatch):
-        monkeypatch.setattr(directory, 'get_ip', lambda: "w.x.y.z")
+        monkeypatch.setattr(directory, 'get_address', lambda: "w.x.y.z")
 
     @staticmethod
     def check_receive_method_conforms(
@@ -383,14 +383,14 @@ class TestMessages:
         assert response._status == BAD_REQUEST_400
 
         # Should always error if no name is provided in the body
-        response = func(MockRequest(POST, route, body='{"ip":"i", "role":"r"}'), DirectoryController())
+        response = func(MockRequest(POST, route, body='{"address":"i", "role":"r"}'), DirectoryController())
         assert response._body == "NO_NAME_SPECIFIED"
         assert response._status == BAD_REQUEST_400
 
         # Might error if no address is provided in the body
         response = func(MockRequest(POST, route, body='{"name":"n", "role":"r"}'), DirectoryController())
         if requires_address:
-            assert response._body == "NO_IP_ADDRESS_SPECIFIED"
+            assert response._body == "NO_ADDRESS_SPECIFIED"
             assert response._status == BAD_REQUEST_400
         else:
             assert response._body == OK
@@ -398,7 +398,7 @@ class TestMessages:
 
         print("a")
         # Might error if no role is provided in the body
-        response = func(MockRequest(POST, route, body='{"name":"n", "ip":"i"}'), DirectoryController())
+        response = func(MockRequest(POST, route, body='{"name":"n", "address":"i"}'), DirectoryController())
         if requires_role:
             assert response._body == "NO_ROLE_SPECIFIED"
             assert response._status == BAD_REQUEST_400
@@ -413,7 +413,7 @@ class TestMessages:
         assert send_register_message("coordinator") == YES
         assert msg_url == "GET http://coordinator//register"
         assert msg_data == None
-        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "address": "w.x.y.z"}'
 
     def test_receive_register_errors_correctly(self) -> None:
         """
@@ -427,8 +427,8 @@ class TestMessages:
         Validates the register method correctly extracts the JSON data and
         registers the node with the directory.
         """
-        node_1 = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        node_2 = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        node_1 = MockRequest(POST, "/register", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
+        node_2 = MockRequest(POST, "/register", body='{"name":"NODE_2", "role":"role_2", "address":"6.7.8.9"}')
 
         controller = DirectoryController()
 
@@ -440,7 +440,7 @@ class TestMessages:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         expiry_time = controller._directory["node_1"].expiry_time
 
         # Receive the same registration again; no change in state except time.
@@ -452,7 +452,7 @@ class TestMessages:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert controller._directory["node_1"].expiry_time > expiry_time
 
         # Receive a new registration.
@@ -463,11 +463,11 @@ class TestMessages:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
     def test_send_unregister_message(self) -> None:
         """
@@ -476,7 +476,7 @@ class TestMessages:
         assert send_unregister_message("coordinator") == YES
         assert msg_url == "GET http://coordinator//unregister"
         assert msg_data == None
-        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "address": "w.x.y.z"}'
 
     def test_receive_unregister_errors_correctly(self) -> None:
         """
@@ -491,9 +491,10 @@ class TestMessages:
         Validates the unregister method correctly extracts the JSON data and
         unregisters the node with the directory.
         """
-        unknown = MockRequest(POST, "/unregister", body='{"name":"unknown", "role":"role_unknown", "ip":"a.b.c.d"}')
-        node_1 = MockRequest(POST, "/unregister", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        node_2 = MockRequest(POST, "/unregister", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        unknown = MockRequest(POST, "/unregister",
+                              body='{"name":"unknown", "role":"role_unknown", "address":"a.b.c.d"}')
+        node_1 = MockRequest(POST, "/unregister", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
+        node_2 = MockRequest(POST, "/unregister", body='{"name":"NODE_2", "role":"role_2", "address":"6.7.8.9"}')
 
         controller = DirectoryController()
 
@@ -526,7 +527,7 @@ class TestMessages:
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
         # Receive another unregister for the same node just unregistered
         response = receive_unregister_message(node_1, controller)
@@ -536,7 +537,7 @@ class TestMessages:
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
 
     def test_send_heartbeat_message(self) -> None:
         """
@@ -545,7 +546,7 @@ class TestMessages:
         assert send_heartbeat_message("coordinator") == YES
         assert msg_url == "GET http://coordinator//heartbeat"
         assert msg_data == None
-        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "ip": "w.x.y.z"}'
+        assert msg_json == '{"name": "<hostname>", "role": "<host role>", "coordinator": null, "address": "w.x.y.z"}'
 
     def test_receive_heartbeat_errors_correctly(self) -> None:
         """
@@ -559,8 +560,8 @@ class TestMessages:
         Validates the heartbeat method correctly extracts the JSON data and
         registers the node with the directory.
         """
-        node_1 = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "ip":"1.2.3.4"}')
-        node_2 = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "ip":"6.7.8.9"}')
+        node_1 = MockRequest(POST, "/heartbeat", body='{"name":"node_1", "role":"role_1", "address":"1.2.3.4"}')
+        node_2 = MockRequest(POST, "/heartbeat", body='{"name":"NODE_2", "role":"role_2", "address":"6.7.8.9"}')
 
         controller = DirectoryController()
 
@@ -572,7 +573,7 @@ class TestMessages:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         expiry_time = controller._directory["node_1"].expiry_time
 
         # Receive the same heartbeat again; no change in state except time.
@@ -584,7 +585,7 @@ class TestMessages:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert controller._directory["node_1"].expiry_time > expiry_time
 
         # Receive a new heartbeat.
@@ -595,8 +596,8 @@ class TestMessages:
         assert "node_1" in controller._directory
         assert controller._directory["node_1"].name == "node_1"
         assert controller._directory["node_1"].role == "role_1"
-        assert controller._directory["node_1"].ip == "1.2.3.4"
+        assert controller._directory["node_1"].address == "1.2.3.4"
         assert "node_2" in controller._directory
         assert controller._directory["node_2"].name == "node_2"
         assert controller._directory["node_2"].role == "role_2"
-        assert controller._directory["node_2"].ip == "6.7.8.9"
+        assert controller._directory["node_2"].address == "6.7.8.9"
