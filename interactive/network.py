@@ -21,9 +21,9 @@ from interactive.log import error
 from interactive.polyfills.cpu import info as cpu_info
 from interactive.polyfills.cpu import restart as cpu_restart
 from interactive.polyfills.led import onboard_led
+from interactive.polyfills.network import get_ip
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
-from polyfills.network import get_ip
 
 # TODO: Implement Inspect
 
