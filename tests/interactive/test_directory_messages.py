@@ -62,7 +62,7 @@ class TestRoutes:
 
     @pytest.fixture(autouse=True)
     def fix_ip_address(self, monkeypatch):
-        monkeypatch.setattr(directory, 'get_ip', lambda: "w.x.y.z")
+        monkeypatch.setattr(directory, 'get_address', lambda: "w.x.y.z")
 
     @staticmethod
     def check_directory_method_conforms(
@@ -359,7 +359,7 @@ class TestMessages:
 
     @pytest.fixture(autouse=True)
     def fix_ip_address(self, monkeypatch):
-        monkeypatch.setattr(directory, 'get_ip', lambda: "w.x.y.z")
+        monkeypatch.setattr(directory, 'get_address', lambda: "w.x.y.z")
 
     @staticmethod
     def check_receive_method_conforms(
