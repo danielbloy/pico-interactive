@@ -38,10 +38,10 @@ class TestDirectoryController:
         controller = DirectoryController()
         assert len(controller.lookup_all_endpoints()) == 0
 
-        controller.register_endpoint("IP", None, "")
+        controller.register_endpoint("ADDRESS", None, "")
         assert len(controller.lookup_all_endpoints()) == 0
 
-        controller.register_endpoint("IP", "", "")
+        controller.register_endpoint("ADDRESS", "", "")
         assert len(controller.lookup_all_endpoints()) == 0
 
     def test_register_endpoint(self) -> None:
@@ -58,10 +58,10 @@ class TestDirectoryController:
         controller.register_endpoint("a.b.C.D", "AlPhA", "ROLE")
         assert len(controller.lookup_all_endpoints()) == 1
 
-        # Check the name, role and IP address are stored as lowercase
+        # Check the name, role and address are stored as lowercase
         assert "alpha" in controller._directory
         assert controller._directory["alpha"].role == "role"
-        assert controller._directory["alpha"].ip == "a.b.c.d"
+        assert controller._directory["alpha"].address == "a.b.c.d"
 
         # Check that the expiry time is generated correctly
         assert controller._directory["alpha"].expiry_time > before
@@ -81,7 +81,7 @@ class TestDirectoryController:
         assert len(controller.lookup_all_endpoints()) == 1
         assert "beta" in controller._directory
         assert controller._directory["beta"].role == "role"
-        assert controller._directory["beta"].ip == "a.b.c.d"
+        assert controller._directory["beta"].address == "a.b.c.d"
         original_expiry_time = controller._directory["beta"].expiry_time
 
         # Pause for a period before re-registering
@@ -92,7 +92,7 @@ class TestDirectoryController:
         assert len(controller.lookup_all_endpoints()) == 1
         assert "beta" in controller._directory
         assert controller._directory["beta"].role == "special"
-        assert controller._directory["beta"].ip == "1.2.3.4"
+        assert controller._directory["beta"].address == "1.2.3.4"
         new_expiry_time = controller._directory["beta"].expiry_time
 
         assert new_expiry_time > original_expiry_time
@@ -220,7 +220,7 @@ class TestDirectoryController:
         assert len(controller.lookup_all_endpoints()) == 1
         assert "alpha" in controller._directory
         assert controller._directory["alpha"].role == "role"
-        assert controller._directory["alpha"].ip == "a.b.c.d"
+        assert controller._directory["alpha"].address == "a.b.c.d"
 
     def test_lookup_all_endpoints(self) -> None:
         """
@@ -244,7 +244,7 @@ class TestDirectoryController:
 
     def test_lookup_endpoint_by_name(self) -> None:
         """
-        Validates that the correct endpoint IP is returned based on the provided name.
+        Validates that the correct endpoint address is returned based on the provided name.
         """
         controller = DirectoryController()
 

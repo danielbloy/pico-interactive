@@ -37,8 +37,8 @@ class DirectoryController:
     """
 
     class Endpoint:
-        def __init__(self, ip, name, role: str):
-            self.ip = ip
+        def __init__(self, address, name, role: str):
+            self.address = address
             self.name = name
             self.role = role
             self.expiry_time = 0
@@ -75,18 +75,18 @@ class DirectoryController:
         for name in to_remove:
             del self._directory[name]
 
-    def register_endpoint(self, ip: str, name: str, role: str):
+    def register_endpoint(self, address: str, name: str, role: str):
         """
         Registers an endpoint. The name and role information are considered case-insensitive
         so will be stored as lowercase. The name is considered the unique aspect of
         an endpoint so a single name corresponds to a single endpoint. Multiple endpoint
-        names can have the same IP address or role.
+        names can have the same address or role.
 
         Where an endpoint is re-registered, the new data overwrites the old data.
 
         Re-registering an endpoint extends its expiry time.
 
-        :param ip:   The IP address of the endpoint, as a string. Stored as lowercase.
+        :param address: The address of the endpoint, as a string. Stored as lowercase.
         :param name: The name of the endpoint, as a string. Stored as lowercase.
         :param role: The nominal role of the registered endpoint. Stored as lowercase.
         """
@@ -99,9 +99,9 @@ class DirectoryController:
 
         if lookup not in self._directory:
             self._directory[lookup] = (
-                DirectoryController.Endpoint(ip.strip().lower(), lookup, role.strip().lower()))
+                DirectoryController.Endpoint(address.strip().lower(), lookup, role.strip().lower()))
 
-        self._directory[lookup].ip = ip.strip().lower()
+        self._directory[lookup].address = address.strip().lower()
         self._directory[lookup].role = role.strip().lower()
         self._directory[lookup].expiry_time = time.monotonic() + DIRECTORY_EXPIRY_DURATION
 
@@ -123,21 +123,21 @@ class DirectoryController:
 
         del self._directory[lookup]
 
-    def heartbeat_from_endpoint(self, ip, name, role):
+    def heartbeat_from_endpoint(self, address, name, role):
         """
         Simply forwards to register_endpoint()
         """
-        return self.register_endpoint(ip, name, role)
+        return self.register_endpoint(address, name, role)
 
     def lookup_all_endpoints(self) -> dict[str, str]:
         """
-        Returns the IP address for all the known nodes.
+        Returns the address for all the known nodes.
         """
-        return dict((name, endpoint.ip) for name, endpoint in self._directory.items())
+        return dict((name, endpoint.address) for name, endpoint in self._directory.items())
 
     def lookup_endpoint_by_name(self, name) -> [None, str]:
         """
-        Returns the IP address for the matching name.
+        Returns the address for the matching name.
         """
         if name is None:
             return None
@@ -149,11 +149,11 @@ class DirectoryController:
         if lookup not in self._directory:
             return None
 
-        return self._directory[lookup].ip
+        return self._directory[lookup].address
 
     def lookup_endpoints_by_role(self, role) -> [None, dict[str, str]]:
         """
-        Return a dictionary of names to IPs.
+        Return a dictionary of names to addresses.
         """
         if role is None:
             return None
@@ -162,7 +162,7 @@ class DirectoryController:
         if len(lookup) <= 0:
             return
 
-        return dict((name, endpoint.ip) for name, endpoint in self._directory.items() if endpoint.role == lookup)
+        return dict((name, endpoint.address) for name, endpoint in self._directory.items() if endpoint.role == lookup)
 
 
 class DirectoryService:
@@ -172,9 +172,9 @@ class DirectoryService:
     The premise is that a microcontroller will register with another
     microcontroller (called a coordinator) and periodically send
     heartbeat messages to keep its name alive. Other microcontrollers
-    can then query the coordinator to find the IP address (and other
+    can then query the coordinator to find the address (and other
     details) of nodes registered with the coordinator. Each node will
-    have at least a name and role metadata in addition to the IP address.
+    have at least a name and role metadata in addition to the address.
 
     This class works closely with the NetworkController which handles
     all the microcontroller communication. This class handles the
@@ -346,13 +346,19 @@ def lookup_all(request: Request, directory: DirectoryController):
 
 def lookup_name(request: Request, directory: DirectoryController, name: str):
     """
-    Returns all known nodes by name.
+    Returns all known nodes by name as a JSON response in the following form:
+    {
+        "name": "node_name",
+        "nodes": [
+               "1.2.3.4",
+               "a.b.c.d",
+        ]
+    }
     """
-    # TODO: Implement by returning JSON
-    if request.method == GET:
-        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_FOUND_404)
+    return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
 
 def lookup_role(request: Request, directory: DirectoryController, role: str):
@@ -378,7 +384,7 @@ def send_register_message(node: str) -> str:
 
     try:
         data = configuration.details()
-        data["ip"] = get_ip()
+        data["address"] = get_ip()
         with send_message(host=node, path='/register', json=data) as response:
             if response._status == OK_200:
                 return YES
@@ -394,7 +400,7 @@ def receive_register_message(request: Request, directory: DirectoryController) -
     Registers the details about the provided node with the given directory controller.
     The format of the expected body JSON is:
     {
-        "ip": "1.2.3.4",
+        "address": "1.2.3.4:80",
         "name": "node_name",
         "role": "node_role"
     }
@@ -409,8 +415,8 @@ def receive_register_message(request: Request, directory: DirectoryController) -
 
     try:
         data = request.json()
-        if "ip" not in data:
-            return Response(request, "NO_IP_ADDRESS_SPECIFIED", status=BAD_REQUEST_400)
+        if "address" not in data:
+            return Response(request, "NO_ADDRESS_SPECIFIED", status=BAD_REQUEST_400)
 
         if "name" not in data:
             return Response(request, "NO_NAME_SPECIFIED", status=BAD_REQUEST_400)
@@ -418,8 +424,8 @@ def receive_register_message(request: Request, directory: DirectoryController) -
         if "role" not in data:
             return Response(request, "NO_ROLE_SPECIFIED", status=BAD_REQUEST_400)
 
-        directory.register_endpoint(data["ip"], data["name"], data["role"])
-        info(f'Registered node: {data["name"]}, role: {data["role"]}, ip: {data["ip"]}')
+        directory.register_endpoint(data["address"], data["name"], data["role"])
+        info(f'Registered node: {data["name"]}, role: {data["role"]}, address: {data["address"]}')
 
     except:
         return Response(request, "FAILED_TO_PARSE_BODY", status=BAD_REQUEST_400)
@@ -435,7 +441,7 @@ def send_unregister_message(node: str) -> str:
 
     try:
         data = configuration.details()
-        data["ip"] = get_ip()
+        data["address"] = get_ip()
         with send_message(host=node, path='/unregister', json=data) as response:
             if response._status == OK_200:
                 return YES
@@ -484,7 +490,7 @@ def send_heartbeat_message(node: str) -> str:
 
     try:
         data = configuration.details()
-        data["ip"] = get_ip()
+        data["address"] = get_ip()
         with send_message(host=node, path='/heartbeat', json=data) as response:
             if response._status == OK_200:
                 return YES
@@ -501,9 +507,9 @@ def receive_heartbeat_message(request: Request, directory: DirectoryController) 
 
     FUTURE: We could at some future point put in an optimisation here to
             lookup whether an item has already been registered. If such
-            a case, we would already have the ip, name and role so as long
-            as at least one of ip or name was registered, the other data
-            would become optional.
+            a case, we would already have the address, name and role so
+            as long as at least one of or name was registered, the other
+            data would become optional.
     """
     info("Received heartbeat message...")
     return receive_register_message(request, directory)
