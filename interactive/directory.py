@@ -8,7 +8,7 @@ from interactive.configuration import NODE_COORDINATOR
 from interactive.control import DIRECTORY_EXPIRY_DURATION, DIRECTORY_EXPIRY_FREQUENCY, NETWORK_HEARTBEAT_FREQUENCY
 from interactive.environment import is_running_on_desktop
 from interactive.log import info, debug
-from interactive.network import YES, NO, send_message, OK
+from interactive.network import YES, NO, OK, send_message, get_address
 from interactive.polyfills.network import get_ip
 from interactive.runner import Runner
 from interactive.scheduler import new_scheduled_task, terminate_on_cancel
@@ -384,7 +384,7 @@ def send_register_message(node: str) -> str:
 
     try:
         data = configuration.details()
-        data["address"] = get_ip()
+        data["address"] = get_address()
         with send_message(host=node, path='/register', json=data) as response:
             if response._status == OK_200:
                 return YES

@@ -23,6 +23,7 @@ from interactive.polyfills.cpu import restart as cpu_restart
 from interactive.polyfills.led import onboard_led
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
+from polyfills.network import get_ip
 
 # TODO: Implement Inspect
 
@@ -44,6 +45,29 @@ HEADERS = {
     HEADER_NAME: configuration.NODE_NAME,
     HEADER_ROLE: configuration.NODE_ROLE,
 }
+
+
+# TODO: Write tests. Also note that in CI this could be an issue in testing the JSON results
+def get_port() -> int:
+    if is_running_in_ci():
+        return randint(5001, 50000)
+    elif is_running_on_microcontroller():
+        return NETWORK_PORT_MICROCONTROLLER
+    else:
+        return NETWORK_PORT_DESKTOP
+
+
+# TODO: Write tests?
+def get_host():
+    if is_running_in_ci():
+        return "127.0.0.1"
+    else:
+        return get_ip()
+
+
+# TODO: Write tests?
+def get_address() -> str:
+    return f"{get_host()}:{get_port()}"
 
 
 class NetworkController:
@@ -87,12 +111,7 @@ class NetworkController:
 
         server.socket_timeout = 1
         if server.stopped:
-            if is_running_on_microcontroller():
-                server.start(port=NETWORK_PORT_MICROCONTROLLER)
-            elif is_running_in_ci():
-                server.start(host="127.0.0.1", port=randint(5001, 50000))
-            else:
-                server.start(port=NETWORK_PORT_DESKTOP)
+            server.start(host=get_host(), port=get_port())
 
     def get_routes(self) -> [Route]:
         """
