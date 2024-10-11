@@ -8,13 +8,14 @@
 # Templating of results:
 #   https://docs.circuitpython.org/projects/httpserver/en/latest/examples.html#templates
 #
+import time
 from random import randint
 
-from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, FileResponse, Response, JSONResponse, \
-    POST, Request, NOT_FOUND_404
+from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SENT, Response, JSONResponse, \
+    POST, Request, NOT_FOUND_404, FileResponse
 
 from interactive import configuration
-from interactive.configuration import NODE_COORDINATOR
+from interactive.configuration import NODE_COORDINATOR, get_node_config, NODE_NAME, NODE_ROLE, LOG_LEVEL
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP
 from interactive.environment import is_running_on_microcontroller, is_running_on_desktop, is_running_in_ci
 from interactive.log import error
@@ -118,10 +119,10 @@ class NetworkController:
         """
         return [
             # General service routes.
-            Route("/", GET, index),
+            Route("/", GET, lambda req: inspect(req, self)),
             Route("/index.html", GET, index),
             Route("/cpu-information", GET, cpu_information, append_slash=True),
-            Route("/inspect", GET, inspect, append_slash=True),
+            Route("/inspect", GET, lambda req: inspect(req, self), append_slash=True),
             Route("/restart", GET, restart, append_slash=True),
             Route("/alive", GET, alive, append_slash=True),
             Route("/name", GET, name, append_slash=True),
@@ -209,15 +210,14 @@ def cpu_information(request: Request):
     return Response(request, NO, status=NOT_FOUND_404)
 
 
-def inspect(request: Request):
+def inspect(request: Request, controller: NetworkController):
     """
-    Return a web page of information about this node.
+    Return details about this node.
     """
-    # TODO: Implement
-    if request.method == GET:
-        return Response(request, "TODO inspect")
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_FOUND_404)
+    return Response(request, generate_index_page(controller), content_type="text/html")
 
 
 def restart(request: Request):
@@ -314,6 +314,59 @@ def trigger(request: Request, trigger_callback: Callable[[], None]):
 ###############################################################
 # ***** G E N E R A L    S E R V I C E    M E S S A G E S *****
 ###############################################################
+
+def generate_index_page(controller: NetworkController) -> str:
+    html = """<!DOCTYPE html>
+    <html lang="en">
+        <head><title>%s Inspect</title></head>
+        <body>
+            <h1>Details for node: %s</h1>
+            <p>Time: %s</p>
+            <p>IP Address: %s</p>
+            <p>Name: %s</p>
+            <p>Coordinator: %s</p>
+            <p>Role: %s</p>
+            <p>Logging: %s</p>
+            <p>Trigger distance: %s cm</p>
+            <p>Trigger duration: %s seconds</p>
+            <h2>Machine info</h2>
+            <p>CPU Frequency: %s Mhz</p>
+            <p>CPU Temperature: %s C</p>
+            <p>CPU Voltage: %s V</p>
+            <p>Heap RAM used: %s bytes</p>
+            <p>Heap RAM free: %s bytes</p>
+            <h2>Supported messages</h2>
+            %s
+        </body>
+    </html>
+    """
+    supported_messages = ""
+    routes = [route.path for route in controller.server._routes]
+    for route in sorted(routes):
+        supported_messages += "<p>%s</p>" % route
+
+    config = get_node_config()
+    cpu = cpu_info()
+
+    return html % (
+        NODE_NAME,
+        NODE_NAME,
+        time.time(),
+        get_address(),
+        NODE_NAME,
+        NODE_COORDINATOR,
+        NODE_ROLE,
+        LOG_LEVEL,
+        config.trigger_distance,
+        config.trigger_duration,
+        cpu["frequency"],
+        cpu["temperature"],
+        cpu["voltage"],
+        cpu["heap bytes free"],
+        cpu["head bytes used"],
+        supported_messages,
+    )
+
 
 onboard_led = onboard_led()
 
