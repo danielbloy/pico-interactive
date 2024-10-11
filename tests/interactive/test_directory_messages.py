@@ -5,7 +5,7 @@ from types import TracebackType
 from typing import Optional, Type
 
 import pytest
-from adafruit_httpserver import GET, POST, NOT_IMPLEMENTED_501, PUT, OK_200, Request, BAD_REQUEST_400, Status
+from adafruit_httpserver import GET, POST, PUT, OK_200, Request, BAD_REQUEST_400, Status
 from adafruit_requests import Response
 
 from interactive import directory
@@ -13,7 +13,7 @@ from interactive.directory import DirectoryController, lookup_all, lookup_name
 from interactive.directory import receive_register_message, receive_unregister_message, receive_heartbeat_message
 from interactive.directory import register, unregister, heartbeat, lookup_role
 from interactive.directory import send_register_message, send_unregister_message, send_heartbeat_message
-from interactive.network import YES, OK, NO
+from interactive.network import YES, OK
 from test_network import validate_methods, MockRequest
 
 # This is used to mock out the network.send_message function to avoid us actually sending
@@ -319,10 +319,27 @@ class TestRoutes:
 
         validate_methods({GET}, "/lookup/all", lookup_all, controller)
 
+        # Lookup when no nodes are registered.
         request = MockRequest(GET, "/lookup/all")
         response = lookup_all(request, controller)
-        assert response._body == NO
-        assert response._status == NOT_IMPLEMENTED_501
+        assert response._data == {}
+        assert response._status == OK_200
+
+        # Register a single name and look it up.
+        controller.register_endpoint("a.b.c.d", "my_node", "my_role")
+        request = MockRequest(GET, "/lookup/all")
+        response = lookup_all(request, controller)
+        assert response._data == {'my_node': 'a.b.c.d'}
+        assert response._status == OK_200
+
+        # Register a couple more names and look them up.
+        controller.register_endpoint("1.2.3.4", "node_1", "role_1")
+        controller.register_endpoint("6.7.8.9", "node_2", "role_2")
+
+        request = MockRequest(GET, "/lookup/all")
+        response = lookup_all(request, controller)
+        assert response._data == {'my_node': 'a.b.c.d', 'node_1': '1.2.3.4', 'node_2': '6.7.8.9'}
+        assert response._status == OK_200
 
     def test_lookup_name(self) -> None:
         """
@@ -361,10 +378,28 @@ class TestRoutes:
 
         validate_methods({GET}, "/lookup/role/<role>", lookup_role, controller, "ROLE")
 
-        request = MockRequest(GET, "/lookup/role/<role>")
-        response = lookup_role(request, controller, "")
-        assert response._body == NO
-        assert response._status == NOT_IMPLEMENTED_501
+        # Lookup when no nodes are registered.
+        request = MockRequest(GET, "/lookup/<role>")
+        response = lookup_role(request, controller, "role")
+        assert response._data == {}
+        assert response._status == OK_200
+
+        # Register a single name and look it up.
+        controller.register_endpoint("a.b.c.d", "my_node", "my_role")
+        request = MockRequest(GET, "/lookup/<role>")
+        response = lookup_role(request, controller, "my_role")
+        assert response._data == {'my_node': 'a.b.c.d'}
+        assert response._status == OK_200
+
+        # Register a couple more names and look them up.
+        controller.register_endpoint("1.2.3.4", "node_1", "role_1")
+        controller.register_endpoint("w.x.y.z", "node_a", "role_1")
+        controller.register_endpoint("6.7.8.9", "node_2", "role_2")
+
+        request = MockRequest(GET, "/lookup/<role>")
+        response = lookup_role(request, controller, "role_1")
+        assert response._data == {'node_1': '1.2.3.4', 'node_a': 'w.x.y.z'}
+        assert response._status == OK_200
 
 
 class TestMessages:
