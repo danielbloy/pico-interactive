@@ -332,10 +332,26 @@ class TestRoutes:
 
         validate_methods({GET}, "/lookup/name/<name>", lookup_name, controller, "NAME")
 
+        # Lookup when no nodes are registered.
         request = MockRequest(GET, "/lookup/name/<name>")
-        response = lookup_name(request, controller, "")
-        assert response._body == NO
-        assert response._status == NOT_IMPLEMENTED_501
+        response = lookup_name(request, controller, "my_name")
+        assert response._body == ''
+        assert response._data == {"name": "my_name", "address": None}
+        assert response._status == OK_200
+
+        # Register a couple of names and look them up.
+        controller.register_endpoint("1.2.3.4", "node_1", "role_1")
+        controller.register_endpoint("6.7.8.9", "node_2", "role_2")
+
+        response = lookup_name(request, controller, "NODE_1")
+        assert response._body == ''
+        assert response._data == {"name": "NODE_1", "address": "1.2.3.4"}
+        assert response._status == OK_200
+
+        response = lookup_name(request, controller, "NoDe_2")
+        assert response._body == ''
+        assert response._data == {"name": "NoDe_2", "address": "6.7.8.9"}
+        assert response._status == OK_200
 
     def test_lookup_role(self) -> None:
         """

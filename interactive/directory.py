@@ -1,7 +1,7 @@
 import time
 
 from adafruit_httpserver import GET, Response, POST, Request, NOT_FOUND_404, OK_200, BAD_REQUEST_400, \
-    NOT_IMPLEMENTED_501, PUT, Route
+    NOT_IMPLEMENTED_501, PUT, Route, JSONResponse
 
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
@@ -336,11 +336,10 @@ def lookup_all(request: Request, directory: DirectoryController):
     """
     Return all known nodes
     """
-    # TODO: Implement by returning JSON.
-    if request.method == GET:
-        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_FOUND_404)
+    return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
 
 def lookup_name(request: Request, directory: DirectoryController, name: str):
@@ -348,27 +347,25 @@ def lookup_name(request: Request, directory: DirectoryController, name: str):
     Returns all known nodes by name as a JSON response in the following form:
     {
         "name": "node_name",
-        "nodes": [
-               "1.2.3.4",
-               "a.b.c.d",
-        ]
+        "address": "node_address"
     }
     """
     if request.method != GET:
         return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    data = {"name": name, "address": directory.lookup_endpoint_by_name(name)}
+
+    return JSONResponse(request, data)
 
 
 def lookup_role(request: Request, directory: DirectoryController, role: str):
     """
     Returns all known nodes by role.
     """
-    # TODO: Implement by returning JSON
-    if request.method == GET:
-        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_FOUND_404)
+    return Response(request, NO, status=NOT_IMPLEMENTED_501)
 
 
 ###################################################################
