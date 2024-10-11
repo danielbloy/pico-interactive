@@ -1,7 +1,7 @@
 import time
 
 from adafruit_httpserver import GET, Response, POST, Request, NOT_FOUND_404, OK_200, BAD_REQUEST_400, \
-    NOT_IMPLEMENTED_501, PUT, Route
+    PUT, Route, JSONResponse
 
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR
@@ -17,7 +17,6 @@ if is_running_on_desktop():
     from collections.abc import Callable
 
 
-# TODO: Implement lookup functions.
 # print(request)
 # print(f"METHOD ... : '{request.method}'")
 # print(f"PATH ..... : '{request.path}'")
@@ -334,41 +333,48 @@ def heartbeat(request: Request, directory: DirectoryController):
 
 def lookup_all(request: Request, directory: DirectoryController):
     """
-    Return all known nodes
-    """
-    # TODO: Implement by returning JSON.
-    if request.method == GET:
-        return Response(request, NO, status=NOT_IMPLEMENTED_501)
-
-    return Response(request, NO, status=NOT_FOUND_404)
-
-
-def lookup_name(request: Request, directory: DirectoryController, name: str):
-    """
-    Returns all known nodes by name as a JSON response in the following form:
+    Return all known nodes as a JSON response in the following form:
     {
-        "name": "node_name",
-        "nodes": [
-               "1.2.3.4",
-               "a.b.c.d",
-        ]
+        "name_1": "ip:port",
+        "name_2": "ip:port",
+        "name_3": "ip:port",
     }
     """
     if request.method != GET:
         return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    return JSONResponse(request, directory.lookup_all_endpoints())
+
+
+def lookup_name(request: Request, directory: DirectoryController, name: str):
+    """
+    Returns a single node by name as a JSON response in the following form:
+    {
+        "name": "node_name",
+        "address": "ip:port"
+    }
+
+    If the node is not known, then the address will be None.
+    """
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
+
+    return JSONResponse(request, {"name": name, "address": directory.lookup_endpoint_by_name(name)})
 
 
 def lookup_role(request: Request, directory: DirectoryController, role: str):
     """
     Returns all known nodes by role.
+    {
+        "name_1": "ip:port",
+        "name_2": "ip:port",
+        "name_3": "ip:port",
+    }
     """
-    # TODO: Implement by returning JSON
-    if request.method == GET:
-        return Response(request, NO, status=NOT_IMPLEMENTED_501)
+    if request.method != GET:
+        return Response(request, NO, status=NOT_FOUND_404)
 
-    return Response(request, NO, status=NOT_FOUND_404)
+    return JSONResponse(request, directory.lookup_endpoints_by_role(role))
 
 
 ###################################################################
