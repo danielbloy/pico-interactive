@@ -5,9 +5,9 @@ from adafruit_httpserver import GET, Request, OK_200
 
 from interactive import configuration
 from interactive import network
-from interactive.network import NO, TRIGGERED
+from interactive.network import NO, TRIGGERED, NetworkController
 from interactive.polyfills import cpu
-from test_network import validate_methods, MockRequest
+from test_network import validate_methods, MockRequest, MockServer
 
 
 class TestRoutes:
@@ -21,13 +21,13 @@ class TestRoutes:
         """
         Validates that the index.html file is returned with no additional headers.
         """
-        validate_methods({GET}, "/", network.index)
+        validate_methods({GET}, "/index.html", network.index)
 
         path = os.getcwd()
         try:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             os.chdir(os.path.join(dir_path, "../.."))
-            request = MockRequest(GET, "/")
+            request = MockRequest(GET, "/index.html")
             response = network.index(request)
             assert response._filename == "index.html"
             assert response._root_path == 'interactive/html'
@@ -52,11 +52,20 @@ class TestRoutes:
         """
         Validates that the inspect web page is returned with no additional headers.
         """
-        validate_methods({GET}, "/inspect", network.inspect)
+        server = MockServer()
+        controller = NetworkController(server)
+        validate_methods({GET}, "/", network.inspect, controller)
+        validate_methods({GET}, "/inspect", network.inspect, controller)
+
+        request = MockRequest(GET, "/")
+        response = network.inspect(request, controller)
+        assert len(response._body) > 1000
+        assert response._status == OK_200
+        assert len(response._headers) == 0
 
         request = MockRequest(GET, "/inspect")
-        response = network.inspect(request)
-        assert response._body == "TODO inspect"
+        response = network.inspect(request, controller)
+        assert len(response._body) > 1000
         assert response._status == OK_200
         assert len(response._headers) == 0
 

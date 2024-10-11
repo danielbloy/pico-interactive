@@ -74,7 +74,7 @@ if __name__ == '__main__':
     directory.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 10
+    finish = time.monotonic() + 30
 
 
     async def callback() -> None:
