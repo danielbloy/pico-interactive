@@ -47,7 +47,6 @@ if __name__ == '__main__':
     async def single_click_handler() -> None:
         critical('Single click!')
         critical(f"Distance: {ultrasonic.distance}")
-        # TODO: Send network message
 
 
     runner = Runner()
@@ -77,7 +76,6 @@ if __name__ == '__main__':
 
     async def trigger_handler(distance: float, actual: float) -> None:
         critical(f"Distance {distance} handler triggered: {actual}")
-        # TODO: Send network message
 
 
     controller = UltrasonicController(ultrasonic)
