@@ -17,6 +17,7 @@ import random
 import pygame
 from moviepy.editor import *
 
+from config import TRIGGER_VIDEO
 from interactive.configuration import STARTUP_VIDEO
 from interactive.configuration import TRIGGER_DURATION, TRIGGER_VIDEOS
 from interactive.log import info
@@ -24,7 +25,6 @@ from interactive.network import NetworkController
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents
-from video.config import TRIGGER_VIDEO
 
 if __name__ == '__main__':
 

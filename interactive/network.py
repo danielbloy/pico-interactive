@@ -25,8 +25,6 @@ from interactive.polyfills.network import get_ip
 from interactive.polyfills.network import requests
 from interactive.runner import Runner
 
-# TODO: Implement Inspect
-
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
     from collections.abc import Callable

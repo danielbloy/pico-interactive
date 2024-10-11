@@ -11,7 +11,7 @@ been tested and works on the following boards:
 
 * Raspberry Pi Pico
 * Raspberry Pi Pico W
-* PCs running Windows (pins via Blinka though beware the limitations on pin performance)
+* PCs running Windows (pins via Blinka, though beware the limitations on pin performance)
 
 The following devices are also in testing phase for support
 
