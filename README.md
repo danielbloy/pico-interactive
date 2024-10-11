@@ -111,6 +111,9 @@ the end of this readme for more information about the license.
 * [ ] Add current time of day support via Wi-Fi
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
+* [ ] Add in a directory-information route to export as JSON data about the directory.
+* [ ] Improve the '/' and '/inspect' routes with more information and better formatting
+* [ ] Add in a node-information route to return the node information as JSON
 * [ ] Add Servo support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
