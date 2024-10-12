@@ -113,8 +113,6 @@ class NetworkController:
 
         server.socket_timeout = 1
         if server.stopped:
-            print(_get_host())
-            print(_get_port())
             server.start(host=_get_host(), port=_get_port())
 
     def get_routes(self) -> [Route]:
