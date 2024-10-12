@@ -129,6 +129,7 @@ the end of this readme for more information about the license.
 * [ ] Add current time of day support via Wi-Fi
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
+* [ ] Trigger message should accept JSON data.
 * [ ] Add in a directory-information route to export as JSON data about the directory.
 * [ ] Improve the '/' and '/inspect' routes with more information and better formatting.
 * [ ] Add in a node-information route to return the node information as JSON.
@@ -150,6 +151,7 @@ the end of this readme for more information about the license.
 * [ ] Add OLED/TFT screen support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
+* [ ] Embed pico-interactive version number in library based on release.
 * [ ] Make a pico-interactive release (
   see [Creating and sharing a CircuitPython library](https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library?view=all#mpy-2982472-11)):
     * [ ] Compile to`.mpy` files

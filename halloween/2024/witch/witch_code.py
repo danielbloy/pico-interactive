@@ -13,6 +13,8 @@ from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
 from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents
 
+# TODO: Shorten laugh
+
 CAULDRON_BRIGHTNESS = 1.0
 CAULDRON_OFF = 0.0
 CAULDRON_SPEED = 0.1  # TODO: Test the speed
