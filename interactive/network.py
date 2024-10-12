@@ -58,6 +58,8 @@ def _get_port() -> int:
 def _get_host():
     if is_running_under_test():
         return "127.0.0.1"
+    elif is_running_on_microcontroller():
+        return "0.0.0.0"
     else:
         return get_ip()
 
@@ -111,6 +113,8 @@ class NetworkController:
 
         server.socket_timeout = 1
         if server.stopped:
+            print(_get_host())
+            print(_get_port())
             server.start(host=_get_host(), port=_get_port())
 
     def get_routes(self) -> [Route]:
