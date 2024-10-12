@@ -9,18 +9,26 @@ up to larger interactive display installations that consist of many boards each
 performing in isolation or coordinated over network connections. The framework has
 been tested and works on the following boards:
 
-* Raspberry Pi Pico
-* Raspberry Pi Pico W
-* PCs running Windows (pins via Blinka, though beware the limitations on pin performance)
+* Raspberry Pi Pico (tested running CircuitPython 9.0.5)
+    * [Raspberry Pi Pico (no network support)](https://shop.pimoroni.com/products/raspberry-pi-pico?variant=32402092294227)
+    * [Raspberry Pi Pico W](https://shop.pimoroni.com/products/raspberry-pi-pico-w?variant=40059369619539)
+    * [Pimoroni Plasma Stick 2040 W](https://shop.pimoroni.com/products/plasma-stick-2040-w?variant=40359072301139)
+    * [Pimoroni Tiny 2040 (no network support)](https://shop.pimoroni.com/products/tiny-2040?variant=39560012234835)
+* Desktop PCs running (all require Python 3.10 or later; tested with Python 3.10, 3.11 and 3.12):
+    * Windows (pins available via Blinka, though beware the limitations on pin performance)
+    * Linux (tested but not with Blinka)
+    * MacOS (not tested)
 
-The following devices are also in testing phase for support
+The following devices are also in testing phase for support:
 
-* Raspberry Pi 3A+ (pins via Blinka)
-* Raspberry Pi Zero 2 W (pins via Blinka)
+* [Raspberry Pi 3A+ (pins via Blinka)](https://shop.pimoroni.com/products/raspberry-pi-3-a-plus?variant=17989206507603)
+* [Raspberry Pi Zero 2 W (pins via Blinka)](https://shop.pimoroni.com/products/raspberry-pi-zero-2-w?variant=39493046075475)
 
 The following devices will be added once CircuitPython support is added:
 
-* Pico 2
+* [Raspberry Pi Pico 2 (no network support)](https://shop.pimoroni.com/products/raspberry-pi-pico-2?variant=42096955424851)
+* [Pimoroni Pico Plus 2 (no network support)](https://shop.pimoroni.com/products/pimoroni-pico-plus-2?variant=42092668289107)
+* [Pimoroni Pico Plus 2 W](https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w?variant=42182811942995)
 
 The basic structure of this project is:
 
@@ -29,11 +37,6 @@ The basic structure of this project is:
 * `circuitpython` contains the exact builds of CircuitPython that have been tested
   with this project along with the libraries that are used extracted out into the
   `circuitpython/lib` directory.
-* `coordinator` contains the additional code that a coordinator node requires if used.
-  The `coordinator` is based on the `interactive` framework but adds additional
-  specialisation and can be viewed as an example of how to build a custom node type
-  based on the `interactive` framework. Custom code can also be added to a coordinator
-  node.
 * `demo` contains demonstration and test *interactive* displays that are used to test
   the functionality of this project on a range of boards.
 * `docs` contains the documentation for the `interactive` and `coordinator` directories.
@@ -49,19 +52,18 @@ The basic structure of this project is:
 * `originals` contains the code for the original MicroPython and CircuitPython projects
   that form the inspiration for this project. See the section [Origins](#origins) below
   for some background on those projects.
-* `tests` contains the tests for the code contained in the `interactive` and `coordinator`
-  directories.
+* `tests` contains the tests for the code contained in the `interactive` directory.
 
 All work in this project (including the supplied original code from the previous
 three projects that serve as inspiration) are provided under a permissive license
 to allow this code to be used in a range of educational and personal settings. See
 the end of this readme for more information about the license.
 
-## List of projects to convert to framework
+## List of projects using framework
 
 * [x] Recreate originals/christmas in demo
-* [ ] Recreate originals/light_jars in demo
-* [x] Recreate originals/halloween
+* [ ] Recreate originals/light_jars in Christmas/2024
+* [x] Recreate originals/halloween in Halloween/2024
     * [x] Migrate code from path node
     * [ ] Implement spider node
     * [ ] Implement thunder node
@@ -69,9 +71,21 @@ the end of this readme for more information about the license.
     * [x] Implement node communications
     * [x] Migrate Witch node
 
-## List of outstanding tasks for the basic framework
+## List of functionality
 
-* [x] Setup project outline.
+* [x] Support for CircuitPython:
+    * [x] 9.0.5
+    * [ ] 9.1.2
+    * [ ] 9.2.0
+* [x] Support for Python on Desktops (Windows, Linux, MacOS):
+    * [x] 3.10
+    * [x] 3.11
+    * [x] 3.12
+* [ ] Support for Python Raspberry Pi
+    * [ ] Raspberry Pi Zero 2 W
+    * [ ] Raspberry Pi 3A+/3B+
+    * [ ] Raspberry Pi 4/400
+    * [ ] Raspberry Pi 5
 * [x] Add generic task runner that handles both completion and exceptions and support restarts.
     * [x] Works on CircuitPython
     * [x] Works with Blinka
@@ -93,6 +107,10 @@ the end of this readme for more information about the license.
     * [x] Works with Blinka
 * [x] Migrate Flicker from originals/christmas and originals/light_jars to pixel.py
     * [ ] Add tests for Flicker
+* [ ] Add a Flame effect for pixels
+    * [ ] Add tests for Flame
+* [ ] Add a Lightning effect for pixels
+    * [ ] Add tests for Lightning
 * [x] Add LED support
     * [x] Works on CircuitPython
     * [x] Works with Blinka
@@ -112,8 +130,8 @@ the end of this readme for more information about the license.
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
 * [ ] Add in a directory-information route to export as JSON data about the directory.
-* [ ] Improve the '/' and '/inspect' routes with more information and better formatting
-* [ ] Add in a node-information route to return the node information as JSON
+* [ ] Improve the '/' and '/inspect' routes with more information and better formatting.
+* [ ] Add in a node-information route to return the node information as JSON.
 * [ ] Add Servo support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
@@ -121,6 +139,15 @@ the end of this readme for more information about the license.
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
 * [ ] Add UART support
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
+* [ ] Add I2S audio support
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
+* [ ] Add DFPlayer Pro audio support
+    * [ ] Works on CircuitPython
+    * [ ] Works with Blinka
+* [ ] Add OLED/TFT screen support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
 * [ ] Make a pico-interactive release (

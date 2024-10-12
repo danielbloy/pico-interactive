@@ -15,6 +15,12 @@ class TestEnvironment:
         """
         assert environment.is_running_on_desktop() != environment.is_running_on_microcontroller()
 
+    def test_is_running_in_test(self):
+        """
+        Simple test for when running under test.
+        """
+        assert environment.is_running_under_test()
+
     def test_is_running_in_ci(self):
         """
         Simple test for when running in CI.
