@@ -17,7 +17,7 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR, get_node_config, NODE_NAME, NODE_ROLE, LOG_LEVEL
 from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP
-from interactive.environment import is_running_on_microcontroller, is_running_on_desktop, is_running_in_ci
+from interactive.environment import is_running_on_microcontroller, is_running_on_desktop, is_running_under_test
 from interactive.log import error
 from interactive.polyfills.cpu import info as cpu_info
 from interactive.polyfills.cpu import restart as cpu_restart
@@ -47,7 +47,7 @@ HEADERS = {
 
 
 def _get_port() -> int:
-    if is_running_in_ci():
+    if is_running_under_test():
         return randint(5001, 50000)
     elif is_running_on_microcontroller():
         return NETWORK_PORT_MICROCONTROLLER
@@ -56,7 +56,7 @@ def _get_port() -> int:
 
 
 def _get_host():
-    if is_running_in_ci():
+    if is_running_under_test():
         return "127.0.0.1"
     else:
         return get_ip()
