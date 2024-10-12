@@ -121,7 +121,7 @@ class NetworkController:
         """
         return [
             # General service routes.
-            Route("/", GET, lambda req: inspect(req, self)),
+            Route("/", GET, index),
             Route("/index.html", GET, index),
             Route("/cpu-information", GET, cpu_information, append_slash=True),
             Route("/inspect", GET, lambda req: inspect(req, self), append_slash=True),
