@@ -18,7 +18,7 @@ __is_running_on_windows: bool = False
 
 # First, check the target environment. This is the recommended way to check for
 # CircuitPython (see https://docs.circuitpython.org/en/latest/docs/library/sys.html#sys.implementation)
-if sys.implementation == "circuitpython":
+if sys.implementation.name == "circuitpython":
     __is_running_on_microcontroller = True
 else:
     # We are not running on CircuitPython so we can assume we are running on
