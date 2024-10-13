@@ -75,7 +75,7 @@ the end of this readme for more information about the license.
 
 * [x] Support for CircuitPython:
     * [x] 9.0.5
-    * [ ] 9.1.2
+    * [ ] 9.1.4
     * [ ] 9.2.0
 * [x] Support for Python on Desktops (Windows, Linux, MacOS):
     * [x] 3.10
