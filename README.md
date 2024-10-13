@@ -133,6 +133,7 @@ the end of this readme for more information about the license.
 * [ ] Add in a directory-information route to export as JSON data about the directory.
 * [ ] Improve the '/' and '/inspect' routes with more information and better formatting.
 * [ ] Add in a node-information route to return the node information as JSON.
+* [ ] Migrate to a lighterweight, faster and async HTTP server stack such as [Biplane](https://github.com/Uberi/biplane).
 * [ ] Add Servo support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
