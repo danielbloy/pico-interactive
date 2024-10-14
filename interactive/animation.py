@@ -65,3 +65,7 @@ class Flicker(Animation):
 
     def __setitem__(self, index: int, colour):
         self.set(index, colour)
+
+# Lightning:
+# https://randommakingencounters.com/lightning-and-thunder-effect-arduino-dfplayer-mini-neopixels/
+# https://www.tweaking4all.com/forum/arduino/lightning-effect/
