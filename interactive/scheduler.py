@@ -283,31 +283,31 @@ class TriggerTimedEvents:
 
 def new_one_time_on_off_task(
         cycles: int,
-        on_duration_fn: Callable[[], float],  # Seconds
-        off_duration_fn: Callable[[], float],  # Seconds
-        on_fn: Callable[[], Awaitable[None]] = None,
-        off_fn: Callable[[], Awaitable[None]] = None,
-        finish_fn: Callable[[], Awaitable[None]] = None,
-        cancel_fn: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
+        on_duration_func: Callable[[], float],  # Seconds
+        off_duration_func: Callable[[], float],  # Seconds
+        on_func: Callable[[], Awaitable[None]] = None,
+        off_func: Callable[[], Awaitable[None]] = None,
+        finish_func: Callable[[], Awaitable[None]] = None,
+        cancel_func: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
     """
     TODO: Write comments.
     
     :param cycles:
-    :param on_duration_fn:
-    :param off_duration_fn:
-    :param on_fn:
-    :param off_fn:
-    :param finish_fn:
-    :param cancel_fn:
+    :param on_duration_func:
+    :param off_duration_func:
+    :param on_func:
+    :param off_func:
+    :param finish_func:
+    :param cancel_func:
     :return:
     """
     if cycles < 1:
         raise ValueError("At least one cycle is needed")
 
-    if on_duration_fn is None and off_duration_fn is None:
+    if on_duration_func is None and off_duration_func is None:
         raise ValueError("Both on_duration_fn and off_duration_fn must be specified")
 
-    if on_fn is None and off_fn is None and finish_fn is None:
+    if on_func is None and off_func is None and finish_func is None:
         raise ValueError("at least one of on_fn, off_fn or finish_fn must be specified")
 
     on_off_events = TriggerTimedEvents()
@@ -315,18 +315,18 @@ def new_one_time_on_off_task(
     # Represents the start of the next flash.
     next_on_event = 0.0
     for i in range(cycles):
-        next_off_event = next_on_event + on_duration_fn()
+        next_off_event = next_on_event + on_duration_func()
 
         on_off_events.add_event(next_on_event, 1)  # On
         on_off_events.add_event(next_off_event, 0)  # Off
-        next_on_event = next_off_event + off_duration_fn()
+        next_on_event = next_off_event + off_duration_func()
 
     on_off_events.add_event(next_on_event, 2)  # Terminate
 
     # Cancel when either the cancel function is called or our events have finished.
     def cancel() -> bool:
         nonlocal on_off_events
-        return cancel_fn() or not on_off_events.running
+        return cancel_func() or not on_off_events.running
 
     async def handler() -> None:
         nonlocal on_off_events
@@ -334,12 +334,12 @@ def new_one_time_on_off_task(
 
         for event in events:
             if event.event == 0:  # Lights off
-                await off_fn()
+                await off_func()
             elif event.event == 1:  # Lights one
-                await on_fn()
+                await on_func()
             elif event.event == 2:  # End
                 on_off_events.stop()
-                await finish_fn()
+                await finish_func()
 
     # The events start straight away and the first event will be on.
     on_off_events.start()
