@@ -5,7 +5,7 @@ import pytest
 
 from interactive.control import SCHEDULER_DEFAULT_FREQUENCY, ASYNC_LOOP_SLEEP_INTERVAL
 from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task, \
-    new_triggered_task, Triggerable, TriggerableAlwaysOn, TriggerTimedEvents
+    new_triggered_task, Triggerable, TriggerableAlwaysOn, TriggerTimedEvents, new_one_time_on_off_task
 
 
 class Cancellable:
@@ -789,3 +789,84 @@ class TestTriggerTimedEvents:
         assert not trigger.running
         assert len(events) == 1
         assert events[0].event == 103
+
+
+class TestOneTimeOnOffTask:
+    def test_errors_with_less_than_1_cycle(self) -> None:
+        """
+        Validates an error is raised when new_one_time_on_off_task() is invoked
+        with cycles of less than 1.
+        """
+        on_duration = lambda: 0.1
+        off_duration = lambda: 0.1
+
+        async def on():
+            pass
+
+        async def off():
+            pass
+
+        async def finish():
+            pass
+
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            new_one_time_on_off_task(0, on_duration, off_duration, on, off, finish)
+
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            new_one_time_on_off_task(-1, on_duration, off_duration, on, off, finish)
+
+    def test_errors_with_no_on_or_off_duration(self) -> None:
+        """
+        Validates an error is raised when new_one_time_on_off_task() is invoked
+        with either of the on or off duration not specified.
+        """
+        on_duration = lambda: 0.1
+        off_duration = lambda: 0.1
+
+        async def on():
+            pass
+
+        async def off():
+            pass
+
+        async def finish():
+            pass
+
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            new_one_time_on_off_task(1, None, off_duration, on, off, finish)
+
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            new_one_time_on_off_task(1, on_duration, None, on, off, finish)
+
+    def test_errors_with_no_on_off_or_finish(self) -> None:
+        """
+        Validates an error is raised when new_one_time_on_off_task() is invoked
+        with one of the on, off or finish functions are not specified.
+        """
+        on_duration = lambda: 0.1
+        off_duration = lambda: 0.1
+
+        async def on():
+            pass
+
+        async def off():
+            pass
+
+        async def finish():
+            pass
+
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            new_one_time_on_off_task(1, on_duration, off_duration, None, None, None)
+
+        # These should all be okay.
+        # noinspection PyTypeChecker
+        new_one_time_on_off_task(1, on_duration, off_duration, None, off, None)
+        # noinspection PyTypeChecker
+        new_one_time_on_off_task(1, on_duration, off_duration, on, None, None)
+        # noinspection PyTypeChecker
+        new_one_time_on_off_task(1, on_duration, off_duration, None, None, finish)

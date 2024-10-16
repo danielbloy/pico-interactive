@@ -285,29 +285,41 @@ def new_one_time_on_off_task(
         cycles: int,
         on_duration_func: Callable[[], float],  # Seconds
         off_duration_func: Callable[[], float],  # Seconds
-        on_func: Callable[[], Awaitable[None]] = None,
-        off_func: Callable[[], Awaitable[None]] = None,
-        finish_func: Callable[[], Awaitable[None]] = None,
+        on: Callable[[], Awaitable[None]] = None,
+        off: Callable[[], Awaitable[None]] = None,
+        finish: Callable[[], Awaitable[None]] = None,
         cancel_func: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
     """
-    TODO: Write comments.
+    Creates a task that will generate a series of on and off events. The number of
+    on/off event pairs is specified through the cycles parameter. The duration of
+    each on/off cycle is provided through the on_duration_func and off_duration_func
+    parameters. This allows for subtle configuration of the on/off cycles with each
+    being unique. After all on/off cycles have completed, the finish function is called.
+
+    As the "clock" for the on/off cycles starts immediately, there is no start function.
+    An on event always starts at time zero.
+
+    This is a one time use task; the returned task should be repeatedly awaited until the
+    finish event.
+
+    If the provided cancel function cancels the on/off events before the finish event,
+    no finish event will be triggered.
     
-    :param cycles:
-    :param on_duration_func:
-    :param off_duration_func:
-    :param on_func:
-    :param off_func:
-    :param finish_func:
-    :param cancel_func:
-    :return:
+    :param cycles: How many on/off cycles to generate.
+    :param on_duration_func: Function that returns the next on duration in seconds.
+    :param off_duration_func: Function that returns the next off duration in seconds.
+    :param on: Function that is called when an on event is triggered.
+    :param off: Function that is called when an off event is triggered.
+    :param finish: Function that is called when a finish event is triggered.
+    :param cancel_func: A function that returns whether to cancel the task or not.
     """
     if cycles < 1:
         raise ValueError("At least one cycle is needed")
 
-    if on_duration_func is None and off_duration_func is None:
+    if on_duration_func is None or off_duration_func is None:
         raise ValueError("Both on_duration_fn and off_duration_fn must be specified")
 
-    if on_func is None and off_func is None and finish_func is None:
+    if on is None and off is None and finish is None:
         raise ValueError("at least one of on_fn, off_fn or finish_fn must be specified")
 
     on_off_events = TriggerTimedEvents()
@@ -334,12 +346,15 @@ def new_one_time_on_off_task(
 
         for event in events:
             if event.event == 0:  # Lights off
-                await off_func()
-            elif event.event == 1:  # Lights one
-                await on_func()
+                if off:
+                    await off()
+            elif event.event == 1:  # Lights on
+                if on:
+                    await on()
             elif event.event == 2:  # End
                 on_off_events.stop()
-                await finish_func()
+                if finish:
+                    await finish()
 
     # The events start straight away and the first event will be on.
     on_off_events.start()
