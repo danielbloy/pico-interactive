@@ -84,6 +84,8 @@ class TestScheduler:
         triggerable.triggered = False
         assert triggerable.triggered
 
+
+class TestNewScheduledTask:
     def test_task_never_called(self) -> None:
         """
         Validates that the returned task terminates straight away
@@ -104,19 +106,6 @@ class TestScheduler:
 
         # noinspection PyTypeChecker
         asyncio.run(scheduled_task())
-        assert not called
-
-        loop_task = new_loop_task(task, cancel_fn)
-
-        # noinspection PyTypeChecker
-        asyncio.run(loop_task())
-        assert not called
-
-        triggerable = Triggerable()
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
-
-        # noinspection PyTypeChecker
-        asyncio.run(trigger_task())
         assert not called
 
     def test_task_stops(self) -> None:
@@ -141,28 +130,6 @@ class TestScheduler:
         assert called == 1
         assert cancellable.cancel
 
-        loop_task = new_loop_task(task, cancel_fn)
-
-        called = 0
-        cancellable.reset(2)
-
-        # noinspection PyTypeChecker
-        asyncio.run(loop_task())
-        assert called == 1
-        assert cancellable.cancel
-
-        triggerable = Triggerable()
-        triggerable.triggered = True
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
-
-        called = 0
-        cancellable.reset(2)
-
-        # noinspection PyTypeChecker
-        asyncio.run(trigger_task())
-        assert called == 1
-        assert cancellable.cancel
-
     def test_task_called_multiple_times(self) -> None:
         """
         Validates that the returned task terminates after having been
@@ -184,30 +151,6 @@ class TestScheduler:
 
         # noinspection PyTypeChecker
         asyncio.run(scheduled_task())
-        assert called > 2
-        assert called <= 20
-        assert cancellable.cancel
-
-        loop_task = new_loop_task(task, cancel_fn)
-
-        called = 0
-        cancellable.reset(20)
-
-        # noinspection PyTypeChecker
-        asyncio.run(loop_task())
-        assert called > 2
-        assert called <= 20
-        assert cancellable.cancel
-
-        triggerable = Triggerable()
-        triggerable.triggered = True
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
-
-        called = 0
-        cancellable.reset(20)
-
-        # noinspection PyTypeChecker
-        asyncio.run(trigger_task())
         assert called > 2
         assert called <= 20
         assert cancellable.cancel
@@ -273,6 +216,78 @@ class TestScheduler:
         assert called_count >= expected_called_count - 1
         assert called_count <= expected_called_count + 1
 
+
+class TestNewLoopTask:
+
+    def test_task_never_called(self) -> None:
+        """
+        Validates that the returned task terminates straight away
+        when the terminate_func always returns true.
+        """
+
+        cancellable = Cancellable()
+        cancel_fn = terminate_on_cancel(cancellable)
+        cancellable.cancel = True
+
+        called = False
+
+        async def task():
+            nonlocal called
+            called = True
+
+        loop_task = new_loop_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert not called
+
+    def test_task_stops(self) -> None:
+        """
+        Validates that the returned task terminates
+        when the terminate_func returns true.
+        """
+
+        cancellable = CancellableCount(2)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        called = 0
+
+        async def task():
+            nonlocal called
+            called += 1
+
+        loop_task = new_loop_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert called == 1
+        assert cancellable.cancel
+
+    def test_task_called_multiple_times(self) -> None:
+        """
+        Validates that the returned task terminates after having been
+        called multiple times. Because of the way the loop works, the
+        number of times the callback is called will not be equal to the
+        number of times the task is invoked; especially on fast computes.
+        """
+
+        cancellable = CancellableCount(20)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        called = 0
+
+        async def task():
+            nonlocal called
+            called += 1
+
+        loop_task = new_loop_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert called > 2
+        assert called <= 20
+        assert cancellable.cancel
+
     def test_run_invokes_loop_task_callback_with_custom_frequency(self) -> None:
         """
         This test is similar to the scheduled_task frequency tests above but the
@@ -298,6 +313,83 @@ class TestScheduler:
         assert (end - start) < (seconds_to_run * 1.05)
         assert (end - start) > (seconds_to_run * 0.95)
         assert called_count >= 50
+
+
+class TestNewTriggeredTask:
+
+    def test_task_never_called(self) -> None:
+        """
+        Validates that the returned task terminates straight away
+        when the terminate_func always returns true.
+        """
+
+        cancellable = Cancellable()
+        cancel_fn = terminate_on_cancel(cancellable)
+        cancellable.cancel = True
+
+        called = False
+
+        async def task():
+            nonlocal called
+            called = True
+
+        triggerable = Triggerable()
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert not called
+
+    def test_task_stops(self) -> None:
+        """
+        Validates that the returned task terminates
+        when the terminate_func returns true.
+        """
+
+        cancellable = CancellableCount(2)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        called = 0
+
+        async def task():
+            nonlocal called
+            called += 1
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert called == 1
+        assert cancellable.cancel
+
+    def test_task_called_multiple_times(self) -> None:
+        """
+        Validates that the returned task terminates after having been
+        called multiple times. Because of the way the loop works, the
+        number of times the callback is called will not be equal to the
+        number of times the task is invoked; especially on fast computes.
+        """
+
+        cancellable = CancellableCount(20)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        called = 0
+
+        async def task():
+            nonlocal called
+            called += 1
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert called > 2
+        assert called <= 20
+        assert cancellable.cancel
 
     def test_run_invokes_triggered_task_callback_with_sensible_frequency(self) -> None:
         """
@@ -870,3 +962,86 @@ class TestOneTimeOnOffTask:
         new_one_time_on_off_task(1, on_duration, off_duration, on, None, None)
         # noinspection PyTypeChecker
         new_one_time_on_off_task(1, on_duration, off_duration, None, None, finish)
+
+    def test_task_never_called(self) -> None:
+        """
+        Validates that the returned task terminates straight away
+        when the terminate_func always returns true.
+        """
+
+        cancellable = Cancellable()
+        cancel_fn = terminate_on_cancel(cancellable)
+        cancellable.cancel = True
+
+        called = False
+
+        async def task():
+            nonlocal called
+            called = True
+
+        scheduled_task = new_scheduled_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(scheduled_task())
+        assert not called
+
+        loop_task = new_loop_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert not called
+
+        triggerable = Triggerable()
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert not called
+
+        # TODO: Add in new_one_time_on_off_task()
+
+    def test_task_stops(self) -> None:
+        """
+        Validates that the returned task terminates
+        when the terminate_func returns true.
+        """
+
+        cancellable = CancellableCount(2)
+        cancel_fn = terminate_on_cancel(cancellable)
+
+        called = 0
+
+        async def task():
+            nonlocal called
+            called += 1
+
+        scheduled_task = new_scheduled_task(task, cancel_fn)
+
+        # noinspection PyTypeChecker
+        asyncio.run(scheduled_task())
+        assert called == 1
+        assert cancellable.cancel
+
+        loop_task = new_loop_task(task, cancel_fn)
+
+        called = 0
+        cancellable.reset(2)
+
+        # noinspection PyTypeChecker
+        asyncio.run(loop_task())
+        assert called == 1
+        assert cancellable.cancel
+
+        triggerable = Triggerable()
+        triggerable.triggered = True
+        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
+
+        called = 0
+        cancellable.reset(2)
+
+        # noinspection PyTypeChecker
+        asyncio.run(trigger_task())
+        assert called == 1
+        assert cancellable.cancel
+
+        # TODO: Add in new_one_time_on_off_task()
