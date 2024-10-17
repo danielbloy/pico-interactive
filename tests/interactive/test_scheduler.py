@@ -973,32 +973,33 @@ class TestOneTimeOnOffTask:
         cancel_fn = terminate_on_cancel(cancellable)
         cancellable.cancel = True
 
-        called = False
+        on_called = False
 
-        async def task():
-            nonlocal called
-            called = True
+        async def on_task():
+            nonlocal on_called
+            on_called = True
 
-        scheduled_task = new_scheduled_task(task, cancel_fn)
+        off_called = False
+
+        async def off_task():
+            nonlocal off_called
+            off_called = True
+
+        finish_called = False
+
+        async def finish_task():
+            nonlocal finish_called
+            finish_called = True
+
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 1, lambda: 1,
+                                     on_task, off_task, finish_task, cancel_fn))
 
         # noinspection PyTypeChecker
-        asyncio.run(scheduled_task())
-        assert not called
-
-        loop_task = new_loop_task(task, cancel_fn)
-
-        # noinspection PyTypeChecker
-        asyncio.run(loop_task())
-        assert not called
-
-        triggerable = Triggerable()
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
-
-        # noinspection PyTypeChecker
-        asyncio.run(trigger_task())
-        assert not called
-
-        # TODO: Add in new_one_time_on_off_task()
+        asyncio.run(on_off_task())
+        assert not on_called
+        assert not off_called
+        assert not finish_called
 
     def test_task_stops(self) -> None:
         """
@@ -1009,39 +1010,33 @@ class TestOneTimeOnOffTask:
         cancellable = CancellableCount(2)
         cancel_fn = terminate_on_cancel(cancellable)
 
-        called = 0
+        on_called = 0
 
-        async def task():
-            nonlocal called
-            called += 1
+        async def on_task():
+            nonlocal on_called
+            on_called += 1
 
-        scheduled_task = new_scheduled_task(task, cancel_fn)
+        off_called = 0
 
-        # noinspection PyTypeChecker
-        asyncio.run(scheduled_task())
-        assert called == 1
-        assert cancellable.cancel
+        async def off_task():
+            nonlocal off_called
+            off_called += 1
 
-        loop_task = new_loop_task(task, cancel_fn)
+        finish_called = 0
 
-        called = 0
-        cancellable.reset(2)
+        async def finish_task():
+            nonlocal finish_called
+            finish_called += 1
 
-        # noinspection PyTypeChecker
-        asyncio.run(loop_task())
-        assert called == 1
-        assert cancellable.cancel
-
-        triggerable = Triggerable()
-        triggerable.triggered = True
-        trigger_task = new_triggered_task(triggerable, duration=1.0, run=task, cancel_func=cancel_fn)
-
-        called = 0
-        cancellable.reset(2)
+        # NOTE: The on and off duration intervals are much longer than the cancel polling intervals
+        #       so we only expect the initial on event to be called.
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 1, lambda: 1,
+                                     on_task, off_task, finish_task, cancel_fn))
 
         # noinspection PyTypeChecker
-        asyncio.run(trigger_task())
-        assert called == 1
+        asyncio.run(on_off_task())
+        assert on_called == 1
+        assert off_called == 0
+        assert finish_called == 0
         assert cancellable.cancel
-
-        # TODO: Add in new_one_time_on_off_task()
