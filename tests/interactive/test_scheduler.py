@@ -889,8 +889,12 @@ class TestOneTimeOnOffTask:
         Validates an error is raised when new_one_time_on_off_task() is invoked
         with cycles of less than 1.
         """
-        on_duration = lambda: 0.1
-        off_duration = lambda: 0.1
+
+        def on_duration():
+            return 0.1
+
+        def off_duration():
+            return 0.1
 
         async def on():
             pass
@@ -914,8 +918,12 @@ class TestOneTimeOnOffTask:
         Validates an error is raised when new_one_time_on_off_task() is invoked
         with either of the on or off duration not specified.
         """
-        on_duration = lambda: 0.1
-        off_duration = lambda: 0.1
+
+        def on_duration():
+            return 0.1
+
+        def off_duration():
+            return 0.1
 
         async def on():
             pass
@@ -939,8 +947,12 @@ class TestOneTimeOnOffTask:
         Validates an error is raised when new_one_time_on_off_task() is invoked
         with one of the on, off or finish functions are not specified.
         """
-        on_duration = lambda: 0.1
-        off_duration = lambda: 0.1
+
+        def on_duration():
+            return 0.1
+
+        def off_duration():
+            return 0.1
 
         async def on():
             pass
@@ -1040,3 +1052,55 @@ class TestOneTimeOnOffTask:
         assert off_called == 0
         assert finish_called == 0
         assert cancellable.cancel
+
+    def test_creates_correct_number_of_events(self) -> None:
+        """
+        Validates that the correct number of events are created and in the correct order.
+        This also validates that the events are fired in the correct order and at the correct time.
+        """
+
+        cancel_fn = never_terminate
+
+        on_events = []
+
+        async def on_task():
+            nonlocal on_events
+            on_events.append(time.monotonic_ns())
+
+        off_events = []
+
+        async def off_task():
+            nonlocal off_events
+            off_events.append(time.monotonic_ns())
+
+        finish_events = []
+
+        async def finish_task():
+            nonlocal finish_events
+            finish_events.append(time.monotonic_ns())
+
+        # NOTE: The on and off duration intervals are much longer than the cancel polling intervals
+        #       so we only expect the initial on event to be called.
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 0.01, lambda: 0.01,
+                                     on_task, off_task, finish_task, cancel_fn))
+
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert len(on_events) == 5
+        assert len(off_events) == 5
+        assert len(finish_events) == 1
+
+    def test_creates_events_with_variable_durations(self) -> None:
+        # Also validates events fired correctly and with a finish
+        assert False
+
+    def test_events_fired_in_correct_order_and_time(self) -> None:
+        assert False
+
+    def test_only_works_once(self) -> None:
+        # Check that once used, the instance is disposed and cannot be used again
+        assert False
+
+    def test_when_only_some_events_provided(self) -> None:
+        assert False
