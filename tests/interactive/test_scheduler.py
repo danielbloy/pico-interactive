@@ -1056,46 +1056,79 @@ class TestOneTimeOnOffTask:
     def test_creates_correct_number_of_events(self) -> None:
         """
         Validates that the correct number of events are created and in the correct order.
-        This also validates that the events are fired in the correct order and at the correct time.
+        This also validates that the events are fired in the correct order and the correct
+        time. We do not do variable timings as that is done later.
         """
 
-        cancel_fn = never_terminate
+        def check_event_order(count, on_duration, off_duration) -> None:
+            cancel_fn = never_terminate
 
-        on_events = []
+            on_events = []
 
-        async def on_task():
-            nonlocal on_events
-            on_events.append(time.monotonic_ns())
+            async def on_task():
+                nonlocal on_events
+                on_events.append(time.monotonic_ns())
 
-        off_events = []
+            off_events = []
 
-        async def off_task():
-            nonlocal off_events
-            off_events.append(time.monotonic_ns())
+            async def off_task():
+                nonlocal off_events
+                off_events.append(time.monotonic_ns())
 
-        finish_events = []
+            finish_events = []
 
-        async def finish_task():
-            nonlocal finish_events
-            finish_events.append(time.monotonic_ns())
+            async def finish_task():
+                nonlocal finish_events
+                finish_events.append(time.monotonic_ns())
 
-        # NOTE: The on and off duration intervals are much longer than the cancel polling intervals
-        #       so we only expect the initial on event to be called.
-        on_off_task = (
-            new_one_time_on_off_task(5, lambda: 0.01, lambda: 0.01,
-                                     on_task, off_task, finish_task, cancel_fn))
+            on_off_task = (
+                new_one_time_on_off_task(count, lambda: on_duration, lambda: off_duration,
+                                         on_task, off_task, finish_task, cancel_fn))
 
-        # noinspection PyTypeChecker
-        asyncio.run(on_off_task())
-        assert len(on_events) == 5
-        assert len(off_events) == 5
-        assert len(finish_events) == 1
+            # noinspection PyTypeChecker
+            asyncio.run(on_off_task())
+            assert len(on_events) == count
+            assert len(off_events) == count
+            assert len(finish_events) == 1
+
+            # Check the on and off events are contiguous respective to themselves
+            # with a reasonable difference of +/- 10%.
+            NANO = 1000000000
+            for idx in range(count - 1):
+                assert on_events[idx] < on_events[idx + 1]
+                assert (on_events[idx + 1] - on_events[idx]) <= (on_duration + off_duration) * NANO * 1.1
+                assert (on_events[idx + 1] - on_events[idx]) >= (on_duration + off_duration) * NANO * 0.9
+
+                assert off_events[idx] < off_events[idx + 1]
+                assert (off_events[idx + 1] - off_events[idx]) <= (on_duration + off_duration) * NANO * 1.1
+                assert (off_events[idx + 1] - off_events[idx]) >= (on_duration + off_duration) * NANO * 0.9
+
+            # Check the on to off events are sent in the correct order and within
+            # a reasonable difference of +/- 10%.
+            for idx in range(count):
+                assert on_events[idx] < off_events[idx]
+                assert (off_events[idx] - on_events[idx]) <= (on_duration * NANO * 1.1)
+                assert (off_events[idx] - on_events[idx]) >= (on_duration * NANO * 0.9)
+
+            # Check the off to on events are sent in the correct order and within
+            # a reasonable difference of +/- 10%.
+            for idx in range(count - 1):
+                assert off_events[idx] < on_events[idx + 1]
+                assert (on_events[idx + 1] - off_events[idx]) <= (off_duration * NANO * 1.1)
+                assert (on_events[idx + 1] - off_events[idx]) >= (off_duration * NANO * 0.9)
+
+            # Check that the finish event is after the last off event and within
+            # a reasonable difference of +/- 10%
+            assert off_events[count - 1] < finish_events[0]
+            assert (finish_events[0] - off_events[count - 1]) <= (off_duration * NANO * 1.1)
+            assert (finish_events[0] - off_events[count - 1]) >= (off_duration * NANO * 0.9)
+
+        check_event_order(1, 0.1, 0.1)
+        check_event_order(3, 0.1, 0.2)
+        check_event_order(5, 0.2, 0.1)
 
     def test_creates_events_with_variable_durations(self) -> None:
         # Also validates events fired correctly and with a finish
-        assert False
-
-    def test_events_fired_in_correct_order_and_time(self) -> None:
         assert False
 
     def test_only_works_once(self) -> None:

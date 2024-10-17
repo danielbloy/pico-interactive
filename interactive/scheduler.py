@@ -281,6 +281,8 @@ class TriggerTimedEvents:
         self.events.append(self.Event(trigger_time, event))
 
 
+# TODO: Could have a multiple use on/off task
+# TODO: Could have an infinite use on/off task (does not use TriggerTimedEvents but runs through dynamically)
 def new_one_time_on_off_task(
         cycles: int,
         on_duration_func: Callable[[], float],  # Seconds
