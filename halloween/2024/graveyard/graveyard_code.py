@@ -1,85 +1,32 @@
 # NOTE: Rename this to code.py on the graveyard node.
+import asyncio
 from random import randint, uniform
 
 from interactive.audio import AudioController
 from interactive.button import ButtonController
 from interactive.configuration import BUTTON_PIN, TRIGGER_DURATION, AUDIO_PIN
+from interactive.configuration import LIGHTNING_MIN_BRIGHTNESS, LIGHTNING_MAX_BRIGHTNESS
+from interactive.configuration import LIGHTNING_MIN_FLASHES, LIGHTNING_MAX_FLASHES
 from interactive.configuration import SPIDER_PINS, SPIDER_COLOURS, SPIDER_PERIODS
-from interactive.configuration import TRIGGER_PIN, LIGHTNING_PIN, LIGHTNING_MIN_BRIGHTNESS, LIGHTNING_MAX_BRIGHTNESS
+from interactive.configuration import TRIGGER_PIN, LIGHTNING_PIN
 from interactive.environment import is_running_on_desktop
+from interactive.log import info
 from interactive.memory import setup_memory_reporting
 from interactive.polyfills.animation import BLACK, Pulse, WHITE
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
-from interactive.scheduler import new_triggered_task, TriggerTimedEvents, Triggerable
+from interactive.scheduler import new_triggered_task, TriggerTimedEvents, Triggerable, new_one_time_on_off_task
 
 # collections.abc is not available in CircuitPython.
 if is_running_on_desktop():
-    from collections.abc import Callable
+    pass
 
 PIXELS_OFF = 0.0
 
 SPIDER_BRIGHTNESS = 1.0
 SPIDER_SPEED = 0.1
-
-
-# Inspiration for lightning taken from these online articles:
-# https://randommakingencounters.com/lightning-and-thunder-effect-arduino-dfplayer-mini-neopixels/
-# https://www.tweaking4all.com/forum/arduino/lightning-effect/
-
-# Each time we trigger a lightning strike, we generate the following information:
-# * How many flashes to generate within the minx and max range.
-# * For each flash we generate:
-#   * The length of each flash within the min and max range.
-#   * The time between each flash within the min and max range.
-#
-# The above information is used to generate a TriggerTimedEvents instance which is used to
-# turn the lightning pixels on or off. Each time the pixels are turned on, we also generate:
-# * The brightness of the flash.
-#
-def new_lightning_task() -> Callable[[], bool]:
-    lightning_events = TriggerTimedEvents()
-
-    # Represents the start of the next flash.
-    next_flash = 0
-    for i in range(randint(5, 15)):
-        flash_duration = randint(5, 75) / 1000  # Milliseconds
-        off_duration = randint(5, 75) / 1000  # Milliseconds
-
-        lightning_events.add_event(next_flash, 1)  # On
-        lightning_events.add_event(next_flash + flash_duration, 0)  # Off
-        next_flash += flash_duration
-        next_flash += off_duration
-
-    lightning_events.add_event(next_flash, 2)  # Terminate
-
-    lightning_events.start()
-
-    def task() -> bool:
-        nonlocal lightning_events
-        stop = False
-        events = lightning_events.run()
-
-        for event in events:
-            if event.event == 0:  # Lights off
-                lightning.fill(BLACK)
-                lightning.brightness = PIXELS_OFF
-                lightning.show()
-            elif event.event == 1:  # Lights one
-                lightning.fill(WHITE)
-                lightning.brightness = uniform(LIGHTNING_MIN_BRIGHTNESS, LIGHTNING_MAX_BRIGHTNESS)
-                lightning.show()
-            elif event.event == 2:  # End
-                lightning_events.stop()
-                del lightning_events
-                stop = True
-
-        return stop
-
-    return task
-
 
 # Because of memory constraints when using a Pico W CircuitPython image we do not use the
 # Interactive class here. This allows for much easier testing but also keeps the code
@@ -95,9 +42,6 @@ spiders = [new_pixels(pin, 2, brightness=SPIDER_BRIGHTNESS) for pin in SPIDER_PI
 animations = [Pulse(pixel, speed=SPIDER_SPEED, color=SPIDER_COLOURS[idx], period=SPIDER_PERIODS[idx]) for idx, pixel in
               enumerate(spiders)]
 
-lightning = new_pixels(LIGHTNING_PIN, 24, brightness=LIGHTNING_BRIGHTNESS)
-lightning_task: Callable[[], bool] = None
-
 audio_controller = AudioController(new_mp3_player(AUDIO_PIN, "interactive/mp3.mp3"))
 audio_controller.register(runner)
 
@@ -105,6 +49,50 @@ audio_controller.register(runner)
 trigger_events = TriggerTimedEvents()
 trigger_events.add_event(00.00, 0)  # Trigger lightning
 trigger_events.add_event(01.00, 1)  # Trigger thunder
+
+# Inspiration for lightning taken from these online articles:
+# https://randommakingencounters.com/lightning-and-thunder-effect-arduino-dfplayer-mini-neopixels/
+# https://www.tweaking4all.com/forum/arduino/lightning-effect/
+
+# Each time we trigger a lightning strike, we generate the following information:
+# * How many flashes to generate within a min and max range.
+# * For each flash we generate:
+#   * The length of each flash within a min and max range.
+#   * The time between each flash within a min and max range.
+#
+# Each time the pixels are turned on, we also generate:
+# * The brightness of the flash within a min and max range.
+#
+lightning = new_pixels(LIGHTNING_PIN, 24, brightness=PIXELS_OFF)
+
+
+async def lightning_on() -> None:
+    lightning.fill(WHITE)
+    lightning.brightness = uniform(LIGHTNING_MIN_BRIGHTNESS, LIGHTNING_MAX_BRIGHTNESS)
+    lightning.show()
+
+
+async def lightning_off() -> None:
+    lightning.fill(BLACK)
+    lightning.brightness = PIXELS_OFF
+    lightning.show()
+
+
+async def lightning_finish() -> None:
+    await lightning_off()
+
+
+async def lightning_effect() -> None:
+    info("Running lightning effect")
+    lightning_task = new_one_time_on_off_task(
+        cycles=randint(LIGHTNING_MIN_FLASHES, LIGHTNING_MAX_FLASHES),
+        on_duration_func=lambda: randint(5, 75) / 1000,  # ms
+        off_duration_func=lambda: randint(35, 75) / 1000,  # ms
+        on=lightning_on,
+        off=lightning_off,
+        finish=lightning_finish
+    )
+    await lightning_task()
 
 
 async def start_display() -> None:
@@ -121,19 +109,12 @@ async def start_display() -> None:
 
 
 async def run_display() -> None:
-    global lightning_task
-
-    if lightning_task:
-        lightning_finished = lightning_task()
-        if lightning_finished:
-            del lightning_task
-            lightning_task = None
-
     events = trigger_events.run()
 
     for event in events:
         if event.event == 0:  # Trigger lightning
-            lightning_task = new_lightning_task()
+            # Run the lightning effect in a separate task.
+            asyncio.create_task(lightning_effect())
         elif event.event == 1:  # Trigger thunder
             # TODO: audio_controller.queue("dragon.mp3")
             pass

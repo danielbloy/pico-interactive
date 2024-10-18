@@ -1,6 +1,6 @@
 import asyncio
 import time
-from random import uniform, randint
+from random import randint, uniform
 
 from interactive.animation import Flicker
 from interactive.button import ButtonController
@@ -14,7 +14,7 @@ from interactive.polyfills.button import new_button
 from interactive.polyfills.led import new_led_pin
 from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
-from scheduler import new_one_time_on_off_task
+from interactive.scheduler import new_one_time_on_off_task
 
 REPORT_RAM = is_running_on_microcontroller()
 
@@ -74,14 +74,12 @@ if __name__ == '__main__':
 
 
     async def lightning_on() -> None:
-        print("lightning_on")  # TODO
         pixels.fill(WHITE)
         pixels.brightness = uniform(0.1, 1.0)
         pixels.show()
 
 
     async def lightning_off() -> None:
-        print("lightning_off")  # TODO
         pixels.fill(BLACK)
         pixels.brightness = 0.0
         pixels.show()
@@ -91,21 +89,24 @@ if __name__ == '__main__':
         await lightning_off()
 
 
+    async def lightning_effect() -> None:
+        info("Running lightning effect")
+        lightning_task = new_one_time_on_off_task(
+            cycles=randint(5, 15),
+            on_duration_func=lambda: randint(5, 75) / 1000,
+            off_duration_func=lambda: randint(35, 75) / 1000,
+            on=lightning_on,
+            off=lightning_off,
+            finish=lightning_finish
+        )
+        await lightning_task()
+
+
     async def single_click_handler() -> None:
         info("Clicked")
         if not runner.cancel:
-            lightning_task = new_one_time_on_off_task(
-                cycles=randint(5, 15),
-                on_duration_func=lambda: randint(5, 75) / 1000,
-                off_duration_func=lambda: randint(5, 75) / 1000,
-                on=lightning_on,
-                off=lightning_off,
-                finish=lightning_finish
-            )
-            print("lightning start")  # TODO
-            asyncio.create_task(lightning_task)
-            # await lightning_task()
-            print("lightning stop")  # TODO
+            # Run the lightning effect in a separate task.
+            asyncio.create_task(lightning_effect())
 
 
     button = new_button(BUTTON_PIN)
@@ -114,7 +115,7 @@ if __name__ == '__main__':
     button_controller.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 10
+    finish = time.monotonic() + 30
 
 
     async def callback() -> None:

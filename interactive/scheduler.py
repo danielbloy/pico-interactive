@@ -283,6 +283,7 @@ class TriggerTimedEvents:
 
 # TODO: Could have a multiple use on/off task
 # TODO: Could have an infinite use on/off task (does not use TriggerTimedEvents but runs through dynamically)
+# TODO: Returning a task like this rather than a function that returns a boolean means it needs running in a new task.
 def new_one_time_on_off_task(
         cycles: int,
         on_duration_func: Callable[[], float],  # Seconds
