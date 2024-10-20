@@ -12,7 +12,8 @@ PRIMARY_NODE = False
 
 TRIGGER_PIN = board.GP0
 TRIGGER_DURATION = 40
-REPORT_RAM = True
+
+REPORT_RAM = False
 REPORT_RAM_PERIOD = 10
 
 from interactive.log import CRITICAL
