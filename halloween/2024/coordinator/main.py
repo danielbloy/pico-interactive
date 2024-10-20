@@ -1,4 +1,8 @@
 # This is designed to run on a PC and perform the multi-node coordination.
+#
+# The Eyes are displayed on the TV on the 1st floor and are kicked off on repeat
+# even when the trigger is not activated. The eyes act as an attract to the house.
+#
 import asyncio
 
 from interactive.configuration import EYES_DURATION, TRIGGER_DURATION
@@ -28,12 +32,30 @@ event_to_node = [
 
 if __name__ == '__main__':
 
+    runner = Runner()
+
+    runner.cancel_on_exception = False
+    runner.restart_on_exception = True
+    runner.restart_on_completion = False
+
+
+    # Trigger the eyes on repeat.
+    async def trigger_eyes() -> None:
+        asyncio.create_task(trigger_node(EYES))
+
+
+    runner.add_task(
+        new_scheduled_task(
+            trigger_eyes,
+            frequency=1 / EYES_DURATION,
+        ))
+
     trigger_events = TriggerTimedEvents()
     trigger_events.add_event(00.00, PATH_EVENT)
-    trigger_events.add_event(00.00, CAULDRON_EVENT)
-    trigger_events.add_event(00.10, PROJECTOR_EVENT)
-    trigger_events.add_event(00.20, WITCH_EVENT)
-    trigger_events.add_event(00.20, GRAVEYARD_EVENT)
+    trigger_events.add_event(00.00, PROJECTOR_EVENT)
+    trigger_events.add_event(01.00, CAULDRON_EVENT)
+    trigger_events.add_event(01.00, WITCH_EVENT)
+    trigger_events.add_event(02.00, GRAVEYARD_EVENT)
 
 
     async def trigger_node(node: str) -> None:
@@ -62,23 +84,6 @@ if __name__ == '__main__':
         info("Stop display")
         trigger_events.stop()
 
-
-    runner = Runner()
-
-    runner.cancel_on_exception = False
-    runner.restart_on_exception = True
-    runner.restart_on_completion = False
-
-
-    async def trigger_eyes() -> None:
-        asyncio.create_task(trigger_node(EYES))
-
-
-    runner.add_task(
-        new_scheduled_task(
-            trigger_eyes,
-            frequency=1 / EYES_DURATION,
-        ))
 
     triggerable = Triggerable()
 
