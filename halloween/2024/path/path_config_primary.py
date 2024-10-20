@@ -5,7 +5,7 @@ import board
 BUTTON_PIN = board.GP0
 AUDIO_PIN = board.GP26
 
-SKULL_PINS = [board.GP1, board.GP2, board.GP3, board.GP4, board.GP5, board.GP6]
+SKULL_PINS = [board.GP1, board.GP4, board.GP6, board.GP5, board.GP3, board.GP2]
 PRIMARY_NODE = True
 
 TRIGGER_PIN = board.GP29
