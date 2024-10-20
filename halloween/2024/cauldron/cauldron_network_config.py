@@ -8,7 +8,7 @@ LOCAL_TRIGGER_PIN = board.GP9
 REMOTE_TRIGGER_PIN = board.GP1
 TRIGGER_DURATION = 40
 
-REPORT_RAM = True
+REPORT_RAM = False
 REPORT_RAM_PERIOD = 10
 
 from interactive.log import CRITICAL

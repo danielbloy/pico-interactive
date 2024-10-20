@@ -30,7 +30,7 @@ runner.cancel_on_exception = False
 runner.restart_on_exception = True
 runner.restart_on_completion = False
 
-pixels = new_pixels(CAULDRON_PIN, 30, brightness=CAULDRON_BRIGHTNESS)
+pixels = new_pixels(CAULDRON_PIN, 90, brightness=CAULDRON_BRIGHTNESS)
 animation = Flicker(pixels, speed=CAULDRON_SPEED, color=CAULDRON_COLOUR)
 
 audio_controller = AudioController(new_mp3_player(AUDIO_PIN, "interactive/mp3.mp3"))
