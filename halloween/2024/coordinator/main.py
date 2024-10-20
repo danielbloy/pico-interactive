@@ -71,7 +71,6 @@ if __name__ == '__main__':
 
 
     async def trigger_eyes() -> None:
-        print(2)
         asyncio.create_task(trigger_node(EYES))
 
 
