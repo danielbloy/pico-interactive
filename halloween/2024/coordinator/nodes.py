@@ -17,5 +17,5 @@ GRAVEYARD = "192.168.1.219:80"
 # Projector node; Medion laptop.
 PROJECTOR = "192.168.1.76:5001"
 
-# Picture frame node; acer laptop.
-FRAME = "192.168.1.194:5001"
+# TV displaying eyes; acer laptop.
+EYES = "192.168.1.194:5001"

@@ -1,12 +1,12 @@
 # This is designed to run on a PC and perform the multi-node coordination.
 import asyncio
 
-from interactive.configuration import TRIGGER_DURATION
+from interactive.configuration import EYES_DURATION, TRIGGER_DURATION
 from interactive.log import info
 from interactive.network import NetworkController, send_message
 from interactive.polyfills.network import new_server
 from interactive.runner import Runner
-from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents
+from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedEvents, new_scheduled_task
 from log import critical
 from nodes import *
 
@@ -17,15 +17,13 @@ CAULDRON_EVENT = 1
 WITCH_EVENT = 2
 GRAVEYARD_EVENT = 3
 PROJECTOR_EVENT = 4
-FRAME_EVENT = 5
 
 event_to_node = [
     PATH,
     CAULDRON,
     WITCH,
     GRAVEYARD,
-    PROJECTOR,
-    FRAME,
+    PROJECTOR
 ]
 
 if __name__ == '__main__':
@@ -34,7 +32,6 @@ if __name__ == '__main__':
     trigger_events.add_event(00.00, PATH_EVENT)
     trigger_events.add_event(00.00, CAULDRON_EVENT)
     trigger_events.add_event(00.10, PROJECTOR_EVENT)
-    trigger_events.add_event(00.10, FRAME_EVENT)
     trigger_events.add_event(00.20, WITCH_EVENT)
     trigger_events.add_event(00.20, GRAVEYARD_EVENT)
 
@@ -71,6 +68,18 @@ if __name__ == '__main__':
     runner.cancel_on_exception = False
     runner.restart_on_exception = True
     runner.restart_on_completion = False
+
+
+    async def trigger_eyes() -> None:
+        print(2)
+        asyncio.create_task(trigger_node(EYES))
+
+
+    runner.add_task(
+        new_scheduled_task(
+            trigger_eyes,
+            frequency=1 / EYES_DURATION,
+        ))
 
     triggerable = Triggerable()
 
