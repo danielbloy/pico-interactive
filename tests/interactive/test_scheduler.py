@@ -1132,8 +1132,50 @@ class TestOneTimeOnOffTask:
         assert False
 
     def test_only_works_once(self) -> None:
-        # Check that once used, the instance is disposed and cannot be used again
-        assert False
+        """
+        Validates that once used, the task does not work a second time,
+        """
+        on_called = 0
+
+        async def on_task():
+            nonlocal on_called
+            on_called += 1
+
+        off_called = 0
+
+        async def off_task():
+            nonlocal off_called
+            off_called += 1
+
+        finish_called = 0
+
+        async def finish_task():
+            nonlocal finish_called
+            finish_called += 1
+
+        # NOTE: The on and off duration intervals are much longer than the cancel polling intervals
+        #       so we only expect the initial on event to be called.
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 0.01, lambda: 0.01,
+                                     on_task, off_task, finish_task))
+
+        # Run the first time.
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert on_called == 5
+        assert off_called == 5
+        assert finish_called == 1
+
+        # Reset and run again, no events should be fired
+        on_called = 0
+        off_called = 0
+        finish_called = 0
+
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert on_called == 0
+        assert off_called == 0
+        assert finish_called == 0
 
     def test_when_only_some_events_provided(self) -> None:
         assert False
