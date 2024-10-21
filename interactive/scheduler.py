@@ -297,7 +297,14 @@ def new_one_time_on_off_task(
     on/off event pairs is specified through the cycles parameter. The duration of
     each on/off cycle is provided through the on_duration_func and off_duration_func
     parameters. This allows for subtle configuration of the on/off cycles with each
-    being unique. After all on/off cycles have completed, the finish function is called.
+    being unique.
+
+    After all on/off cycles have completed, the finish function is called. The duration
+    between the final off event and the finish event is defined by the off_duration_func.
+    As the first on event always occurs at time zero, and the off events are defined
+    (counterintuitively by the on_duration_func) using the off_duration_func for the
+    finish event means that the off_duration_func is always called exactly the same number
+    of times as the on_duration_func and is equal to the number of cycles specified.
 
     As the "clock" for the on/off cycles starts immediately, there is no start function.
     An on event always starts at time zero.

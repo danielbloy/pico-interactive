@@ -7,6 +7,8 @@ from interactive.control import SCHEDULER_DEFAULT_FREQUENCY, ASYNC_LOOP_SLEEP_IN
 from interactive.scheduler import never_terminate, terminate_on_cancel, new_scheduled_task, new_loop_task, \
     new_triggered_task, Triggerable, TriggerableAlwaysOn, TriggerTimedEvents, new_one_time_on_off_task
 
+NANO = 1000000000
+
 
 class Cancellable:
     def __init__(self):
@@ -1093,7 +1095,6 @@ class TestOneTimeOnOffTask:
 
             # Check the on and off events are contiguous respective to themselves
             # with a reasonable difference of +/- 10%.
-            NANO = 1000000000
             for idx in range(count - 1):
                 assert on_events[idx] < on_events[idx + 1]
                 assert (on_events[idx + 1] - on_events[idx]) <= (on_duration + off_duration) * NANO * 1.1
@@ -1123,13 +1124,123 @@ class TestOneTimeOnOffTask:
             assert (finish_events[0] - off_events[count - 1]) <= (off_duration * NANO * 1.1)
             assert (finish_events[0] - off_events[count - 1]) >= (off_duration * NANO * 0.9)
 
-        check_event_order(1, 0.2, 0.2)
-        check_event_order(3, 0.2, 0.4)
-        check_event_order(5, 0.4, 0.2)
+        check_event_order(1, 0.1, 0.1)
+        check_event_order(3, 0.1, 0.2)
+        check_event_order(5, 0.2, 0.1)
 
-    def test_creates_events_with_variable_durations(self) -> None:
-        # Also validates events fired correctly and with a finish
-        assert False
+    def test_creates_events_with_variable_on_durations(self) -> None:
+        """
+        Validates that the on times can be variable
+        """
+        durations = [0.10, 0.15, 0.20, 0.25, 0.30]
+        duration_idx = -1
+
+        def next_duration() -> float:
+            nonlocal durations, duration_idx
+            duration_idx += 1
+            return durations[duration_idx]
+
+        on_events = []
+
+        async def on_task():
+            nonlocal on_events
+            on_events.append(time.monotonic_ns())
+
+        off_events = []
+
+        async def off_task():
+            nonlocal off_events
+            off_events.append(time.monotonic_ns())
+
+        finish_events = []
+
+        async def finish_task():
+            nonlocal finish_events
+            finish_events.append(time.monotonic_ns())
+
+        on_off_task = (
+            new_one_time_on_off_task(5, next_duration, lambda: 0.1, on=on_task, off=off_task, finish=finish_task))
+
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert len(on_events) == 5
+        assert len(off_events) == 5
+        assert len(finish_events) == 1
+
+        # Validate that each on event is progressively bigger based on the passed in timing value.
+        for idx in range(5):
+            assert on_events[idx] < off_events[idx]
+            assert (off_events[idx] - on_events[idx]) <= (durations[idx] * NANO * 1.1)
+            assert (off_events[idx] - on_events[idx]) >= (durations[idx] * NANO * 0.9)
+
+        # Validate that each off event is consistent.
+        for idx in range(4):
+            assert off_events[idx] < on_events[idx + 1]
+            assert (on_events[idx + 1] - off_events[idx]) <= (0.1 * NANO * 1.1)
+            assert (on_events[idx + 1] - off_events[idx]) >= (0.1 * NANO * 0.9)
+
+        # Check that the finish event is after the last off event and within
+        # a reasonable difference of +/- 10%
+        assert off_events[4] < finish_events[0]
+        assert (finish_events[0] - off_events[4]) <= (0.1 * NANO * 1.1)
+        assert (finish_events[0] - off_events[4]) >= (0.1 * NANO * 0.9)
+
+    def test_creates_events_with_variable_off_durations(self) -> None:
+        """
+        Validates that the on times can be variable
+        """
+        durations = [0.10, 0.15, 0.20, 0.25, 0.30]
+        duration_idx = -1
+
+        def next_duration() -> float:
+            nonlocal duration_idx
+            duration_idx += 1
+            return durations[duration_idx]
+
+        on_events = []
+
+        async def on_task():
+            nonlocal on_events
+            on_events.append(time.monotonic_ns())
+
+        off_events = []
+
+        async def off_task():
+            nonlocal off_events
+            off_events.append(time.monotonic_ns())
+
+        finish_events = []
+
+        async def finish_task():
+            nonlocal finish_events
+            finish_events.append(time.monotonic_ns())
+
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 0.1, next_duration, on=on_task, off=off_task, finish=finish_task))
+
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert len(on_events) == 5
+        assert len(off_events) == 5
+        assert len(finish_events) == 1
+
+        # Validate that each on event is consistent.
+        for idx in range(5):
+            assert on_events[idx] < off_events[idx]
+            assert (off_events[idx] - on_events[idx]) <= (0.1 * NANO * 1.1)
+            assert (off_events[idx] - on_events[idx]) >= (0.1 * NANO * 0.9)
+
+        # Validate that each on event is progressively bigger based on the passed in timing value.
+        for idx in range(4):
+            assert off_events[idx] < on_events[idx + 1]
+            assert (on_events[idx + 1] - off_events[idx]) <= (durations[idx] * NANO * 1.1)
+            assert (on_events[idx + 1] - off_events[idx]) >= (durations[idx] * NANO * 0.9)
+
+        # Check that the finish event is after the last off event and within
+        # a reasonable difference of +/- 10%
+        assert off_events[4] < finish_events[0]
+        assert (finish_events[0] - off_events[4]) <= (durations[4] * NANO * 1.1)
+        assert (finish_events[0] - off_events[4]) >= (durations[4] * NANO * 0.9)
 
     def test_only_works_once(self) -> None:
         """
