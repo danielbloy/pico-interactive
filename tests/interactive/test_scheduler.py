@@ -1123,9 +1123,9 @@ class TestOneTimeOnOffTask:
             assert (finish_events[0] - off_events[count - 1]) <= (off_duration * NANO * 1.1)
             assert (finish_events[0] - off_events[count - 1]) >= (off_duration * NANO * 0.9)
 
-        check_event_order(1, 0.1, 0.1)
-        check_event_order(3, 0.1, 0.2)
-        check_event_order(5, 0.2, 0.1)
+        check_event_order(1, 0.2, 0.2)
+        check_event_order(3, 0.2, 0.4)
+        check_event_order(5, 0.4, 0.2)
 
     def test_creates_events_with_variable_durations(self) -> None:
         # Also validates events fired correctly and with a finish
@@ -1177,5 +1177,58 @@ class TestOneTimeOnOffTask:
         assert off_called == 0
         assert finish_called == 0
 
-    def test_when_only_some_events_provided(self) -> None:
-        assert False
+    def test_when_only_on_event_provided(self) -> None:
+        """
+        Validates that only the on events get fired.
+        """
+        on_called = 0
+
+        async def on_task():
+            nonlocal on_called
+            on_called += 1
+
+        # NOTE: The on and off duration intervals are much longer than the cancel polling intervals
+        #       so we only expect the initial on event to be called.
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 0.01, lambda: 0.01, on=on_task))
+
+        # Run the first time.
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert on_called == 5
+
+    def test_when_only_off_event_provided(self) -> None:
+        """
+        Validates that only the off events get fired.
+        """
+        off_called = 0
+
+        async def off_task():
+            nonlocal off_called
+            off_called += 1
+
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 0.01, lambda: 0.01, off=off_task))
+
+        # Run the first time.
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert off_called == 5
+
+    def test_when_only_finish_event_provided(self) -> None:
+        """
+        Validates that only the finish event get fired.
+        """
+        finish_called = 0
+
+        async def finish_task():
+            nonlocal finish_called
+            finish_called += 1
+
+        on_off_task = (
+            new_one_time_on_off_task(5, lambda: 0.01, lambda: 0.01, finish=finish_task))
+
+        # Run the first time.
+        # noinspection PyTypeChecker
+        asyncio.run(on_off_task())
+        assert finish_called == 1
