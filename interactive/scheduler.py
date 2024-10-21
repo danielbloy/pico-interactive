@@ -279,3 +279,94 @@ class TriggerTimedEvents:
                              need to be unique.
         """
         self.events.append(self.Event(trigger_time, event))
+
+
+# TODO: Could have a multiple use on/off task
+# TODO: Could have an infinite use on/off task (does not use TriggerTimedEvents but runs through dynamically)
+# TODO: Returning a task like this rather than a function that returns a boolean means it needs running in a new task.
+def new_one_time_on_off_task(
+        cycles: int,
+        on_duration_func: Callable[[], float],  # Seconds
+        off_duration_func: Callable[[], float],  # Seconds
+        on: Callable[[], Awaitable[None]] = None,
+        off: Callable[[], Awaitable[None]] = None,
+        finish: Callable[[], Awaitable[None]] = None,
+        cancel_func: Callable[[], bool] = never_terminate) -> Callable[[], Awaitable[None]]:
+    """
+    Creates a task that will generate a series of on and off events. The number of
+    on/off event pairs is specified through the cycles parameter. The duration of
+    each on/off cycle is provided through the on_duration_func and off_duration_func
+    parameters. This allows for subtle configuration of the on/off cycles with each
+    being unique.
+
+    After all on/off cycles have completed, the finish function is called. The duration
+    between the final off event and the finish event is defined by the off_duration_func.
+    As the first on event always occurs at time zero, and the off events are defined
+    (counterintuitively by the on_duration_func) using the off_duration_func for the
+    finish event means that the off_duration_func is always called exactly the same number
+    of times as the on_duration_func and is equal to the number of cycles specified.
+
+    As the "clock" for the on/off cycles starts immediately, there is no start function.
+    An on event always starts at time zero.
+
+    This is a one time use task; the returned task should be repeatedly awaited until the
+    finish event.
+
+    If the provided cancel function cancels the on/off events before the finish event,
+    no finish event will be triggered.
+    
+    :param cycles: How many on/off cycles to generate.
+    :param on_duration_func: Function that returns the next on duration in seconds.
+    :param off_duration_func: Function that returns the next off duration in seconds.
+    :param on: Function that is called when an on event is triggered.
+    :param off: Function that is called when an off event is triggered.
+    :param finish: Function that is called when a finish event is triggered.
+    :param cancel_func: A function that returns whether to cancel the task or not.
+    """
+    if cycles < 1:
+        raise ValueError("At least one cycle is needed")
+
+    if on_duration_func is None or off_duration_func is None:
+        raise ValueError("Both on_duration_fn and off_duration_fn must be specified")
+
+    if on is None and off is None and finish is None:
+        raise ValueError("at least one of on_fn, off_fn or finish_fn must be specified")
+
+    on_off_events = TriggerTimedEvents()
+
+    # Represents the start of the next flash.
+    next_on_event = 0.0
+    for i in range(cycles):
+        next_off_event = next_on_event + on_duration_func()
+
+        on_off_events.add_event(next_on_event, 1)  # On
+        on_off_events.add_event(next_off_event, 0)  # Off
+        next_on_event = next_off_event + off_duration_func()
+
+    on_off_events.add_event(next_on_event, 2)  # Terminate
+
+    # Cancel when either the cancel function is called or our events have finished.
+    def cancel() -> bool:
+        nonlocal on_off_events
+        return cancel_func() or not on_off_events.running
+
+    async def handler() -> None:
+        nonlocal on_off_events
+        events = on_off_events.run()
+
+        for event in events:
+            if event.event == 0:  # Lights off
+                if off:
+                    await off()
+            elif event.event == 1:  # Lights on
+                if on:
+                    await on()
+            elif event.event == 2:  # End
+                on_off_events.stop()
+                if finish:
+                    await finish()
+
+    # The events start straight away and the first event will be on.
+    on_off_events.start()
+
+    return new_loop_task(handler, cancel)

@@ -7,12 +7,13 @@ AUDIO_PIN = board.GP22
 ULTRASONIC_TRIGGER_PIN = board.GP17
 ULTRASONIC_ECHO_PIN = board.GP16
 
-SKULL_PINS = [board.GP5, board.GP6, board.GP7, board.GP8, board.GP9, board.GP10]
+SKULL_PINS = [board.GP5, board.GP7, board.GP9, board.GP10, board.GP8, board.GP6]
 PRIMARY_NODE = False
 
 TRIGGER_PIN = board.GP0
 TRIGGER_DURATION = 40
-REPORT_RAM = True
+
+REPORT_RAM = False
 REPORT_RAM_PERIOD = 10
 
 from interactive.log import CRITICAL

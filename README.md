@@ -75,7 +75,7 @@ the end of this readme for more information about the license.
 
 * [x] Support for CircuitPython:
     * [x] 9.0.5
-    * [ ] 9.1.2
+    * [ ] 9.1.4
     * [ ] 9.2.0
 * [x] Support for Python on Desktops (Windows, Linux, MacOS):
     * [x] 3.10
@@ -129,9 +129,11 @@ the end of this readme for more information about the license.
 * [ ] Add current time of day support via Wi-Fi
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
+* [ ] Trigger message should accept JSON data.
 * [ ] Add in a directory-information route to export as JSON data about the directory.
 * [ ] Improve the '/' and '/inspect' routes with more information and better formatting.
 * [ ] Add in a node-information route to return the node information as JSON.
+* [ ] Migrate to a lighterweight, faster and async HTTP server stack such as [Biplane](https://github.com/Uberi/biplane).
 * [ ] Add Servo support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
@@ -150,6 +152,7 @@ the end of this readme for more information about the license.
 * [ ] Add OLED/TFT screen support
     * [ ] Works on CircuitPython
     * [ ] Works with Blinka
+* [ ] Embed pico-interactive version number in library based on release.
 * [ ] Make a pico-interactive release (
   see [Creating and sharing a CircuitPython library](https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library?view=all#mpy-2982472-11)):
     * [ ] Compile to`.mpy` files

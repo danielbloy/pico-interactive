@@ -6,7 +6,7 @@ from interactive.button import ButtonController
 from interactive.configuration import AUDIO_PIN, TRIGGER_DURATION
 from interactive.configuration import CAULDRON_PIN, TRIGGER_PIN
 from interactive.memory import setup_memory_reporting
-from interactive.polyfills.animation import BLACK, RED
+from interactive.polyfills.animation import BLACK, ORANGE
 from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.pixel import new_pixels
@@ -15,8 +15,8 @@ from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedE
 
 CAULDRON_BRIGHTNESS = 1.0
 CAULDRON_OFF = 0.0
-CAULDRON_SPEED = 0.1  # TODO: Test the speed
-CAULDRON_COLOUR = RED  # TODO: Could do different pixels and colours
+CAULDRON_SPEED = 0.1
+CAULDRON_COLOUR = ORANGE
 
 # Because of memory constraints when using a Pico W CircuitPython image we do not use the
 # Interactive class here. This allows for much easier testing but also keeps the code
@@ -28,7 +28,7 @@ runner.cancel_on_exception = False
 runner.restart_on_exception = True
 runner.restart_on_completion = False
 
-pixels = new_pixels(CAULDRON_PIN, 30, brightness=CAULDRON_BRIGHTNESS)
+pixels = new_pixels(CAULDRON_PIN, 90, brightness=CAULDRON_BRIGHTNESS)
 animation = Flicker(pixels, speed=CAULDRON_SPEED, color=CAULDRON_COLOUR)
 
 audio_controller = AudioController(new_mp3_player(AUDIO_PIN, "interactive/mp3.mp3"))

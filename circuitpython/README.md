@@ -5,7 +5,7 @@ this project is tested against and supports. Currently, the project is being bui
 against:
 
 * CircuitPython 9.0.5 - confirmed
-* CircuitPython 9.1.2 - testing in progress
+* CircuitPython 9.1.4 - testing in progress
 * CircuitPython 9.2.0 - future
 
 The CircuitPython libraries that are required for the project have been extracted

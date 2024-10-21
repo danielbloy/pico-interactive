@@ -34,7 +34,7 @@ async def trigger_handler(distance: float, actual: float) -> None:
     critical(f"Distance {distance} handler triggered: {actual}")
     onboard_led.value = not onboard_led.value
     send_message("trigger")
-    await asyncio.sleep(0.25)  # TODO: Can this be removed?
+    await asyncio.sleep(0.25)
     onboard_led.value = not onboard_led.value
 
 

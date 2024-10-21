@@ -16,7 +16,7 @@ from adafruit_httpserver import Route, GET, Server, REQUEST_HANDLED_RESPONSE_SEN
 
 from interactive import configuration
 from interactive.configuration import NODE_COORDINATOR, get_node_config, NODE_NAME, NODE_ROLE, LOG_LEVEL
-from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP
+from interactive.control import NETWORK_PORT_MICROCONTROLLER, NETWORK_PORT_DESKTOP, SEND_MESSAGE_TIMEOUT
 from interactive.environment import is_running_on_microcontroller, is_running_on_desktop, is_running_under_test
 from interactive.log import error
 from interactive.polyfills.cpu import info as cpu_info
@@ -185,7 +185,8 @@ def send_message(path: str, host: str = NODE_COORDINATOR,
     """
     Sends a message with the provided payload to the specified node, ensuring headers are included.
     """
-    return requests.request(method, f"{protocol}://{host}/{path}", headers=HEADERS, data=data, json=json)
+    return requests.request(method, f"{protocol}://{host}/{path}",
+                            headers=HEADERS, data=data, json=json, timeout=SEND_MESSAGE_TIMEOUT)
 
 
 ###########################################################
