@@ -45,10 +45,24 @@ animations = [Pulse(pixel, speed=SPIDER_SPEED, color=SPIDER_COLOURS[idx], period
 audio_controller = AudioController(new_mp3_player(AUDIO_PIN, "interactive/mp3.mp3"))
 audio_controller.register(runner)
 
+# We support multiple different thunder sounds.
+thunder = [
+    "thunder_0.mp3",
+    "thunder_1.mp3",
+    "thunder_2.mp3",
+    "thunder_3.mp3",
+]
+
 # The event is the skull index to enable
 trigger_events = TriggerTimedEvents()
-trigger_events.add_event(00.00, 0)  # Trigger lightning
-trigger_events.add_event(01.00, 1)  # Trigger thunder
+trigger_events.add_event(00.00, 99)  # Trigger lightning
+trigger_events.add_event(01.00, 0)  # Trigger thunder
+trigger_events.add_event(10.00, 99)  # Trigger lightning
+trigger_events.add_event(11.00, 1)  # Trigger thunder
+trigger_events.add_event(20.00, 99)  # Trigger lightning
+trigger_events.add_event(21.00, 2)  # Trigger thunder
+trigger_events.add_event(30.00, 99)  # Trigger lightning
+trigger_events.add_event(31.00, 3)  # Trigger thunder
 
 # Inspiration for lightning taken from these online articles:
 # https://randommakingencounters.com/lightning-and-thunder-effect-arduino-dfplayer-mini-neopixels/
@@ -112,12 +126,11 @@ async def run_display() -> None:
     events = trigger_events.run()
 
     for event in events:
-        if event.event == 0:  # Trigger lightning
+        if event.event < 10:  # Trigger thunder
+            audio_controller.queue(thunder[event.event])
+        elif event.event == 99:  # Trigger lightning
             # Run the lightning effect in a separate task.
             asyncio.create_task(lightning_effect())
-        elif event.event == 1:  # Trigger thunder
-            # TODO: audio_controller.queue("dragon.mp3")
-            pass
 
     for animation in animations:
         animation.animate()

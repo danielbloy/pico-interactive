@@ -14,8 +14,6 @@ from interactive.scheduler import new_triggered_task, Triggerable, TriggerTimedE
 from log import critical
 from nodes import *
 
-# TODO: Log IP of who is sending trigger message so can check both are working.
-
 PATH_EVENT = 0
 CAULDRON_EVENT = 1
 WITCH_EVENT = 2
