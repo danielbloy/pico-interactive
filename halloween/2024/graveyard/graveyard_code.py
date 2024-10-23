@@ -47,10 +47,10 @@ audio_controller.register(runner)
 
 # We support multiple different thunder sounds.
 thunder = [
-    "thunder_0.mp3",
-    "thunder_1.mp3",
+    "thunder_3a.mp3",
+    "thunder_3b.mp3",
+    "thunder_3c.mp3",
     "thunder_2.mp3",
-    "thunder_3.mp3",
 ]
 
 # The event is the skull index to enable

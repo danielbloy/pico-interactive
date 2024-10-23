@@ -355,10 +355,10 @@ def new_one_time_on_off_task(
         events = on_off_events.run()
 
         for event in events:
-            if event.event == 0:  # Lights off
+            if event.event == 0:  # Off
                 if off:
                     await off()
-            elif event.event == 1:  # Lights on
+            elif event.event == 1:  # On
                 if on:
                     await on()
             elif event.event == 2:  # End
