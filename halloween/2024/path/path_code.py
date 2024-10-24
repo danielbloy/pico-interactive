@@ -43,7 +43,7 @@ trigger_events.add_event(05.00, 2)
 trigger_events.add_event(07.30, 3)
 trigger_events.add_event(09.60, 4)
 trigger_events.add_event(11.90, 5)
-trigger_events.add_event(15.00, 22)  # Dragon on secondary
+trigger_events.add_event(20.00, 22)  # Dragon on secondary
 trigger_events.add_event(28.00, 11)  # Lion on primary
 trigger_events.add_event(29.00, 105)  # Turn off the lights
 trigger_events.add_event(31.00, 104)
