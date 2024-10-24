@@ -57,8 +57,8 @@ thunder = [
 trigger_events = TriggerTimedEvents()
 trigger_events.add_event(00.00, 99)  # Trigger lightning
 trigger_events.add_event(01.00, 0)  # Trigger thunder
-trigger_events.add_event(10.00, 99)  # Trigger lightning
-trigger_events.add_event(11.00, 1)  # Trigger thunder
+trigger_events.add_event(9.00, 99)  # Trigger lightning
+trigger_events.add_event(10.00, 1)  # Trigger thunder
 trigger_events.add_event(20.00, 99)  # Trigger lightning
 trigger_events.add_event(21.00, 2)  # Trigger thunder
 trigger_events.add_event(30.00, 99)  # Trigger lightning
