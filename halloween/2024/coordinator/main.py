@@ -16,13 +16,15 @@ from nodes import *
 
 PATH_EVENT = 0
 CAULDRON_EVENT = 1
-WITCH_EVENT = 2
-GRAVEYARD_EVENT = 3
-PROJECTOR_EVENT = 4
+FIRE_EVENT = 2
+WITCH_EVENT = 3
+GRAVEYARD_EVENT = 4
+PROJECTOR_EVENT = 5
 
 event_to_node = [
     PATH,
     CAULDRON,
+    FIRE,
     WITCH,
     GRAVEYARD,
     PROJECTOR
@@ -51,8 +53,9 @@ if __name__ == '__main__':
     trigger_events = TriggerTimedEvents()
     trigger_events.add_event(00.00, PATH_EVENT)
     trigger_events.add_event(00.00, PROJECTOR_EVENT)
-    trigger_events.add_event(01.00, CAULDRON_EVENT)
-    trigger_events.add_event(01.00, WITCH_EVENT)
+    trigger_events.add_event(01.00, FIRE_EVENT)
+    trigger_events.add_event(01.10, CAULDRON_EVENT)
+    trigger_events.add_event(01.20, WITCH_EVENT)
     trigger_events.add_event(02.00, GRAVEYARD_EVENT)
 
 
