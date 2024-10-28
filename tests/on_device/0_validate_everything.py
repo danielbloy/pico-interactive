@@ -14,11 +14,14 @@
 
 import time
 
-from audio import AudioController
-from buzzer import BuzzerController
 from interactive.animation import Flicker
+from interactive.audio import AudioController
 from interactive.button import ButtonController
+from interactive.buzzer import BuzzerController
+from interactive.configuration import AUDIO_PIN, BUTTON_PIN, BUZZER_PIN, get_node_config
+from interactive.configuration import ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN, TRIGGER_DISTANCE, TRIGGER_DURATION
 from interactive.environment import are_pins_available, is_running_on_microcontroller
+from interactive.framework import Interactive
 from interactive.led import Led
 from interactive.log import info
 from interactive.log import set_log_level, INFO
@@ -45,13 +48,10 @@ from interactive.ultrasonic import UltrasonicController
 
 STEP_RUN_TIME = 5
 
-REPORT_RAM = is_running_on_microcontroller()
+REPORT_RAM = is_running_on_microcontroller()  # Override
 
 steps = []
 
-BUTTON_PIN = None
-
-BUZZER_PIN = None
 AUDIO_FILE = "lion.mp3"
 
 LED_YELLOW = None
@@ -60,25 +60,37 @@ LED_RED = None
 
 PIXELS_PIN = None  # This is the single onboard NeoPixel connector
 
-ULTRASONIC_TRIGGER_PIN = None
-ULTRASONIC_ECHO_PIN = None
-
 if are_pins_available():
     # noinspection PyPackageRequirements
     import board
 
-    BUTTON_PIN = board.GP27
+    # Defaults in the absence of configuration options
+    if not AUDIO_PIN:
+        AUDIO_PIN = board.GP2
 
-    BUZZER_PIN = board.GP2
+    if not BUTTON_PIN:
+        BUTTON_PIN = board.GP27
+
+    if not BUZZER_PIN:
+        BUZZER_PIN = board.GP2
+
+    if not ULTRASONIC_TRIGGER_PIN:
+        ULTRASONIC_TRIGGER_PIN = board.GP7
+
+    if not ULTRASONIC_ECHO_PIN:
+        ULTRASONIC_ECHO_PIN = board.GP6
+
+    if not TRIGGER_DISTANCE:
+        TRIGGER_DISTANCE = 30
+
+    if not TRIGGER_DURATION:
+        TRIGGER_DURATION = 1
 
     LED_YELLOW = board.GP6
     LED_GREEN = board.GP5
     LED_RED = board.GP1
 
     PIXELS_PIN = board.GP28
-
-    ULTRASONIC_TRIGGER_PIN = board.GP7
-    ULTRASONIC_ECHO_PIN = board.GP6
 
 
 # ********************************************************************************
@@ -309,7 +321,7 @@ def runner_with_mp3_audio() -> None:
     button_controller.add_single_press_handler(single_click_handler)
     button_controller.register(runner)
 
-    audio = new_mp3_player(BUZZER_PIN, AUDIO_FILE)
+    audio = new_mp3_player(AUDIO_PIN, AUDIO_FILE)
     audio_controller = AudioController(audio)
     audio_controller.register(runner)
 
@@ -355,7 +367,7 @@ def runner_with_ultrasonic_sensor() -> None:
 
     ultrasonic = new_ultrasonic(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN)
     ultrasonic_controller = UltrasonicController(ultrasonic)
-    ultrasonic_controller.add_trigger(30, trigger_handler, 1)
+    ultrasonic_controller.add_trigger(TRIGGER_DISTANCE, trigger_handler, TRIGGER_DURATION)
     ultrasonic_controller.register(runner)
 
     async def trigger_handler(distance: float, actual: float) -> None:
@@ -385,7 +397,27 @@ steps.append({"name": "Runner with ultrasonic sensor", "func": runner_with_ultra
 # STEP 6: Interactive framework (limited functionality due to RAM constraints).
 # ********************************************************************************
 def runner_with_interactive_framework() -> None:
-    pass
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before executing runner_with_interactive_framework")
+
+    config = get_node_config()
+    interactive = Interactive(config)
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + STEP_RUN_TIME
+
+    async def callback() -> None:
+        interactive.cancel = time.monotonic() > finish
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
+    interactive.run(callback)
+
+    del interactive, config
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After executing runner_with_interactive_framework")
 
 
 steps.append({"name": "Runner with interactive framework", "func": runner_with_interactive_framework})
