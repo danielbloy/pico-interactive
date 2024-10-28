@@ -6,20 +6,18 @@
 # taking a small amount of time (RAM details will be output at each point and
 # the logger functionality will be used throughout):
 # 1. Runner with Wifi,
-#  1a. TODO: Send and receive messages
-#  1b. TODO: Directory
 # 2. Runner with button and buzzer (melodies)
 # 3. Runner with LEDs, NeoPixels and animations
-# 4. TODO: Runner with audio (MP3s) through buzzer
-# 5. TODO: Runner with ultrasonic sensor
-# 6. TODO: Interactive framework (limited in functionality to conserve RAM).
+# 4. Runner with audio (MP3) through buzzer
+# 5. Runner with ultrasonic sensor
+# 6. Interactive framework (limited in functionality to conserve RAM).
 
 import time
 
+from audio import AudioController
 from buzzer import BuzzerController
 from interactive.animation import Flicker
 from interactive.button import ButtonController
-from interactive.directory import DirectoryService
 from interactive.environment import are_pins_available, is_running_on_microcontroller
 from interactive.led import Led
 from interactive.log import info
@@ -32,37 +30,55 @@ from interactive.polyfills.animation import AQUA, RED, GOLD, YELLOW, ORANGE, GRE
 from interactive.polyfills.animation import BLUE, CYAN, PURPLE, MAGENTA, TEAL
 from interactive.polyfills.animation import ColorCycle, Sparkle, Rainbow, RainbowComet, RainbowChase
 from interactive.polyfills.animation import RainbowSparkle, Blink, Chase, Pulse, Comet
+from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
 from interactive.polyfills.buzzer import new_buzzer
 from interactive.polyfills.led import new_led_pin
 from interactive.polyfills.led import onboard_led
 from interactive.polyfills.network import new_server
 from interactive.polyfills.pixel import new_pixels
+from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
+from interactive.ultrasonic import UltrasonicController
+
+# TODO: Trigger all melodies and audio at start of each step.
+
+STEP_RUN_TIME = 5
 
 REPORT_RAM = is_running_on_microcontroller()
 
 steps = []
 
 BUTTON_PIN = None
+
 BUZZER_PIN = None
+AUDIO_FILE = "lion.mp3"
 
 LED_YELLOW = None
 LED_GREEN = None
 LED_RED = None
+
 PIXELS_PIN = None  # This is the single onboard NeoPixel connector
+
+ULTRASONIC_TRIGGER_PIN = None
+ULTRASONIC_ECHO_PIN = None
 
 if are_pins_available():
     # noinspection PyPackageRequirements
     import board
 
     BUTTON_PIN = board.GP27
+
     BUZZER_PIN = board.GP2
 
     LED_YELLOW = board.GP6
     LED_GREEN = board.GP5
     LED_RED = board.GP1
+
     PIXELS_PIN = board.GP28
+
+    ULTRASONIC_TRIGGER_PIN = board.GP7
+    ULTRASONIC_ECHO_PIN = board.GP6
 
 
 # ********************************************************************************
@@ -88,12 +104,9 @@ def runner_with_wifi() -> None:
     server = new_server(debug=False)
     network_controller = NetworkController(server)
     network_controller.register(runner)
-    directory = DirectoryService()
-    network_controller.server.add_routes(directory.get_routes())
-    directory.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 5
+    finish = time.monotonic() + STEP_RUN_TIME
 
     async def callback() -> None:
         runner.cancel = time.monotonic() > finish
@@ -103,7 +116,9 @@ def runner_with_wifi() -> None:
 
     runner.run(callback)
 
-    del directory, network_controller, server, button_controller, button, runner
+    del network_controller, server, button_controller, button, runner
+
+    # TODO: Send message
 
     if REPORT_RAM:
         report_memory_usage_and_free("After executing runner_with_wifi")
@@ -113,7 +128,7 @@ steps.append({"name": "Runner with WiFi", "func": runner_with_wifi})
 
 
 # ********************************************************************************
-# STEP 2: Runner with Button and Buzzer.
+# STEP 2: Runner with Button and Buzzer (plays a melody)
 # ********************************************************************************
 def runner_with_button_and_buzzer() -> None:
     if REPORT_RAM:
@@ -164,7 +179,7 @@ def runner_with_button_and_buzzer() -> None:
     runner.add_loop_task(play_melody)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 5
+    finish = time.monotonic() + STEP_RUN_TIME
 
     async def callback() -> None:
         runner.cancel = time.monotonic() > finish
@@ -241,7 +256,7 @@ def runner_with_leds_pixels_animations() -> None:
     runner.add_loop_task(animate_pixels)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 5
+    finish = time.monotonic() + STEP_RUN_TIME
 
     async def callback() -> None:
         runner.cancel = time.monotonic() > finish
@@ -266,7 +281,8 @@ def runner_with_leds_pixels_animations() -> None:
 
     runner.run(callback)
 
-    del animation, animations, pixels, yellow_animations, yellow_animation, green_animation, red_animation, reg, green, yello, runner
+    del animation, animations, pixels, yellow_animations, yellow_animation, green_animation, red_animation
+    del red, green, yellow, runner
 
     if REPORT_RAM:
         report_memory_usage_and_free("After executing runner_with_leds_pixels_animations")
@@ -279,7 +295,39 @@ steps.append({"name": "Runner with LEDs, pixels and animations", "func": runner_
 # STEP 4: Runner with Audio (MP3s) through Buzzer.
 # ********************************************************************************
 def runner_with_mp3_audio() -> None:
-    pass
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before executing runner_with_mp3_audio")
+
+    async def single_click_handler() -> None:
+        info('Single click!')
+        audio_controller.queue(AUDIO_FILE)
+
+    runner = Runner()
+
+    button = new_button(BUTTON_PIN)
+    button_controller = ButtonController(button)
+    button_controller.add_single_press_handler(single_click_handler)
+    button_controller.register(runner)
+
+    audio = new_mp3_player(BUZZER_PIN, AUDIO_FILE)
+    audio_controller = AudioController(audio)
+    audio_controller.register(runner)
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + STEP_RUN_TIME
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
+    runner.run(callback)
+
+    del audio_controller, audio, button_controller, button, runner
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After executing runner_with_mp3_audio")
 
 
 steps.append({"name": "Runner with MP3 audio", "func": runner_with_mp3_audio})
@@ -289,7 +337,45 @@ steps.append({"name": "Runner with MP3 audio", "func": runner_with_mp3_audio})
 # STEP 5: Runner with Ultrasonic sensor.
 # ********************************************************************************
 def runner_with_ultrasonic_sensor() -> None:
-    pass
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before executing runner_with_ultrasonic_sensor")
+
+    async def single_click_handler() -> None:
+        info(f"Distance: {ultrasonic.distance}")
+
+    async def trigger_handler(distance: float, actual: float) -> None:
+        info(f"Distance {distance} handler triggered: {actual}")
+
+    runner = Runner()
+
+    button = new_button(BUTTON_PIN)
+    button_controller = ButtonController(button)
+    button_controller.add_single_press_handler(single_click_handler)
+    button_controller.register(runner)
+
+    ultrasonic = new_ultrasonic(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN)
+    ultrasonic_controller = UltrasonicController(ultrasonic)
+    ultrasonic_controller.add_trigger(30, trigger_handler, 1)
+    ultrasonic_controller.register(runner)
+
+    async def trigger_handler(distance: float, actual: float) -> None:
+        info(f"Distance {distance} handler triggered: {actual}")
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + STEP_RUN_TIME
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
+    runner.run(callback)
+
+    del ultrasonic_controller, ultrasonic, button_controller, button, runner
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After executing runner_with_ultrasonic_sensor")
 
 
 steps.append({"name": "Runner with ultrasonic sensor", "func": runner_with_ultrasonic_sensor})
