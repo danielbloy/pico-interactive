@@ -1,6 +1,6 @@
 # This script is designed to be run on the device and tests all functionality
 # to ensure compatibility. This is designed to be run on a board that has
-# a button, buzzer, LEDs, NeoPixels and Wifi. It does test the ultrasonic
+# a button, buzzer, LEDs, NeoPixels and Wifi. It does test the ultrasonic too.
 #
 # Each item is done once at a time in the following order with each section
 # taking a small amount of time (RAM details will be output at each point and
