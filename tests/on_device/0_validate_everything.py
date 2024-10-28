@@ -14,37 +14,14 @@
 
 import time
 
-from interactive.animation import Flicker
-from interactive.audio import AudioController
 from interactive.button import ButtonController
-from interactive.buzzer import BuzzerController
 from interactive.configuration import AUDIO_PIN, BUTTON_PIN, BUZZER_PIN, get_node_config
 from interactive.configuration import ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN, TRIGGER_DISTANCE, TRIGGER_DURATION
 from interactive.environment import are_pins_available, is_running_on_microcontroller
-from interactive.framework import Interactive
-from interactive.led import Led
-from interactive.log import info
-from interactive.log import set_log_level, INFO
-from interactive.melody import MelodySequence, Melody, decode_melody
+from interactive.log import set_log_level, info, INFO
 from interactive.memory import report_memory_usage_and_free
-from interactive.network import NetworkController
-from interactive.polyfills.animation import AMBER, BLACK, WHITE, JADE, PINK, OLD_LACE, AnimationSequence
-from interactive.polyfills.animation import AQUA, RED, GOLD, YELLOW, ORANGE, GREEN
-from interactive.polyfills.animation import BLUE, CYAN, PURPLE, MAGENTA, TEAL
-from interactive.polyfills.animation import ColorCycle, Sparkle, Rainbow, RainbowComet, RainbowChase
-from interactive.polyfills.animation import RainbowSparkle, Blink, Chase, Pulse, Comet
-from interactive.polyfills.audio import new_mp3_player
 from interactive.polyfills.button import new_button
-from interactive.polyfills.buzzer import new_buzzer
-from interactive.polyfills.led import new_led_pin
-from interactive.polyfills.led import onboard_led
-from interactive.polyfills.network import new_server
-from interactive.polyfills.pixel import new_pixels
-from interactive.polyfills.ultrasonic import new_ultrasonic
 from interactive.runner import Runner
-from interactive.ultrasonic import UltrasonicController
-
-# TODO: Trigger all melodies and audio at start of each step.
 
 STEP_RUN_TIME = 5
 
@@ -97,14 +74,14 @@ if are_pins_available():
 # STEP 1: Runner with WiFi
 # ********************************************************************************
 def runner_with_wifi() -> None:
+    from interactive.network import NetworkController, send_message
+    from interactive.polyfills.network import new_server
+
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_wifi")
 
-    led = onboard_led()
-
     async def single_click_handler() -> None:
         info('Single click!')
-        led.value = not led.value
 
     runner = Runner()
 
@@ -130,7 +107,10 @@ def runner_with_wifi() -> None:
 
     del network_controller, server, button_controller, button, runner
 
-    # TODO: Send message
+    # Send message to get the quote from adafruit quotes
+    response = send_message("/api/quotes.php", "www.adafruit.com", "https")
+    info(response.text)
+    response.close()
 
     if REPORT_RAM:
         report_memory_usage_and_free("After executing runner_with_wifi")
@@ -143,6 +123,11 @@ steps.append({"name": "Runner with WiFi", "func": runner_with_wifi})
 # STEP 2: Runner with Button and Buzzer (plays a melody)
 # ********************************************************************************
 def runner_with_button_and_buzzer() -> None:
+    from interactive.buzzer import BuzzerController
+    from interactive.melody import MelodySequence, Melody, decode_melody
+    from interactive.polyfills.buzzer import new_buzzer
+    from interactive.polyfills.led import onboard_led
+
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_button_and_buzzer")
 
@@ -207,13 +192,23 @@ def runner_with_button_and_buzzer() -> None:
         report_memory_usage_and_free("After executing runner_with_button_and_buzzer")
 
 
-steps.append({"name": "Runner with button and buzzer", "func": runner_with_button_and_buzzer()})
+steps.append({"name": "Runner with button and buzzer", "func": runner_with_button_and_buzzer})
 
 
 # ********************************************************************************
 # STEP 3: Runner with LEDs, NeoPixels and animations.
 # ********************************************************************************
 def runner_with_leds_pixels_animations() -> None:
+    from interactive.animation import Flicker
+    from interactive.led import Led
+    from interactive.polyfills.animation import AMBER, BLACK, WHITE, JADE, PINK, OLD_LACE, AnimationSequence
+    from interactive.polyfills.animation import AQUA, RED, GOLD, YELLOW, ORANGE, GREEN
+    from interactive.polyfills.animation import BLUE, CYAN, PURPLE, MAGENTA, TEAL
+    from interactive.polyfills.animation import ColorCycle, Sparkle, Rainbow, RainbowComet, RainbowChase
+    from interactive.polyfills.animation import RainbowSparkle, Blink, Chase, Pulse, Comet
+    from interactive.polyfills.led import new_led_pin
+    from interactive.polyfills.pixel import new_pixels
+
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_leds_pixels_animations")
 
@@ -307,6 +302,9 @@ steps.append({"name": "Runner with LEDs, pixels and animations", "func": runner_
 # STEP 4: Runner with Audio (MP3s) through Buzzer.
 # ********************************************************************************
 def runner_with_mp3_audio() -> None:
+    from interactive.audio import AudioController
+    from interactive.polyfills.audio import new_mp3_player
+
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_mp3_audio")
 
@@ -349,6 +347,9 @@ steps.append({"name": "Runner with MP3 audio", "func": runner_with_mp3_audio})
 # STEP 5: Runner with Ultrasonic sensor.
 # ********************************************************************************
 def runner_with_ultrasonic_sensor() -> None:
+    from interactive.polyfills.ultrasonic import new_ultrasonic
+    from interactive.ultrasonic import UltrasonicController
+
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_ultrasonic_sensor")
 
@@ -397,10 +398,16 @@ steps.append({"name": "Runner with ultrasonic sensor", "func": runner_with_ultra
 # STEP 6: Interactive framework (limited functionality due to RAM constraints).
 # ********************************************************************************
 def runner_with_interactive_framework() -> None:
+    from interactive.framework import Interactive
+
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_interactive_framework")
 
+    async def trigger_start() -> None:
+        info('Trigger start!')
+
     config = get_node_config()
+    config.trigger_start = trigger_start
     interactive = Interactive(config)
 
     # Allow the application to only run for a defined number of seconds.
@@ -428,3 +435,4 @@ if __name__ == '__main__':
 
     for idx, step in enumerate(steps):
         print(f"Running step {idx + 1}: {step["name"]}")
+        step["func"]()

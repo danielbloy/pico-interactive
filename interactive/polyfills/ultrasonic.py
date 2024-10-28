@@ -49,7 +49,7 @@ else:
 
 
     def __new_ultrasonic(trigger, echo) -> Ultrasonic:
-        return Ultrasonic(trigger_pin=trigger, echo_pin=echo)
+        return Ultrasonic(trigger=trigger, echo=echo)
 
 
 def new_ultrasonic(trigger, echo) -> Ultrasonic:
