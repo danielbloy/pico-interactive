@@ -25,6 +25,7 @@ if is_running_on_desktop():
 
 PIXELS_OFF = 0.0
 
+SPIDER_PIXELS = 4
 SPIDER_BRIGHTNESS = 1.0
 SPIDER_SPEED = 0.1
 
@@ -38,7 +39,7 @@ runner.cancel_on_exception = False
 runner.restart_on_exception = True
 runner.restart_on_completion = False
 
-spiders = [new_pixels(pin, 2, brightness=SPIDER_BRIGHTNESS) for pin in SPIDER_PINS if pin is not None]
+spiders = [new_pixels(pin, SPIDER_PIXELS, brightness=SPIDER_BRIGHTNESS) for pin in SPIDER_PINS if pin is not None]
 animations = [Pulse(pixel, speed=SPIDER_SPEED, color=SPIDER_COLOURS[idx], period=SPIDER_PERIODS[idx]) for idx, pixel in
               enumerate(spiders)]
 
@@ -111,8 +112,7 @@ async def lightning_effect() -> None:
 
 async def start_display() -> None:
     for spider in spiders:
-        spider.fill(BLACK)
-        spider.brightness = PIXELS_OFF
+        spider.brightness = SPIDER_BRIGHTNESS
         spider.show()
 
     lightning.fill(BLACK)
@@ -140,7 +140,6 @@ async def stop_display() -> None:
     trigger_events.stop()
 
     for spider in spiders:
-        spider.fill(BLACK)
         spider.brightness = PIXELS_OFF
         spider.show()
 

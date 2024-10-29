@@ -14,8 +14,8 @@ CAULDRON = "192.168.1.198:80"
 PATH = "192.168.1.250:80"
 
 # Nodes for the graveyard installation.
-GRAVEYARD = "192.168.1.219:80"
-# GRAVEYARD = "192.168.1.225:80"
+# GRAVEYARD = "192.168.1.219:80"
+GRAVEYARD = "192.168.1.225:80"
 
 # Projector node: Lenovo Laptop
 PROJECTOR = "192.168.1.248:5001"
