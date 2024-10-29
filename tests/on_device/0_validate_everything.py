@@ -69,6 +69,8 @@ if are_pins_available():
 
     PIXELS_PIN = board.GP28
 
+button = new_button(BUTTON_PIN)
+
 
 # ********************************************************************************
 # STEP 1: Runner with Button and Buzzer (plays a melody)
@@ -77,16 +79,12 @@ def runner_with_button_and_buzzer() -> None:
     from interactive.buzzer import BuzzerController
     from interactive.melody import MelodySequence, Melody, decode_melody
     from interactive.polyfills.buzzer import new_buzzer
-    from interactive.polyfills.led import onboard_led
 
     if REPORT_RAM:
         report_memory_usage_and_free("Before executing runner_with_button_and_buzzer")
 
-    led = onboard_led()
-
     async def single_click_handler() -> None:
         info('Single click!')
-        led.value = not led.value
         buzzer_controller.beeps(3)
 
     async def multi_click_handler() -> None:
@@ -102,7 +100,6 @@ def runner_with_button_and_buzzer() -> None:
 
     runner = Runner()
 
-    button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_press_handler(single_click_handler)
     button_controller.add_multi_press_handler(multi_click_handler)
@@ -137,7 +134,7 @@ def runner_with_button_and_buzzer() -> None:
 
     runner.run(callback)
 
-    del buzzer_controller, melody, buzzer, button_controller, button, runner
+    del buzzer_controller, melody, buzzer, button_controller, runner
 
     if REPORT_RAM:
         report_memory_usage_and_free("After executing runner_with_button_and_buzzer")
@@ -265,7 +262,6 @@ def runner_with_mp3_audio() -> None:
 
     runner = Runner()
 
-    button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_press_handler(single_click_handler)
     button_controller.register(runner)
@@ -285,7 +281,7 @@ def runner_with_mp3_audio() -> None:
 
     runner.run(callback)
 
-    del audio_controller, audio, button_controller, button, runner
+    del audio_controller, audio, button_controller, runner
 
     if REPORT_RAM:
         report_memory_usage_and_free("After executing runner_with_mp3_audio")
@@ -312,7 +308,6 @@ def runner_with_ultrasonic_sensor() -> None:
 
     runner = Runner()
 
-    button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_press_handler(single_click_handler)
     button_controller.register(runner)
@@ -336,7 +331,7 @@ def runner_with_ultrasonic_sensor() -> None:
 
     runner.run(callback)
 
-    del ultrasonic_controller, ultrasonic, button_controller, button, runner
+    del ultrasonic_controller, ultrasonic, button_controller, runner
 
     if REPORT_RAM:
         report_memory_usage_and_free("After executing runner_with_ultrasonic_sensor")
@@ -396,7 +391,6 @@ def runner_with_wifi() -> None:
 
     runner = Runner()
 
-    button = new_button(BUTTON_PIN)
     button_controller = ButtonController(button)
     button_controller.add_single_press_handler(single_click_handler)
     button_controller.register(runner)
@@ -416,7 +410,7 @@ def runner_with_wifi() -> None:
 
     runner.run(callback)
 
-    del network_controller, server, button_controller, button, runner
+    del network_controller, server, button_controller, runner
 
     # Send message to get the quote from adafruit quotes
     response = send_message("/api/quotes.php", "www.adafruit.com", "https")
