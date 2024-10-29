@@ -5,12 +5,12 @@
 # Each item is done once at a time in the following order with each section
 # taking a small amount of time (RAM details will be output at each point and
 # the logger functionality will be used throughout):
-# 1. Runner with Wifi,
-# 2. Runner with button and buzzer (melodies)
-# 3. Runner with LEDs, NeoPixels and animations
-# 4. Runner with audio (MP3) through buzzer
-# 5. Runner with ultrasonic sensor
-# 6. Interactive framework (limited in functionality to conserve RAM).
+# 1. Runner with button and buzzer (melodies)
+# 2. Runner with LEDs, NeoPixels and animations
+# 3. Runner with audio (MP3) through buzzer
+# 4. Runner with ultrasonic sensor
+# 5. Interactive framework (limited in functionality to conserve RAM).
+# 6. Runner with Wifi,
 
 import time
 
@@ -71,56 +71,7 @@ if are_pins_available():
 
 
 # ********************************************************************************
-# STEP 1: Runner with WiFi
-# ********************************************************************************
-def runner_with_wifi() -> None:
-    from interactive.network import NetworkController, send_message
-    from interactive.polyfills.network import new_server
-
-    if REPORT_RAM:
-        report_memory_usage_and_free("Before executing runner_with_wifi")
-
-    async def single_click_handler() -> None:
-        info('Single click!')
-
-    runner = Runner()
-
-    button = new_button(BUTTON_PIN)
-    button_controller = ButtonController(button)
-    button_controller.add_single_press_handler(single_click_handler)
-    button_controller.register(runner)
-
-    server = new_server(debug=False)
-    network_controller = NetworkController(server)
-    network_controller.register(runner)
-
-    # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + STEP_RUN_TIME
-
-    async def callback() -> None:
-        runner.cancel = time.monotonic() > finish
-
-    if REPORT_RAM:
-        report_memory_usage_and_free("Before running Runner")
-
-    runner.run(callback)
-
-    del network_controller, server, button_controller, button, runner
-
-    # Send message to get the quote from adafruit quotes
-    response = send_message("/api/quotes.php", "www.adafruit.com", "https")
-    info(response.text)
-    response.close()
-
-    if REPORT_RAM:
-        report_memory_usage_and_free("After executing runner_with_wifi")
-
-
-steps.append({"name": "Runner with WiFi", "func": runner_with_wifi})
-
-
-# ********************************************************************************
-# STEP 2: Runner with Button and Buzzer (plays a melody)
+# STEP 1: Runner with Button and Buzzer (plays a melody)
 # ********************************************************************************
 def runner_with_button_and_buzzer() -> None:
     from interactive.buzzer import BuzzerController
@@ -196,7 +147,7 @@ steps.append({"name": "Runner with button and buzzer", "func": runner_with_butto
 
 
 # ********************************************************************************
-# STEP 3: Runner with LEDs, NeoPixels and animations.
+# STEP 2: Runner with LEDs, NeoPixels and animations.
 # ********************************************************************************
 def runner_with_leds_pixels_animations() -> None:
     from interactive.animation import Flicker
@@ -299,7 +250,7 @@ steps.append({"name": "Runner with LEDs, pixels and animations", "func": runner_
 
 
 # ********************************************************************************
-# STEP 4: Runner with Audio (MP3s) through Buzzer.
+# STEP 3: Runner with Audio (MP3s) through Buzzer.
 # ********************************************************************************
 def runner_with_mp3_audio() -> None:
     from interactive.audio import AudioController
@@ -344,7 +295,7 @@ steps.append({"name": "Runner with MP3 audio", "func": runner_with_mp3_audio})
 
 
 # ********************************************************************************
-# STEP 5: Runner with Ultrasonic sensor.
+# STEP 4: Runner with Ultrasonic sensor.
 # ********************************************************************************
 def runner_with_ultrasonic_sensor() -> None:
     from interactive.polyfills.ultrasonic import new_ultrasonic
@@ -395,7 +346,7 @@ steps.append({"name": "Runner with ultrasonic sensor", "func": runner_with_ultra
 
 
 # ********************************************************************************
-# STEP 6: Interactive framework (limited functionality due to RAM constraints).
+# STEP 5: Interactive framework (limited functionality due to RAM constraints).
 # ********************************************************************************
 def runner_with_interactive_framework() -> None:
     from interactive.framework import Interactive
@@ -428,6 +379,55 @@ def runner_with_interactive_framework() -> None:
 
 
 steps.append({"name": "Runner with interactive framework", "func": runner_with_interactive_framework})
+
+
+# ********************************************************************************
+# STEP 6: Runner with WiFi
+# ********************************************************************************
+def runner_with_wifi() -> None:
+    from interactive.network import NetworkController, send_message
+    from interactive.polyfills.network import new_server
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before executing runner_with_wifi")
+
+    async def single_click_handler() -> None:
+        info('Single click!')
+
+    runner = Runner()
+
+    button = new_button(BUTTON_PIN)
+    button_controller = ButtonController(button)
+    button_controller.add_single_press_handler(single_click_handler)
+    button_controller.register(runner)
+
+    server = new_server(debug=False)
+    network_controller = NetworkController(server)
+    network_controller.register(runner)
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + STEP_RUN_TIME
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
+    runner.run(callback)
+
+    del network_controller, server, button_controller, button, runner
+
+    # Send message to get the quote from adafruit quotes
+    response = send_message("/api/quotes.php", "www.adafruit.com", "https")
+    info(response.text)
+    response.close()
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After executing runner_with_wifi")
+
+
+steps.append({"name": "Runner with WiFi", "func": runner_with_wifi})
 
 # Execute each step in turn to test the device.
 if __name__ == '__main__':
