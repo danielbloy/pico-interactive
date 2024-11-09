@@ -20,28 +20,9 @@ for [Raspberry Pi Pico](https://thepihut.com/products/raspberry-pi-pico-w?varian
 The framework is designed to be used for single board projects used in Coding Clubs
 up to larger interactive display installations that consist of many boards each
 performing in isolation or coordinated over network connections. The framework has
-been tested and works on the following boards:
-
-* Raspberry Pi Pico (tested running CircuitPython 9.0.5)
-  * [Raspberry Pi Pico (no network support)](https://shop.pimoroni.com/products/raspberry-pi-pico?variant=32402092294227)
-  * [Raspberry Pi Pico W](https://shop.pimoroni.com/products/raspberry-pi-pico-w?variant=40059369619539)
-  * [Pimoroni Plasma Stick 2040 W](https://shop.pimoroni.com/products/plasma-stick-2040-w?variant=40359072301139)
-  * [Pimoroni Tiny 2040 (no network support)](https://shop.pimoroni.com/products/tiny-2040?variant=39560012234835)
-* Desktop PCs running (all require Python 3.10 or later; tested with Python 3.10, 3.11 and 3.12):
-  * Windows (pins available via Blinka, though beware the limitations on pin performance)
-  * Linux (tested but not with Blinka)
-  * MacOS (not tested)
-
-The following devices are also in testing phase for support:
-
-* [Raspberry Pi 3A+ (pins via Blinka)](https://shop.pimoroni.com/products/raspberry-pi-3-a-plus?variant=17989206507603)
-* [Raspberry Pi Zero 2 W (pins via Blinka)](https://shop.pimoroni.com/products/raspberry-pi-zero-2-w?variant=39493046075475)
-
-The following devices will be added once CircuitPython support is added:
-
-* [Raspberry Pi Pico 2 (no network support)](https://shop.pimoroni.com/products/raspberry-pi-pico-2?variant=42096955424851)
-* [Pimoroni Pico Plus 2 (no network support)](https://shop.pimoroni.com/products/pimoroni-pico-plus-2?variant=42092668289107)
-* [Pimoroni Pico Plus 2 W](https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w?variant=42182811942995)
+been tested and works with a range of microcontroller boards. See the
+[README.md](circuitpython/README.md) in the `circuitpython` directory for a full
+list of supported boards and CircuitPython versions.
 
 The basic structure of this project is:
 
@@ -68,19 +49,6 @@ more information about the license.
 
 ## List of functionality
 
-* [x] Support for CircuitPython:
-  * [x] 9.0.5
-  * [ ] 9.1.4
-  * [ ] 9.2.0
-* [x] Support for Python on Desktops (Windows, Linux, MacOS):
-  * [x] 3.10
-  * [x] 3.11
-  * [x] 3.12
-* [ ] Support for Python Raspberry Pi
-  * [ ] Raspberry Pi Zero 2 W
-  * [ ] Raspberry Pi 3A+/3B+
-  * [ ] Raspberry Pi 4/400
-  * [ ] Raspberry Pi 5
 * [x] Add generic task runner that handles both completion and exceptions and support restarts.
   * [x] Works on CircuitPython
   * [x] Works with Blinka
@@ -111,10 +79,10 @@ more information about the license.
   * [x] Works with Blinka
 * [x] Add Ultrasonic sensor support
   * [x] Works on CircuitPython
-  * [ ] ~~Works with Blinka~~
+  * [ ] ~~Works with Blinka~~ Blinka is too slow on PC
 * [x] Add Audio support
   * [x] Works on CircuitPython
-  * [ ] ~~Works with Blinka~~
+  * [ ] ~~Works with Blinka~~ Blinka is too slow on PC
 * [x] Add Wi-Fi support
   * [x] Works on CircuitPython
   * [x] Works with Blinka
