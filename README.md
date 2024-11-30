@@ -1,5 +1,7 @@
 # pico-interactive
 
+Please see my website [Code Club Adventures](http://codeclubadventures.com/) for more coding materials.
+
 ## Inspiration
 
 For details of the inspiration of this project, see
