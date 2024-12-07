@@ -49,6 +49,14 @@ All work in this project are provided under a permissive license to allow this c
 be used in a range of educational and personal settings. See the end of this readme for
 more information about the license.
 
+## Immediate TODOs
+
+* [ ] Update CircuitPython library bundle
+* [ ] Complete testing on CircuitPython 9.2.x now boards have arrived
+* [ ] Move and update existing `hardware` section to Halloween repo based on actual hardware boards used.
+* [ ] Replace `hardware` section with examples for each supported commercial board
+* [ ] Setup full hardware test cycle for Pi Zero 2 and Pi boards
+
 ## List of functionality
 
 * [x] Add generic task runner that handles both completion and exceptions and support restarts.

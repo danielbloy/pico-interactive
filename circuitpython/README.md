@@ -8,23 +8,27 @@ against:
 
 * [x] CircuitPython 9.0.5
 * [ ] CircuitPython 9.1.4 - testing in progress
-* [ ] CircuitPython 9.2.0 - testing in progress
+* [ ] CircuitPython 9.2.1 - testing in progress
 
 The CircuitPython libraries that are required for the project have been extracted
 out into the `lib` directory for easy access.
 
 ## Supported microcontroller boards
 
-The full set of supported microcontroller boards are:
+The full set of supported microcontroller boards (those I own and test) are:
 
 * [Raspberry Pi Pico (no network support)](https://shop.pimoroni.com/products/raspberry-pi-pico?variant=40059364311123)
 * [Raspberry Pi Pico W](https://shop.pimoroni.com/products/raspberry-pi-pico-w?variant=40059369652307)
 * [Pimoroni Plasma Stick 2040 W](https://shop.pimoroni.com/products/plasma-stick-2040-w?variant=40359072301139)
 * [Pimoroni Tiny 2040 (no network support)](https://shop.pimoroni.com/products/tiny-2040?variant=39560012234835)
+* [Pimoroni Inventor 2040 W](https://shop.pimoroni.com/products/inventor-2040-w?variant=40053063155795)
+* [Pimoroni Pico W Unicorn](https://shop.pimoroni.com/products/space-unicorns?variant=40842033561683)
+* [Pimoroni PicoSystem](https://shop.pimoroni.com/products/picosystem?variant=32369546985555)
 
 The following microcontroller boards are in testing phase for support:
 
 * [Raspberry Pi Pico 2 (no network support)](https://shop.pimoroni.com/products/raspberry-pi-pico-2?variant=42096955424851)
+* [Raspberry Pi Pico 2 W](https://shop.pimoroni.com/products/raspberry-pi-pico-2-w?variant=54852252991867)
 * [Pimoroni Pico Plus 2 (no network support)](https://shop.pimoroni.com/products/pimoroni-pico-plus-2?variant=42092668289107)
 * [Pimoroni Pico Plus 2 W](https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w?variant=42182811942995)
 * [Pimoroni Plasma 2350](https://shop.pimoroni.com/products/plasma-2350?variant=42092628246611)
@@ -42,12 +46,16 @@ The following microcontroller boards are in testing phase for support:
   * [ ] Raspberry Pi Pico W
   * [ ] Pimoroni Plasma Stick 2040 W
   * [ ] Pimoroni Tiny 2040
-* [ ] CircuitPython 9.2.0 - testing in progress
+* [ ] CircuitPython 9.2.1 - testing in progress
   * [ ] Raspberry Pi Pico
   * [ ] Raspberry Pi Pico W
   * [ ] Pimoroni Plasma Stick 2040 W
   * [ ] Pimoroni Tiny 2040
+  * [ ] Pimoroni Inventor 2040 W
+  * [ ] Pimoroni Pico W Unicorn
+  * [ ] Pimoroni PicoSystem
   * [ ] Raspberry Pi Pico 2
+  * [ ] Raspberry Pi Pico 2 W
   * [ ] Pimoroni Pico Plus 2
   * [ ] Pimoroni Pico Plus 2 W
   * [ ] Pimoroni Plasma 2350
