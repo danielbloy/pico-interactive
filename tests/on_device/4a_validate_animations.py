@@ -115,7 +115,7 @@ if __name__ == '__main__':
     button_controller.register(runner)
 
     # Allow the application to only run for a defined number of seconds.
-    finish = time.monotonic() + 30
+    finish = time.monotonic() + 10
 
 
     async def callback() -> None:

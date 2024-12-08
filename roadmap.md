@@ -11,6 +11,10 @@ from the libraries that were migrated but had no tests.
 
 ## Version 1.0.2
 
+* Modify the `test/on_device` programs to use configuration to make testing multiple devices easier.
+* Add instructions on each `test/on_device` program to make it easier to know what to expect.
+* Have a "test all" program that works within Pico 1 memory limits and one that works with Pico 2.
+* Fix issue with `5_validate_interactive.py` defaulting to using an Ultrasonic sensor on demo board.
 * Validate support for CircuitPython 9.2.x and Pico 2 boards.
 * Update to newest CircuitPython library bundle.
 * Document the best way to use `pico-interactive` based on available device RAM/board classification
