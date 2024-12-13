@@ -16,7 +16,6 @@ from the libraries that were migrated but had no tests.
 * Have a "test all" program that works within Pico 1 memory limits and one that works with Pico 2.
 * Ensure device tests can run with Blinka too.
 * Fix issue with `5_validate_interactive.py` defaulting to using an Ultrasonic sensor on demo board.
-* Validate support for CircuitPython 9.2.x and Pico 2 boards.
 * Update to newest CircuitPython library bundle.
 * Document the best way to use `pico-interactive` based on available device RAM/board classification
   (i.e. Network uses so much RAM that it is difficult for a Pico 1 to do much else).

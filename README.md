@@ -114,7 +114,7 @@ For details of the planned set of changes, please see [roadmap.md](./roadmap.md)
 
 ### Version 1.0.1
 
-* Validated support for CircuitPython 9.1.4 on Pico boards.
+* Validated support for CircuitPython 9.1.4 and 9.2.1 on Pico boards.
 
 ### Version 1.0.0
 

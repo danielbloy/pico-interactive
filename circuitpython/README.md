@@ -15,7 +15,7 @@ being tested.
 | CircuitPython Version:  | 9.2.1 | 9.1.4 | 9.0.5 |
 |-------------------------|-------|-------|-------|
 | pico-interactive v1.0.0 |       | Pass  | Pass  |
-| pico-interactive v1.0.1 |       | Pass  | Pass  |
+| pico-interactive v1.0.1 | Pass  | Pass  | Pass  |
 
 ## Tested Microcontrollers 
 
