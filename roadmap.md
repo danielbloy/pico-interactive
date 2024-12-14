@@ -19,6 +19,7 @@ from the libraries that were migrated but had no tests.
 * Document the best way to use `pico-interactive` based on available device RAM/board classification
   (i.e. Network uses so much RAM that it is difficult for a Pico 1 to do much else).
 * Include version number in the `pico-interactive` library.
+* Support using board.LED for an LED in tests (so it works with Pico 2 W)
 
 ## Version 1.0.3
 
