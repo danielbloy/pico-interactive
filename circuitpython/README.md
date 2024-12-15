@@ -49,6 +49,9 @@ Microcontroller boards tested with CircuitPython 9.2.x and `pico-interactive`:
 * [Adafruit ItsyBitsy M4 Express](https://shop.pimoroni.com/products/adafruit-itsybitsy-m4-express-featuring-atsamd51?variant=12519303086163) 
 * [Adafruit EdgeBadge](https://shop.pimoroni.com/products/adafruit-edgebadge-tensorflow-lite-for-microcontrollers?variant=31251813400659)
 * [Adafruit PyBadge LC](https://shop.pimoroni.com/products/adafruit-pybadge-lc-makecode-arcade-circuitpython-or-arduino-low-cost-version?variant=30267341111379)
+* [BBC micro:bit V2](https://shop.pimoroni.com/products/new-micro-bit-v2?variant=32271548481619)
+  * The BBC micro:bit requires updated firmware which you can get from [here](https://microbit.org/get-started/user-guide/firmware/).  
+* [KittenBot Meowbit](https://www.kittenbot.cc/products/meowbit-codable-console-for-microsoft-makecode-arcade)
 
 ## Supported computers
 
