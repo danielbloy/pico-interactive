@@ -1,37 +1,60 @@
 import time
 
-import board
-from analogio import AnalogIn
+from interactive.environment import are_pins_available, is_running_on_microcontroller
+from interactive.log import set_log_level, INFO
+from interactive.memory import report_memory_usage_and_free
+from interactive.microphone import MicrophoneController
+from interactive.polyfills.microphone import Microphone
+from interactive.runner import Runner
 
-mic_pin = AnalogIn(board.A0)
-sampleWindow = 100
-ADC_Value = 0
+REPORT_RAM = is_running_on_microcontroller()
 
+MICROPHONE_PIN = None
 
-def millis():
-    return int(time.monotonic_ns() / 1000000)
+if are_pins_available():
+    # noinspection PyPackageRequirements
+    import board
 
+    MICROPHONE_PIN = board.A0
 
-divisor = 65535 / 10
+if __name__ == '__main__':
 
+    set_log_level(INFO)
 
-def loop():
-    startMillis = millis()
-    InMax = 0
-    InMin = 65535
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before creating Objects")
 
-    while (millis() - startMillis < sampleWindow):
-        ADC_Value = mic_pin.value
-
-        if ADC_Value > InMax:
-            InMax = ADC_Value
-        elif ADC_Value < InMin:
-            InMin = ADC_Value
-
-    PeakValue = InMax - InMin
-    PeakValue = int(PeakValue / divisor)
-    print(f"{PeakValue:3}", "*" * PeakValue)
+    runner = Runner()
 
 
-while True:
-    loop()
+    async def handle_sample(minimum, maximum: int) -> None:
+        amplitude = maximum - minimum
+        divisor = microphone.max / 100
+
+        percent = int(amplitude / divisor)
+        print(f"{minimum:6} {maximum:6} {percent:3}", "*" * percent)
+
+
+    microphone = Microphone(MICROPHONE_PIN)
+    microphone_controller = MicrophoneController(microphone, frequency=120)
+    microphone_controller.register(runner)
+    microphone_controller.add_handler(handle_sample)
+    microphone_controller.start()
+
+    # Allow the application to only run for a defined number of seconds.
+    finish = time.monotonic() + 10
+
+
+    async def callback() -> None:
+        runner.cancel = time.monotonic() > finish
+        if runner.cancel:
+            microphone_controller.stop()
+
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("Before running Runner")
+
+    runner.run(callback)
+
+    if REPORT_RAM:
+        report_memory_usage_and_free("After running Runner")
