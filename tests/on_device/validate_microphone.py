@@ -1,7 +1,7 @@
 import time
 
 from interactive.environment import are_pins_available, is_running_on_microcontroller
-from interactive.log import set_log_level, INFO
+from interactive.log import set_log_level, INFO, info
 from interactive.memory import report_memory_usage_and_free
 from interactive.microphone import MicrophoneController
 from interactive.polyfills.microphone import Microphone
@@ -30,9 +30,8 @@ if __name__ == '__main__':
     async def handle_sample(minimum, maximum: int) -> None:
         amplitude = maximum - minimum
         divisor = microphone.max / 100
-
         percent = int(amplitude / divisor)
-        print(f"{minimum:6} {maximum:6} {percent:3}", "*" * percent)
+        info(f"{minimum:6} {maximum:6} {percent:3} {'*' * percent}")
 
 
     microphone = Microphone(MICROPHONE_PIN)
