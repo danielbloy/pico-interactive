@@ -73,12 +73,14 @@ add the appropriate libraries into your `venv`. In the project covered here it i
 adafruit-circuitpython-busdevice
 adafruit-circuitpython-connectionmanager
 adafruit-circuitpython-debouncer
+adafruit-circuitpython-framebuf
 adafruit-circuitpython-hcsr04
 adafruit-circuitpython-httpserver
 adafruit-circuitpython-led-animation
 adafruit-circuitpython-logging
 adafruit-circuitpython-neopixel
 adafruit-circuitpython-pixelbuf
+adafruit-circuitpython-pixel-framebuf
 adafruit-circuitpython-pixelmap
 adafruit-circuitpython-requests
 adafruit-circuitpython-ticks

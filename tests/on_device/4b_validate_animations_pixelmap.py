@@ -24,9 +24,6 @@ if are_pins_available():
     import board
 
     BUTTON_PIN = board.GP27
-    LED_YELLOW = board.GP6
-    LED_GREEN = board.GP5
-    LED_RED = board.GP1
     PIXELS_PIN = board.GP15  # on a PlasmaStick
 
 if __name__ == '__main__':
@@ -38,6 +35,7 @@ if __name__ == '__main__':
 
     runner = Runner()
 
+    # See this example: https://learn.adafruit.com/circuitpython-led-animations/pixel-mapping
     from adafruit_pixelmap import PixelMap, horizontal_strip_gridmap
 
     pixels = new_pixels(PIXELS_PIN, 400, brightness=0.5)
