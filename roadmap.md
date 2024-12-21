@@ -66,6 +66,12 @@ from the libraries that were migrated but had no tests.
 
 ## Version 1.1.0
 
+* Remove the adafruit_animations from the polyfills. These can be imported directly and it will
+  help simplify the code. The polyfills are really only needed for the core framework code and
+  the animations aren't.
+
+## Version 1.2.0
+
 * Migrate to a lighter weight, faster and async HTTP server stack such as [Biplane](https://github.com/Uberi/biplane).
   This will likely involve a notable reworking of the network code.
 * Add time of day support.
