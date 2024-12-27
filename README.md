@@ -113,6 +113,10 @@ For details of the planned set of changes, please see [roadmap.md](./roadmap.md)
 
 ## Changelog
 
+### Version 2.0.0
+
+* Restructure!
+
 ### Version 1.0.2
 
 * Update to newest CircuitPython library bundle from 6th December 2024.
