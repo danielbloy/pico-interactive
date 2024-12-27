@@ -79,6 +79,7 @@ adafruit-circuitpython-led-animation
 adafruit-circuitpython-logging
 adafruit-circuitpython-neopixel
 adafruit-circuitpython-pixelbuf
+adafruit-circuitpython-pixelmap
 adafruit-circuitpython-requests
 adafruit-circuitpython-ticks
 adafruit-circuitpython-typing
@@ -111,6 +112,11 @@ that I have found with Blinka are:
 For details of the planned set of changes, please see [roadmap.md](./roadmap.md).
 
 ## Changelog
+
+### Version 1.0.2
+
+* Update to newest CircuitPython library bundle from 6th December 2024.
+* Added adafruit-pixelbuf to support grids of NeoPixels.
 
 ### Version 1.0.1
 
