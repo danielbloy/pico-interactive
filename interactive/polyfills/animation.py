@@ -90,7 +90,6 @@ if are_pins_available():
         del sparkle
 
 
-
 else:
 
     class Animation:
