@@ -220,8 +220,6 @@ class Runner:
         """
 
         async def wait_for_finished_tasks() -> None:
-            nonlocal tasks
-
             completed: int = 0
             pending: int = 0
             for task in tasks:
@@ -238,8 +236,6 @@ class Runner:
                 self.cancel = True
 
         async def cancel_handler() -> None:
-            nonlocal tasks
-
             # Monitor in the background for all tasks to complete.
             await self.__new_scheduled_task_handler(wait_for_finished_tasks)()
 

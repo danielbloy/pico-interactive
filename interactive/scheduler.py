@@ -54,7 +54,7 @@ def new_scheduled_task(
     sleep_interval = interval / SCHEDULER_INTERNAL_LOOP_RATIO
 
     async def handler() -> None:
-        nonlocal interval_ns, next_callback_ns, sleep_interval
+        nonlocal next_callback_ns
         while not cancel_func():
             if time.monotonic_ns() >= next_callback_ns:
                 next_callback_ns += interval_ns
@@ -347,11 +347,9 @@ def new_one_time_on_off_task(
 
     # Cancel when either the cancel function is called or our events have finished.
     def cancel() -> bool:
-        nonlocal on_off_events
         return cancel_func() or not on_off_events.running
 
     async def handler() -> None:
-        nonlocal on_off_events
         events = on_off_events.run()
 
         for event in events:
