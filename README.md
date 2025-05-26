@@ -51,7 +51,7 @@ more information about the license.
 
 ## Setting up the development environment
 
-This project has been developed using the PyCharm IDE with a VENV for bythong as well
+This project has been developed using the PyCharm IDE with a VENV for python as well
 as using Blnika (see [Blinka](#blinka)) to easily test the interaction with a
 CircuitPython board. The other libraries that are used and need to be installed into
 the Virtual Environment are:
@@ -70,7 +70,7 @@ Once Blinka is setup and you are running your CircuitPython code from PyCharm, y
 add the appropriate libraries into your `venv`. In the project covered here it includes:
 
 ```shell
-adafruit-circuitpython-busdevice
+adafruit-circuitpython-busdevice  
 adafruit-circuitpython-connectionmanager
 adafruit-circuitpython-debouncer
 adafruit-circuitpython-hcsr04
