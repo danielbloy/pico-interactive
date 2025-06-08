@@ -9,12 +9,14 @@ from interactive.polyfills.animation import ORANGE, RED
 from interactive.polyfills.pixel import new_pixels
 from interactive.runner import Runner
 
-FIRE_PIN_1 = board.GP29
-FIRE_PIN_2 = board.GP27
+FIRE_PIN_1 = board.GP29  # Tiny 2040, output 1
+# FIRE_PIN_1 = board.GP28  # Pico 2040, output 1
+FIRE_PIN_2 = board.GP27  # Tiny 2040, output 2
 FIRE_COLOUR_PRIMARY = ORANGE
 FIRE_COLOUR_SECONDARY = RED
-FIRE_BRIGHTNESS = 1.0
-FIRE_SPEED = 0.05
+FIRE_BRIGHTNESS = 0.5  # Tiny 2040
+# FIRE_BRIGHTNESS = 1.0 # Pico H
+FIRE_SPEED = 0.1
 
 LOG_LEVEL = CRITICAL
 runner = Runner()
@@ -23,8 +25,8 @@ runner.cancel_on_exception = False
 runner.restart_on_exception = True
 runner.restart_on_completion = True
 
-pixels_1 = new_pixels(FIRE_PIN_1, 100, brightness=FIRE_BRIGHTNESS)
-pixels_2 = new_pixels(FIRE_PIN_2, 100, brightness=FIRE_BRIGHTNESS)
+pixels_1 = new_pixels(FIRE_PIN_1, 60, brightness=FIRE_BRIGHTNESS)
+pixels_2 = new_pixels(FIRE_PIN_2, 60, brightness=FIRE_BRIGHTNESS)
 
 animation_1 = Flicker(pixels_1, speed=FIRE_SPEED, color=FIRE_COLOUR_PRIMARY)
 animation_2 = Flicker(pixels_2, speed=FIRE_SPEED, color=FIRE_COLOUR_PRIMARY)
@@ -32,9 +34,6 @@ animation_2 = Flicker(pixels_2, speed=FIRE_SPEED, color=FIRE_COLOUR_PRIMARY)
 for i in range(0, 59, 2):
     animation_1.set(i, FIRE_COLOUR_SECONDARY)
     animation_2.set(i, FIRE_COLOUR_SECONDARY)
-
-
-# pixels.show()
 
 
 async def animate_pixels() -> None:
