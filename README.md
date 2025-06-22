@@ -7,6 +7,10 @@ Please see my website [Code Club Adventures](http://codeclubadventures.com/) for
 For details of the inspiration of this project, see
 [pico-interactive-originals](https://github.com/danielbloy/pico-interactive-origins)
 
+This project is what controlled the majority of the Halloween 2024 project and will
+continue to drive the majority of the Halloween 2025 project but I plan to migrate
+to my newer framework ([cptkip](https://github.com/danielbloy/cptkip)) over time.
+
 ### Halloween 2024
 
 The first interactive display to make use of this project will be Halloween 2024.
