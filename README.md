@@ -7,9 +7,11 @@ Please see my website [Code Club Adventures](http://codeclubadventures.com/) for
 For details of the inspiration of this project, see
 [pico-interactive-originals](https://github.com/danielbloy/pico-interactive-origins)
 
-This project is what controlled the majority of the Halloween 2024 project and will
-continue to drive the majority of the Halloween 2025 project but I plan to migrate
-to my newer framework ([cptkip](https://github.com/danielbloy/cptkip)) over time.
+This project is what controls the majority of my annual Halloween project and will
+continue to do so for many years yet, particularly because the Pico 2 provides much
+more RAM allowing a single device to coordinate many tasks and networking. However,
+I also use my lighter weight framework ([cptkip](https://github.com/danielbloy/cptkip))
+in some of that projects nodes as it is designed for a smaller memory footprint.
 
 ### Halloween 2024
 
